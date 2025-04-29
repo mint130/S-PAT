@@ -1,8 +1,112 @@
 /** @type {import('tailwindcss').Config} */
-export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}", "./node_modules/flowbite/**/*.js"],
+module.exports = {
+  content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      minWidth: {
+        app: "510px",
+      },
+      colors: {
+        transparent: "transparent",
+        black: "#000000",
+        white: "#FFFFFF",
+
+        "primart-black": "#282858", // 주 사용 검은색
+        "primary-gray": "#666F8D", // 주 사용 회색
+
+        "primary-blue": "#4461F2", // 주 사용 파란색
+
+        // 선택된 박스
+        "select-box": "#F6FAFF",
+        "select-box-border": "#B8D8FF", // 선택된 박스의 border
+        "select-box-icon": "#64A7FF", // 선택된 박스의 border hover
+
+        // LLM 모델 색
+        GPT: "#000000",
+        Claude: "#D77757",
+        Gemini: "#3693DA",
+        Grok: "#999999",
+      },
+      fontFamily: {
+        samsung400: ["Samsung400", "sans-serif"],
+        samsung700: ["Samsung700", "sans-serif"],
+        samsungSharp: ["SamsungSharp", "sans-serif"],
+      },
+      fontSize: {
+        logo: [
+          "45px", // 로고 글자 크기
+          {
+            lineHeight: "54px",
+            letterSpacing: "-0.3px",
+          },
+        ],
+        title: [
+          "28px", // 타이틀 크기
+          {
+            lineHeight: "34px",
+            letterSpacing: "-0.3px",
+          },
+        ],
+        subtitle: [
+          "18px", // 서브 타이틀 크기
+          {
+            lineHeight: "24px",
+            letterSpacing: "-0.2px",
+          },
+        ],
+        "table-title": [
+          "18px", // 테이블 타이틀 크기
+          {
+            lineHeight: "26px",
+            letterSpacing: "-0.2px",
+          },
+        ],
+        "table-subtitle": [
+          "12px", // 테이블 서브 타이틀 크기
+          {
+            lineHeight: "16px",
+            letterSpacing: "0px",
+          },
+        ],
+        "table-content": [
+          "14px", // 테이블 내용 크기
+          {
+            lineHeight: "20px",
+            letterSpacing: "-0.1px",
+          },
+        ],
+      },
+      // fontWeight: {
+      //   "p-700": "700", // h1~h5였음
+      //   "p-500": "500", // medium, subtitle
+      //   "p-400": "400",
+      //   "p-800": "800",
+      // },
+      boxShadow: {
+        sm: "0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.2)",
+        md: "0 0.125rem 0.625rem rgba(0, 0, 0, 0.2)",
+        lg: "0 0.25rem 1rem rgba(0, 0, 0, 0.2)",
+        xl: "0 1rem 2rem rgba(0, 0, 0, 0.2)",
+      },
+      keyframes: {
+        drift: {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
+        },
+      },
+    },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities({
+        ".scrollbar-hide": {
+          "-ms-overflow-style": "none",
+          "scrollbar-width": "none",
+          "&::-webkit-scrollbar": {
+            display: "none",
+          },
+        },
+      });
+    },
+  ],
 };
