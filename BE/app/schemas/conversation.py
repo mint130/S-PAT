@@ -16,6 +16,6 @@ class ConversationResponse(BaseModel):
     }
 
 class SessionHistoryResponse(BaseModel):
-    createdAt: str
+    created_at: str
     query: str
     answer: Dict[str, Any]    

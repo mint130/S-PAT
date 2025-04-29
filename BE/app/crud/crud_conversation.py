@@ -28,15 +28,12 @@ def get_conversation_history_by_session(
         Conversation.session_id == session_id
     ).order_by(Conversation.created_at).all()
 
+    # 대화 시간, 질문, 대답만 담아서 리스트에 담음
     result = []
     for conv in conversations:
-        print("answer", conv.answer)
-        parsed_answer = json.loads(conv.answer)
-
-
         result.append({
             "created_at": conv.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             "query": conv.query,
-            "answer": parsed_answer
+            "answer": conv.answer
         })
     return result
