@@ -16,7 +16,6 @@ from langchain.schema.runnable import RunnableMap
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
-from langchain_upstage import UpstageEmbeddings
 import faiss
 from langchain_community.vectorstores import FAISS
 
@@ -29,7 +28,6 @@ load_dotenv()
 
 user_router = APIRouter(prefix="/user")
 
-embedding_upstage = UpstageEmbeddings(model="embedding-query")
 
 # 텍스트 분할
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=0)
