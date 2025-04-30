@@ -7,7 +7,9 @@ from app.api.routers import api_router
 app = FastAPI(
     title="S-PAT",
     description="API documentation",
-    version="1.0"
+    version="1.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc"
 )
 
 app.include_router(api_router, prefix="/api")
