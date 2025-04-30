@@ -155,3 +155,14 @@ async def create_conversation(session_id: str, conv: ConversationRequest, db: Se
         error_detail = str(e) + "\n" + traceback.format_exc()
         print(f"Error occurred: {error_detail}")
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
+    
+
+@standard_router.get("/{session_id}/conversation", response_model=List[SessionHistoryResponse], summary="해당 세션 아이디의 모든 대화 조회", description="해당 세션 아이디에 발생한 질문과 답변을 json형태로 반환합니다.")
+async def get_session_history(session_id: str, db: Session = Depends(get_db)):
+    # 데이터베이스에서 해당 세션 ID의 대화 내역 조회
+    conversations = get_conversation_history_by_session(db, session_id)
+
+    if not conversations:
+        raise HTTPException(status_code=404, detail=f"Session ID {session_id} not found")
+    
+    return conversations
