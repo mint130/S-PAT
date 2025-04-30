@@ -19,5 +19,14 @@
   font-family: "SamsungSharp";
   font-style: normal;
   font-weight: normal;
-  src: local("Samsung Sharp Sans Bold"), url("SamsungSharpSans-Bold.woff") format("woff");
+  src: local("Samsung Sharp Sans Bold"),
+    url("SamsungSharpSans-Bold.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Pretendard";
+  src: url("https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Bold.woff")
+    format("woff");
+  font-weight: 700;
+  font-style: normal;
 }
