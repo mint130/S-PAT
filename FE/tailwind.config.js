@@ -13,9 +13,8 @@ module.exports = {
 
         background: "#F7F8FA", // 배경색
 
-        "primart-black": "#282858", // 주 사용 검은색
+        "primary-black": "#282858", // 주 사용 검은색
         "primary-gray": "#666F8D", // 주 사용 회색
-
         "primary-blue": "#4461F2", // 주 사용 파란색
 
         // 선택된 박스
@@ -30,6 +29,7 @@ module.exports = {
         Grok: "#999999",
       },
       fontFamily: {
+        pretendard: ["Pretendard", "sans-serif"],
         samsung400: ["Samsung400", "sans-serif"],
         samsung700: ["Samsung700", "sans-serif"],
         samsungSharp: ["SamsungSharp", "sans-serif"],
@@ -43,14 +43,14 @@ module.exports = {
           },
         ],
         title: [
-          "28px", // 타이틀 크기
+          "24px", // 타이틀 크기
           {
             lineHeight: "34px",
             letterSpacing: "-0.3px",
           },
         ],
         subtitle: [
-          "18px", // 서브 타이틀 크기
+          "15px", // 서브 타이틀 크기
           {
             lineHeight: "24px",
             letterSpacing: "-0.2px",

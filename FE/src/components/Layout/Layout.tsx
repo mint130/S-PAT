@@ -10,7 +10,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <>
       <div className="h-screen w-full bg-background flex justify-between">
         <Sidebar />
-        <div className="w-4/5 rounded-xl bg-gradient-to-b from-white to-blue-100 shadow-lg flex flex-col justify-start items-center m-2">
+        <div className="w-4/5 rounded-xl bg-gradient-to-b from-white to-blue-100 shadow-lg flex flex-col justify-start m-2">
           {children}
         </div>
       </div>
