@@ -3,21 +3,20 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: "Samsung400"; /* 공백 제거, 간결한 이름으로 변경 */
+  font-family: "Samsung400";
   font-style: normal;
   font-weight: normal;
   src: local("SamsungOne 400"), url("SamsungOne-400.woff") format("woff");
 }
 
 @font-face {
-  font-family: "Samsung700"; /* 공백 제거, 간결한 이름으로 변경 */
-  font-style: normal;
+  font-family: "Samsung700";
   font-weight: normal;
   src: local("SamsungOne 700"), url("SamsungOne-700.woff") format("woff");
 }
 
 @font-face {
-  font-family: "SamsungSharp"; /* 공백 제거, 간결한 이름으로 변경 */
+  font-family: "SamsungSharp";
   font-style: normal;
   font-weight: normal;
   src: local("Samsung Sharp Sans Bold"), url("SamsungSharpSans-Bold.woff") format("woff");
