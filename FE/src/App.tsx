@@ -1,15 +1,18 @@
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import TestPages from "./pages/TestPages";
+import Layout from "./components/Layout/Layout";
 
 function App() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/test" element={<TestPages />} />
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <>
+      <Layout>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/test" element={<TestPages />} />
+          </Routes>
+        </BrowserRouter>
+      </Layout>
+    </>
   );
 }
 

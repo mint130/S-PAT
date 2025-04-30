@@ -11,6 +11,8 @@ module.exports = {
         black: "#000000",
         white: "#FFFFFF",
 
+        background: "#F7F8FA", // 배경색
+
         "primart-black": "#282858", // 주 사용 검은색
         "primary-gray": "#666F8D", // 주 사용 회색
 
