@@ -1,5 +1,6 @@
 import { Camera } from "lucide-react";
 import Title from "../components/common/Title";
+import Button from "../components/common/Button";
 
 function TestPages() {
   return (
@@ -12,6 +13,25 @@ function TestPages() {
       <div className="flex flex-col items-center justify-center h-screen">
         <h1 className="font-samsungSharp">Samsung Patent AI Technology</h1>
         <Camera color="red" size={48} />
+      </div>
+
+      {/* Button 사용예시 */}
+      <div className="w-full flex gap-2 items-center justify-center ">
+        <Button>다음</Button>
+        <Button mode="secondary">이전</Button>
+        <Button disabled={true}>비활성화</Button>
+        <Button isLoading={true}>로딩</Button>
+        <Button className="w-40 h-12">커스텀 크기</Button>
+        <Button onClick={() => alert("버튼이 클릭되었습니다!")}>클릭</Button>
+        {/* 복합 예시 
+        <Button
+          isLoading={isSubmitting}
+          disabled={!isFormValid}
+          onClick={handleSubmit}
+          className="w-full mt-4">
+          제출하기
+        </Button> 
+        */}
       </div>
     </>
   );
