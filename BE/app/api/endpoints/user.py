@@ -35,15 +35,7 @@ text_splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=0)
 user_vector_stores: Dict[str, FAISS] = {}
 
     
-@user_router.get("/standard/{session_id}", response_model=List[SessionHistoryResponse], summary="해당 세션 아이디의 모든 대화 조회", description="해당 세션 아이디에 발생한 질문과 답변을 json형태로 반환합니다.")
-async def get_session_history(session_id: str, db: Session = Depends(get_db)):
-    # 데이터베이스에서 해당 세션 ID의 대화 내역 조회
-    conversations = get_conversation_history_by_session(db, session_id)
 
-    if not conversations:
-        raise HTTPException(status_code=404, detail=f"Session ID {session_id} not found")
-    
-    return conversations
 
 
 
