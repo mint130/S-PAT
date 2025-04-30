@@ -17,6 +17,8 @@ module.exports = {
         "primary-gray": "#666F8D", // 주 사용 회색
         "primary-blue": "#4461F2", // 주 사용 파란색
 
+        "hover-blue": "#425DE0",
+
         // 선택된 박스
         "select-box": "#F6FAFF",
         "select-box-border": "#B8D8FF", // 선택된 박스의 border
