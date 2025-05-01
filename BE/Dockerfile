@@ -19,7 +19,6 @@ COPY ./app /code/app
 # alembic 관련 파일들 복사
 COPY ./alembic /code/alembic
 COPY ./alembic.ini /code/alembic.ini
-COPY ./env.py /code/env.py
 
 HEALTHCHECK --interval=30s --timeout=3s \
   CMD curl -f http://localhost:8000/api/health || exit 1
