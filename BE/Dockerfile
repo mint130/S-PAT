@@ -16,5 +16,13 @@ EXPOSE 8000
 # 전체 app 디렉토리를 컨테이너에 복사
 COPY ./app /code/app
 
+# alembic 관련 파일들 복사
+COPY ./alembic /code/alembic
+COPY ./alembic.ini /code/alembic.ini
+COPY ./env.py /code/env.py
+
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD curl -f http://localhost:8000/api/health || exit 1
+
 # FastAPI 앱을 uvicorn으로 실행
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
