@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Paperclip, Send } from "lucide-react";
-import { Button } from "../common/Button";
+import Button from "../common/Button";
 
 interface PromptProps {
   onSubmit?: (promptText: string) => void;
@@ -44,16 +44,16 @@ const Prompt: React.FC<PromptProps> = ({ onSubmit }) => {
           <Button
             variant="outline"
             icon={<Paperclip className="h-4 w-4" />}
-            className="bg-[#F7F8FA] border border-gray-100 text-[#19213D] rounded-lg px-2 py-1 hover:bg-gray-50 font-samsung400 text-xs">
+            size="sm"
+            textSize="xs">
             Upload
           </Button>
 
           <Button
-            variant="primary"
             onClick={handleSubmit}
             isLoading={isLoading}
             icon={<Send className="h-4 w-4" />}
-            className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-primary-blue font-samsung400"
+            size="sm"
             disabled={promptText.trim() === "" || isLoading}></Button>
         </div>
       </div>
