@@ -5,7 +5,7 @@ interface TitleProps {
 
 function Title({ text, subText }: TitleProps) {
   return (
-    <div className="flex flex-col p-8">
+    <div className="flex flex-col">
       <div className="font-pretendard text-primary-black text-title">
         {text}
       </div>
