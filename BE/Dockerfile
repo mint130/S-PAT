@@ -10,9 +10,6 @@ COPY ./requirements.txt /code/requirements.txt
 # 필요한 파이썬 패키지를 설치
 RUN pip install --no-cache-dir -r /code/requirements.txt
 
-# .env 파일을 컨테이너에 복사
-COPY .env /code/.env
-
 # 컨테이너에서 사용할 포트 8000을 명시적으로 열어줌
 EXPOSE 8000
 
