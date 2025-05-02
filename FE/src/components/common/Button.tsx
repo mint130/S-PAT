@@ -36,11 +36,11 @@ function Button({
 
   // 버튼 크기 스타일
   const sizeStyles: Record<ButtonSize, string> = {
-    sm: "px-2 py-1", // 작은 크기 (콘텐츠에 맞춤)
+    sm: "px-2 py-1.5", // 작은 크기 (콘텐츠에 맞춤)
     md: "w-28 h-8 p-2", // 중간 크기 (표준)
-    lg: "w-full px-2 py-3", // 큰 크기 (전체 너비)
+    lg: "w-full px-2 py-2.5", // 큰 크기 (전체 너비)
   };
-  
+
   // 텍스트 크기 스타일
   const textSizeStyles: Record<TextSize, string> = {
     xs: "text-xs",
