@@ -1,6 +1,7 @@
 import React from "react";
 import { Moon, Plus } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import Button from "./Button";
 
 const SideBar: React.FC = () => {
   const location = useLocation();
@@ -147,12 +148,12 @@ const SideBar: React.FC = () => {
         </div>
 
         {/* 새 특허 시작 버튼 */}
-        <button
+        <Button
           onClick={startNewPatent}
-          className="w-full flex items-center justify-center bg-primary-blue text-white py-3 rounded-md font-samsung400">
-          <Plus className="h-5 w-5 mr-2" />
+          icon={<Plus className="h-5 w-5" />}
+          size="lg">
           Start new patent
-        </button>
+        </Button>
       </div>
     </div>
   );
