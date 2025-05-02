@@ -1,54 +1,66 @@
-import { ReactNode } from "react";
+import React from "react";
 import { LoaderCircle } from "lucide-react";
 
-interface ButtonProps {
-  className?: string; // 추가 클래스 속성
-  mode?: "primary" | "secondary"; // 버튼 스타일 모드
-  disabled?: boolean; // 버튼 비활성화 여부
+// 타입 정의 개선
+type ButtonVariant = "primary" | "outline";
+type ButtonSize = "sm" | "md" | "lg";
+type TextSize = "xs" | "sm" | "md" | "lg";
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant; // 버튼 색상
+  size?: ButtonSize; // 버튼 크기
+  textSize?: TextSize; // 텍스트 크기
   isLoading?: boolean; // 로딩 상태 표시 여부
-  onClick?: () => void; // 클릭 이벤트 핸들러
-  preventDefault?: boolean; // 기본 이벤트 방지 여부
-  stopPropagation?: boolean; // 이벤트 전파 방지 여부
-  children?: ReactNode; // 버튼 내부 콘텐츠
+  icon?: React.ReactNode; // 아이콘
 }
 
 function Button({
-  className = "",
-  mode = "primary",
+  variant = "primary",
+  size = "md",
+  textSize = "sm",
   disabled = false,
   isLoading = false,
-  onClick,
-  preventDefault = true,
-  stopPropagation = true,
+  icon,
   children,
+  className = "",
+  ...props // 나머지 모든 속성들 (onClick 포함)
 }: ButtonProps) {
   // 기본 클래스
-  const baseClasses = `flex items-center justify-center w-28 h-9 p-2 text-sm font-pretendard tracking-wider rounded-lg transition-colors duration-200
-  disabled:text-gray-400/60 disabled:bg-gray-200 disabled:border-gray-500 disabled:cursor-not-allowed 
-  ${isLoading && !disabled ? "cursor-wait pointer-events-none" : ""}`;
+  const baseClasses = `flex items-center justify-center border font-pretendard tracking-wider rounded-lg transition-colors whitespace-nowrap ${isLoading ? "cursor-wait" : "disabled:opacity-50 disabled:cursor-not-allowed"}`;
 
-  // 모드별 스타일 정의
-  const modeStyles = {
-    primary: `bg-primary-blue text-white border border-hover-blue
-    ${!isLoading ? "hover:bg-hover-blue" : ""}`, // 기본 모드1: 파란색 배경, 흰색 텍스트
-    secondary: `bg-white text-black border border-gray-200
-    ${!isLoading ? "hover:bg-gray-100" : ""}`, // 기본 모드2: 흰색 배경, 검은색 텍스트
+  // 버튼 색상 스타일
+  const variantStyles: Record<ButtonVariant, string> = {
+    primary: `bg-primary-blue text-white border-hover-blue ${!disabled && !isLoading ? "hover:bg-hover-blue" : ""}`, // 파란색 배경, 흰색 텍스트
+    outline: `bg-white text-black border-gray-200 ${!disabled && !isLoading ? "hover:bg-gray-100" : ""}`, // 흰색 배경, 검은색 텍스트
+  };
+
+  // 버튼 크기 스타일
+  const sizeStyles: Record<ButtonSize, string> = {
+    sm: "px-2 py-1", // 작은 크기 (콘텐츠에 맞춤)
+    md: "w-28 h-8 p-2", // 중간 크기 (표준)
+    lg: "w-full px-2 py-3", // 큰 크기 (전체 너비)
+  };
+  
+  // 텍스트 크기 스타일
+  const textSizeStyles: Record<TextSize, string> = {
+    xs: "text-xs",
+    sm: "text-sm",
+    md: "text-base",
+    lg: "text-lg",
   };
 
   return (
     <button
-      className={`${baseClasses} ${!disabled ? modeStyles[mode] : ""} ${className}`}
-      disabled={disabled}
-      onClick={(e) => {
-        // 이벤트 처리 로직
-        if (preventDefault) e.preventDefault(); // 기본 이벤트 방지
-        if (stopPropagation) e.stopPropagation(); // 이벤트 버블링 방지
-        if (!disabled && !isLoading) onClick?.(); // 비활성화나 로딩 상태가 아닐 때만 클릭 이벤트 실행
-      }}>
-      {isLoading && !disabled ? (
-        <LoaderCircle className="w-5 h-5 animate-spin" strokeWidth={3} /> // 로딩 중 아이콘 표시
+      className={`${baseClasses} ${variantStyles[variant]} ${sizeStyles[size]} ${textSizeStyles[textSize]} ${className}`}
+      disabled={disabled || isLoading}
+      {...props}>
+      {isLoading ? (
+        <LoaderCircle className="w-4 h-4 animate-spin" strokeWidth={3} /> // 로딩 중 아이콘 표시
       ) : (
-        children // 기본 상태에서는 자식 요소 표시
+        <>
+          {icon && <span className={children ? "mr-2" : ""}>{icon}</span>}
+          {children}
+        </>
       )}
     </button>
   );

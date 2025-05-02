@@ -18,20 +18,22 @@ function TestPages() {
       {/* Button 사용예시 */}
       <div className="w-full flex gap-2 items-center justify-center ">
         <Button>다음</Button>
-        <Button mode="secondary">이전</Button>
+        <Button variant="outline">이전</Button>
         <Button disabled={true}>비활성화</Button>
         <Button isLoading={true}>로딩</Button>
-        <Button className="w-40 h-12">커스텀 크기</Button>
-        <Button onClick={() => alert("버튼이 클릭되었습니다!")}>클릭</Button>
+        <Button size="sm" textSize="xs">
+          사이즈
+        </Button>
+        <Button size="lg" onClick={() => alert("버튼이 클릭되었습니다!")}>
+          클릭
+        </Button>
         {/* 복합 예시 
         <Button
           isLoading={isSubmitting}
           disabled={!isFormValid}
-          onClick={handleSubmit}
-          className="w-full mt-4">
+          onClick={handleSubmit}>
           제출하기
-        </Button> 
-        */}
+        </Button> */}
       </div>
     </>
   );
