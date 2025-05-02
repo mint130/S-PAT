@@ -28,7 +28,7 @@ load_dotenv()
 
 standard_router = APIRouter(prefix="/standard")
 
-llm = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), temperature=0)
+llm = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model_name="gpt-4o", temperature=0)
 
 # json output parser 정의
 output_parser = JsonOutputParser()
@@ -146,12 +146,11 @@ def get_memory(session_id: str) -> ConversationBufferMemory:
 async def create_conversation(session_id: str, conv: ConversationRequest, db: Session = Depends(get_db)):
     try:
         # 메모리 가져오기
-        if session_id not in conversation_memories:
-            conversation_memories[session_id] = ConversationBufferMemory(memory_key="chat_history")
-        memory = conversation_memories[session_id]
+        memory = get_memory(session_id)
 
         # 메모리에 입력 저장
         memory.chat_memory.add_user_message(conv.query)
+        print("메모리 내용:", memory.load_memory_variables)
 
         # Chain 만들기
         chain = RunnableMap({
@@ -167,6 +166,9 @@ async def create_conversation(session_id: str, conv: ConversationRequest, db: Se
 
         # db에 대화 저장
         create_conversation_record(db, session_id, conv.query, response)
+
+        # 메모리에 응답 저장
+        memory.chat_memory.add_ai_message(response)
         
         # JSON 응답 반환
         return {"standards": response}
@@ -176,6 +178,7 @@ async def create_conversation(session_id: str, conv: ConversationRequest, db: Se
         error_detail = str(e) + "\n" + traceback.format_exc()
         print(f"Error occurred: {error_detail}")
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
+
     
 
 @standard_router.get("/{session_id}/conversation", response_model=List[SessionHistoryResponse], summary="해당 세션 아이디의 모든 대화 조회", description="해당 세션 아이디에 발생한 질문과 답변을 json형태로 반환합니다.")
