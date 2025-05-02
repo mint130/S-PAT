@@ -1,6 +1,6 @@
 import os
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from datetime import datetime
@@ -19,6 +19,10 @@ from app.schemas.conversation import ConversationRequest, ConversationResponse, 
 from app.db.database import get_db
 from app.models.conversation import Conversation
 from app.crud.crud_conversation import create_conversation_record, get_conversation_history_by_session
+
+from app.crud.crud_excel import process_excel_file
+from app.schemas.excel import StandardResponse, StandardLLMResponse
+from app.crud.crud_llm import process_standards_with_llm
 
 load_dotenv()
 
@@ -65,30 +69,44 @@ template = """
 
 [예시2]
 요청:
-휴머노이드의 전원 시스템과 에너지 회수 기술에 대해 분류 체계를 만들어줘.
+자동차 바퀴 특허 기술에 대한 분류 체계를 만들어줘.
 
 정답:
 [
   {{
-    "code": "H01-02",
-    "level": "중분류",
-    "name": "전원 및 배터리 시스템",
-    "description": "휴머노이드 내부 전자 시스템과 모터를 작동시키기 위한 에너지를 공급하는 전원 시스템. 휴대성과 안정성 고려."
+  "code": "A01",
+  "level": "대분류",
+  "name": "자동차 바퀴 기술",
+  "description": "자동차의 구동, 제동, 조향 성능에 직결되는 바퀴(휠 및 타이어) 관련 핵심 기술로, 구조, 재료, 성능 향상, 내구성, 환경 대응 등을 포함한다."
   }},
   {{
-    "code": "H01-02-01",
-    "level": "소분류",
-    "name": "고출력 리튬이온 배터리",
-    "description": "고출력 밀도의 리튬이온 배터리를 적용하여 장시간 사용 및 고속 충전 기능을 지원하는 전원 기술."
+  "code": "A01-01",
+  "level": "중분류",
+  "name": "휠 구조 및 재료 기술",
+  "description": "자동차 바퀴의 휠에 적용되는 구조적 설계 및 사용 재료에 관한 기술로, 경량화, 강성 확보, 디자인 향상 등을 포함한다."
   }},
   {{
-    "code": "H01-02-02",
-    "level": "소분류",
-    "name": "에너지 회수 시스템",
-    "description": "휴머노이드의 움직임이나 제동 시 발생하는 에너지를 회수하여 배터리 효율을 높이는 기술."
+  "code": "A01-01-01",
+  "level": "소분류",
+  "name": "단조 알루미늄 휠",
+  "description": "고온·고압에서 가공된 알루미늄을 사용하여 강도와 경량을 동시에 확보한 휠 제조 기술로, 고성능 차량에 주로 적용된다."
+  }},
+  {{
+  "code": "A01-02",
+  "level": "중분류",
+  "name": "타이어 성능 향상 기술",
+  "description": "노면 접지력, 주행 안정성, 마모 저항성, 연비 향상 등을 위해 타이어의 재질, 구조, 패턴 등을 최적화하는 기술."
+  }},
+  {{
+  "code": "A01-02-01",
+  "level": "소분류",
+  "name": "저연비 실리카 타이어",
+  "description": "타이어 트레드에 실리카를 첨가하여 회전 저항을 줄이고 연비를 향상시키는 동시에 젖은 노면에서의 접지력을 유지하는 친환경 기술."
   }}
 ]
 
+[이전 생성한 분류 체계]
+{chat_history}
 
 [유저의 요청]
 {user_input}
@@ -96,8 +114,11 @@ template = """
 유저의 요청에 맞게 분류 체계를 생성해서 JSON 배열 형태로 반환해줘. 
 각 항목은 code, level, name, description 필드를 포함해야 해. 
 각 코드는 계층 구조(대분류: H01, 중분류: H01-01, 소분류: H01-01-01)를 따라야 해.
-요청한 개수만큼 생성해줘.
+반드시 이전에 생성한 분류 체계의 주제와 도메인을 유지하면서 확장해야 해.
+예를 들어, 이전에 비행기 날개에 대한 분류였다면, 추가되는 분류도 반드시 비행기 날개 관련 기술이어야 해.
+이전 생성한 분류체계가 있다면 요청에 따라 새로운 체계를 생성하는 것이 아닌 기존 분류체계에서 수정하여 반영해줘.
 """
+
 
 # prompttemplate 정의
 prompt = PromptTemplate(
@@ -166,3 +187,22 @@ async def get_session_history(session_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=f"Session ID {session_id} not found")
     
     return conversations
+
+
+@standard_router.post("/{session_id}/upload", response_model=StandardResponse, summary="엑셀 파일 업로드 후 JSON 변환", description="엑셀 파일을 업로드하여 분류 체계를 JSON으로 변환합니다.")
+async def upload_excel(session_id: str, file: UploadFile = File(...)):
+    standards = await process_excel_file(file)
+    return {"standard": standards}
+
+
+@standard_router.post("/{session_id}/upload/prompt", response_model=StandardLLMResponse, summary="엑셀 파일 업로드와 프롬프트로 분류 체계 생성(미완)", description="엑셀 파일을 업로드하고 GPT를 사용하여 분류 체계를 처리합니다.")
+async def process_with_llm(
+    session_id: str,
+    file: UploadFile = File(...),
+    query: str = Form(...)
+):
+    standards, gpt_response = await process_standards_with_llm(file, query)
+    return {
+        "standards": standards,
+        "query": query
+    }
