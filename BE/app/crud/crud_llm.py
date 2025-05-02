@@ -1,13 +1,13 @@
 from typing import List
 import os
 from openai import OpenAI
-from schemas.excel import StandardItem
-from crud.crud_excel import process_excel_file
+from app.schemas.excel import StandardItem
+from app.crud.crud_excel import process_excel_file
 from fastapi import UploadFile, HTTPException
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-async def process_standards_with_gpt(file: UploadFile, query: str) -> tuple[List[StandardItem], str]:
+async def process_standards_with_llm(file: UploadFile, query: str) -> tuple[List[StandardItem], str]:
     try:
         # 엑셀 파일 처리
         standards = await process_excel_file(file)

@@ -1,6 +1,6 @@
 import os
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from datetime import datetime
@@ -19,6 +19,10 @@ from app.schemas.conversation import ConversationRequest, ConversationResponse, 
 from app.db.database import get_db
 from app.models.conversation import Conversation
 from app.crud.crud_conversation import create_conversation_record, get_conversation_history_by_session
+
+from app.crud.crud_excel import process_excel_file
+from app.schemas.excel import StandardResponse, StandardLLMResponse
+from app.crud.crud_llm import process_standards_with_llm
 
 load_dotenv()
 
@@ -185,24 +189,18 @@ async def get_session_history(session_id: str, db: Session = Depends(get_db)):
     return conversations
 
 
-@standard_router.post("/{session_id}/upload", response_model=StandardResponse)
+@standard_router.post("/{session_id}/upload", response_model=StandardResponse, summary="엑셀 파일 업로드 후 JSON 변환", description="엑셀 파일을 업로드하여 분류 체계를 JSON으로 변환합니다.")
 async def upload_excel(session_id: str, file: UploadFile = File(...)):
-    """
-    엑셀 파일을 업로드하여 분류 체계를 JSON으로 변환합니다.
-    """
     standards = await process_excel_file(file)
     return {"standard": standards}
 
 
-@standard_router.post("/{session_id}/upload/prompt", response_model=StandardLLMResponse)
+@standard_router.post("/{session_id}/upload/prompt", response_model=StandardLLMResponse, summary="엑셀 파일 업로드와 프롬프트로 분류 체계 생성(미완)", description="엑셀 파일을 업로드하고 GPT를 사용하여 분류 체계를 처리합니다.")
 async def process_with_llm(
     session_id: str,
     file: UploadFile = File(...),
     query: str = Form(...)
 ):
-    """
-    엑셀 파일을 업로드하고 GPT를 사용하여 분류 체계를 처리합니다.
-    """
     standards, gpt_response = await process_standards_with_llm(file, query)
     return {
         "standards": standards,

@@ -1,7 +1,7 @@
 import pandas as pd
 from fastapi import UploadFile, HTTPException
 from typing import List, Dict, Any
-from schemas.excel import StandardItem
+from app.schemas.excel import StandardItem
 
 async def process_excel_file(file: UploadFile) -> List[StandardItem]:
     if not file.filename.endswith(('.xlsx', '.xls')):
