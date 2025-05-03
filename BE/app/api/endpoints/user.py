@@ -22,10 +22,10 @@ from app.schemas.conversation import ConversationRequest, ConversationResponse, 
 from app.db.database import get_db
 from app.models.conversation import Conversation
 from app.crud.crud_conversation import create_conversation_record, get_conversation_history_by_session
-from app.core.redis_config import redis_config
+# from app.core.redis_config import redis_config
 
 load_dotenv()
-redis = redis_config()
+# redis = redis_config()
 
 user_router = APIRouter(prefix="/user")
 embeddings_openai = OpenAIEmbeddings(model="text-embedding-3-large", dimensions=3072)
