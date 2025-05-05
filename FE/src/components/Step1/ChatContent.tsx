@@ -27,7 +27,6 @@ const ChatContent: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [expandedTables, setExpandedTables] = useState<number[]>([]); // 확장된 테이블 인덱스 추적
-  const [selectedData, setSelectedData] = useState<Standard[] | null>(null); // 선택된 표준 데이터
   const [selectedMessageIndex, setSelectedMessageIndex] = useState<
     number | null
   >(null); // 선택된 메시지 인덱스
@@ -107,21 +106,11 @@ const ChatContent: React.FC = () => {
     });
   };
 
-  // 테이블 선택 토글 함수
-  const toggleTableSelection = (
-    standards: Standard[],
-    messageIndex: number
-  ) => {
-    if (selectedMessageIndex === messageIndex) {
-      // 이미 선택된 테이블을 다시 클릭한 경우 선택 해제
-      setSelectedData(null);
-      setSelectedMessageIndex(null);
-    } else {
-      // 새로운 테이블 선택
-      setSelectedData(standards);
-      setSelectedMessageIndex(messageIndex);
-      console.log("선택된 데이터:", standards); // 선택된 데이터 로그
-    }
+  // 테이블 선택 토글 함수 (단순화)
+  const toggleTableSelection = (messageIndex: number) => {
+    setSelectedMessageIndex((prev) =>
+      prev === messageIndex ? null : messageIndex
+    );
   };
 
   // 표준 테이블 렌더링 함수
@@ -273,12 +262,7 @@ const ChatContent: React.FC = () => {
                         {isStandardArray && (
                           <div className="ml-auto">
                             <button
-                              onClick={() =>
-                                toggleTableSelection(
-                                  message.content as Standard[],
-                                  index
-                                )
-                              }
+                              onClick={() => toggleTableSelection(index)}
                               className={`px-3 py-1 rounded text-sm font-medium transition-colors duration-200 ${
                                 isSelected
                                   ? "bg-blue-500 text-white"
