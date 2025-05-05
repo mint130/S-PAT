@@ -40,7 +40,7 @@ async def process_standards_with_llm(file: UploadFile, query: str) -> tuple[List
                 {"role": "system", "content": "당신은 기술 분류 체계 전문가입니다. 주어진 분류 체계를 기반으로 사용자의 질문에 답변해주세요."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
+            temperature=0.1,
             max_tokens=2000
         )
 
