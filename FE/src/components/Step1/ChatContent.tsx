@@ -15,9 +15,10 @@ interface Standard {
   description: string;
 }
 
+// 메시지 타입 정의 (문자열 내용 또는 표준 배열 내용)
 interface Message {
   type: MessageType;
-  content: string | Standard[]; // content가 문자열 또는 Standard 배열이 될 수 있음
+  content: string | Standard[];
   timestamp: Date;
 }
 
@@ -26,6 +27,10 @@ const ChatContent: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [expandedTables, setExpandedTables] = useState<number[]>([]); // 확장된 테이블 인덱스 추적
+  const [selectedData, setSelectedData] = useState<Standard[] | null>(null); // 선택된 표준 데이터
+  const [selectedMessageIndex, setSelectedMessageIndex] = useState<
+    number | null
+  >(null); // 선택된 메시지 인덱스
 
   // 스크롤을 위한 ref
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -40,14 +45,13 @@ const ChatContent: React.FC = () => {
 
   // API 호출 함수
   const fetchAssistantResponse = async (prompt: string) => {
-    const session_id = "123456";
-    console.log("prompt 입니다.", prompt);
+    const session_id = "1234567";
     const result = await axios.post(
       `https://s-pat.site/api/standard/${session_id}`,
       { query: prompt }
     );
-    console.log("API Response:", result.data.standards); // API 응답 로그
-    return result.data.standards;
+    console.log("API Response:", result.data);
+    return result.data;
   };
 
   // 메시지 제출 핸들러
@@ -71,7 +75,7 @@ const ChatContent: React.FC = () => {
       // 응답 메시지 추가
       const assistantMessage: Message = {
         type: "assistant",
-        content: response, // 이제 response는 Standard 배열이 될 수 있음
+        content: response.standards,
         timestamp: new Date(),
       };
 
@@ -103,17 +107,21 @@ const ChatContent: React.FC = () => {
     });
   };
 
-  // 응답이 표준 배열인지 확인하는 함수
-  const isStandardsArray = (content: any): content is Standard[] => {
-    return (
-      Array.isArray(content) &&
-      content.length > 0 &&
-      content[0] &&
-      typeof content[0] === "object" &&
-      "code" in content[0] &&
-      "level" in content[0] &&
-      "name" in content[0]
-    );
+  // 테이블 선택 토글 함수
+  const toggleTableSelection = (
+    standards: Standard[],
+    messageIndex: number
+  ) => {
+    if (selectedMessageIndex === messageIndex) {
+      // 이미 선택된 테이블을 다시 클릭한 경우 선택 해제
+      setSelectedData(null);
+      setSelectedMessageIndex(null);
+    } else {
+      // 새로운 테이블 선택
+      setSelectedData(standards);
+      setSelectedMessageIndex(messageIndex);
+      console.log("선택된 데이터:", standards); // 선택된 데이터 로그
+    }
   };
 
   // 표준 테이블 렌더링 함수
@@ -224,6 +232,8 @@ const ChatContent: React.FC = () => {
                 hour: "2-digit",
                 minute: "2-digit",
               });
+              const isSelected = selectedMessageIndex === index;
+              const isStandardArray = !isUser && Array.isArray(message.content);
 
               return (
                 <div key={index} className="mb-6">
@@ -258,18 +268,46 @@ const ChatContent: React.FC = () => {
                         <span className="ml-2 text-xs text-gray-500">
                           {formattedTime}
                         </span>
+
+                        {/* 표준 배열인 경우에만 선택 버튼 표시 */}
+                        {isStandardArray && (
+                          <div className="ml-auto">
+                            <button
+                              onClick={() =>
+                                toggleTableSelection(
+                                  message.content as Standard[],
+                                  index
+                                )
+                              }
+                              className={`px-3 py-1 rounded text-sm font-medium transition-colors duration-200 ${
+                                isSelected
+                                  ? "bg-blue-500 text-white"
+                                  : "bg-white text-primary-blue border border-primary-blue hover:bg-blue-50"
+                              }`}>
+                              {isSelected ? "선택완료" : "선택하기"}
+                            </button>
+                          </div>
+                        )}
                       </div>
-                      {/* AI 메시지 - 표준 배열이면 테이블로, 텍스트면 그대로 표시 */}
+
+                      {/* AI 메시지 - 타입에 따라 렌더링 */}
                       <div className="pl-10">
-                        <div className="bg-white font-pretendard font-medium text-gray-800 rounded-lg px-4 py-2 shadow-sm">
-                          {isStandardsArray(message.content) ? (
-                            // 표준 데이터인 경우 테이블로 표시
-                            renderStandardsTable(message.content, index)
-                          ) : (
-                            // 일반 텍스트인 경우 그대로 표시
+                        <div
+                          className={`bg-white font-pretendard font-medium text-gray-800 rounded-lg px-4 py-2 shadow-sm 
+                            transition-all duration-200 
+                            ${
+                              isSelected
+                                ? "border-2 border-blue-500"
+                                : "border border-transparent"
+                            }`}>
+                          {typeof message.content === "string" ? (
+                            // 일반 텍스트인 경우
                             <div className="whitespace-pre-wrap">
-                              {message.content as string}
+                              {message.content}
                             </div>
+                          ) : (
+                            // 표준 배열인 경우
+                            renderStandardsTable(message.content, index)
                           )}
                         </div>
                       </div>
