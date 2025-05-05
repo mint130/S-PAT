@@ -198,14 +198,37 @@ async def upload_excel(session_id: str, file: UploadFile = File(...)):
     return {"standard": standards}
 
 
-@standard_router.post("/{session_id}/upload/prompt", response_model=StandardLLMResponse, summary="엑셀 파일 업로드와 프롬프트로 분류 체계 생성(미완)", description="엑셀 파일을 업로드하고 GPT를 사용하여 분류 체계를 처리합니다.")
+@standard_router.post("/{session_id}/upload/prompt", response_model=StandardLLMResponse, summary="엑셀 파일 업로드와 프롬프트로 분류 체계 생성", description="엑셀 파일을 업로드하고 GPT를 사용하여 분류 체계를 처리합니다.")
 async def process_with_llm(
     session_id: str,
     file: UploadFile = File(...),
-    query: str = Form(...)
+    query: str = Form(...),
+    db: Session = Depends(get_db)
 ):
-    standards, gpt_response = await process_standards_with_llm(file, query)
+    # 1. 엑셀 파일 처리
+    standards = await process_excel_file(file)
+    
+    # 2. 메모리 가져오기
+    if session_id not in conversation_memories:
+        conversation_memories[session_id] = ConversationBufferMemory(memory_key="chat_history")
+    memory = conversation_memories[session_id]
+
+    # 3. 메모리에 입력 저장
+    memory.chat_memory.add_user_message(query)
+
+    # 4. Chain 만들기
+    chain = RunnableMap({
+        "chat_history": memory.load_memory_variables,
+        "user_input": RunnablePassthrough()
+    }) | prompt | llm | output_parser
+
+    # 5. Chain 실행
+    response = await chain.ainvoke({"user_input": query})
+    
+    # 6. db에 대화 저장
+    create_conversation_record(db, session_id, query, response)
+    
     return {
-        "standards": standards,
+        "standards": response,
         "query": query
     }
