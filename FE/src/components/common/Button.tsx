@@ -1,67 +1,69 @@
 import React from "react";
+import { LoaderCircle } from "lucide-react";
+
+// 타입 정의 개선
+type ButtonVariant = "primary" | "outline";
+type ButtonSize = "sm" | "md" | "lg";
+type TextSize = "xs" | "sm" | "md" | "lg";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "outline" | "ghost";
-  icon?: React.ReactNode;
-  isLoading?: boolean;
+  variant?: ButtonVariant; // 버튼 색상
+  size?: ButtonSize; // 버튼 크기
+  textSize?: TextSize; // 텍스트 크기
+  isLoading?: boolean; // 로딩 상태 표시 여부
+  icon?: React.ReactNode; // 아이콘
 }
 
-const Button: React.FC<ButtonProps> = ({
-  children,
+function Button({
   variant = "primary",
+  size = "md",
+  textSize = "sm",
+  disabled = false,
+  isLoading = false,
   icon,
-  isLoading,
+  children,
   className = "",
-  disabled,
-  ...props
-}) => {
-  // 버튼 스타일 클래스
-  const baseStyles =
-    "flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors";
+  ...props // 나머지 모든 속성들 (onClick 포함)
+}: ButtonProps) {
+  // 기본 클래스
+  const baseClasses = `flex items-center justify-center border font-pretendard tracking-wider rounded-lg transition-colors whitespace-nowrap ${isLoading ? "cursor-wait" : "disabled:opacity-50 disabled:cursor-not-allowed"}`;
 
-  // 버튼 변형에 따른 스타일
-  const variantStyles = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300",
-    outline: "border border-gray-300 bg-white hover:bg-gray-100 text-gray-700",
-    ghost: "bg-transparent hover:bg-gray-100 text-gray-700",
+  // 버튼 색상 스타일
+  const variantStyles: Record<ButtonVariant, string> = {
+    primary: `bg-primary-blue text-white border-hover-blue ${!disabled && !isLoading ? "hover:bg-hover-blue" : ""}`, // 파란색 배경, 흰색 텍스트
+    outline: `bg-white text-black border-gray-200 ${!disabled && !isLoading ? "hover:bg-gray-100" : ""}`, // 흰색 배경, 검은색 텍스트
   };
 
-  // 스타일 적용
-  const buttonClass = `${baseStyles} ${variantStyles[variant]} ${className} ${
-    disabled ? "opacity-50 cursor-not-allowed" : ""
-  }`;
+  // 버튼 크기 스타일
+  const sizeStyles: Record<ButtonSize, string> = {
+    sm: "px-2 py-1.5", // 작은 크기 (콘텐츠에 맞춤)
+    md: "w-28 h-8 p-2", // 중간 크기 (표준)
+    lg: "w-full px-2 py-2.5", // 큰 크기 (전체 너비)
+  };
+
+  // 텍스트 크기 스타일
+  const textSizeStyles: Record<TextSize, string> = {
+    xs: "text-xs",
+    sm: "text-sm",
+    md: "text-base",
+    lg: "text-lg",
+  };
 
   return (
-    <button className={buttonClass} disabled={disabled || isLoading} {...props}>
+    <button
+      className={`${baseClasses} ${variantStyles[variant]} ${sizeStyles[size]} ${textSizeStyles[textSize]} ${className}`}
+      disabled={disabled || isLoading}
+      {...props}>
       {isLoading ? (
-        <>
-          <svg
-            className="animate-spin -ml-1 mr-2 h-4 w-4 text-current"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24">
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <span>처리 중...</span>
-        </>
+        <LoaderCircle className="w-4 h-4 animate-spin" strokeWidth={3} /> // 로딩 중 아이콘 표시
       ) : (
         <>
-          {icon && children ? <span className="mr-2">{icon}</span> : icon}
+          {icon && <span className={children ? "mr-2" : ""}>{icon}</span>}
           {children}
         </>
       )}
     </button>
   );
-};
+}
 
-export { Button };
+export default Button;
