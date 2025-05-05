@@ -7,9 +7,18 @@ import axios from "axios";
 // 메시지 타입 정의
 type MessageType = "user" | "assistant";
 
+// 표준 항목 인터페이스
+interface Standard {
+  code: string;
+  level: string;
+  name: string;
+  description: string;
+}
+
+// 메시지 타입 정의 (문자열 내용 또는 표준 배열 내용)
 interface Message {
   type: MessageType;
-  content: string;
+  content: string | Standard[];
   timestamp: Date;
 }
 
@@ -17,6 +26,10 @@ const ChatContent: React.FC = () => {
   // 상태 관리
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [expandedTables, setExpandedTables] = useState<number[]>([]); // 확장된 테이블 인덱스 추적
+  const [selectedMessageIndex, setSelectedMessageIndex] = useState<
+    number | null
+  >(null); // 선택된 메시지 인덱스
 
   // 스크롤을 위한 ref
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -31,12 +44,13 @@ const ChatContent: React.FC = () => {
 
   // API 호출 함수
   const fetchAssistantResponse = async (prompt: string) => {
-    const session_id = "12345";
+    const session_id = "1234567";
     const result = await axios.post(
-      `https://s-apt/api/standard/${session_id}`,
-      { prompt }
+      `https://s-pat.site/api/standard/${session_id}`,
+      { query: prompt }
     );
-    return result.data.response;
+    console.log("API Response:", result.data);
+    return result.data;
   };
 
   // 메시지 제출 핸들러
@@ -60,7 +74,7 @@ const ChatContent: React.FC = () => {
       // 응답 메시지 추가
       const assistantMessage: Message = {
         type: "assistant",
-        content: response,
+        content: response.standards,
         timestamp: new Date(),
       };
 
@@ -79,6 +93,92 @@ const ChatContent: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // 테이블 확장/축소 토글 함수
+  const toggleTableExpansion = (messageIndex: number) => {
+    setExpandedTables((prev) => {
+      if (prev.includes(messageIndex)) {
+        return prev.filter((index) => index !== messageIndex);
+      } else {
+        return [...prev, messageIndex];
+      }
+    });
+  };
+
+  // 테이블 선택 토글 함수 (단순화)
+  const toggleTableSelection = (messageIndex: number) => {
+    setSelectedMessageIndex((prev) =>
+      prev === messageIndex ? null : messageIndex
+    );
+  };
+
+  // 표준 테이블 렌더링 함수
+  const renderStandardsTable = (
+    standards: Standard[],
+    messageIndex: number
+  ) => {
+    const isExpanded = expandedTables.includes(messageIndex);
+    const displayedStandards = isExpanded ? standards : standards.slice(0, 5);
+    const showMoreButton = standards.length > 5;
+
+    return (
+      <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+        {/* 테이블 */}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse bg-white text-left text-sm text-gray-800">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-3 font-medium text-gray-900">코드</th>
+                <th className="px-4 py-3 font-medium text-gray-900">분류</th>
+                <th className="px-4 py-3 font-medium text-gray-900">이름</th>
+                <th className="px-4 py-3 font-medium text-gray-900">설명</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 border-t border-gray-200">
+              {displayedStandards.map((standard, index) => (
+                <tr
+                  key={standard.code}
+                  className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                  <td className="px-4 py-3">{standard.code}</td>
+                  <td className="px-4 py-3">{standard.level}</td>
+                  <td className="px-4 py-3">{standard.name}</td>
+                  <td className="px-4 py-3 max-w-md">
+                    <div className="line-clamp-2">{standard.description}</div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 더 보기/접기 버튼 */}
+        {showMoreButton && (
+          <div
+            className="flex justify-center items-center p-2 bg-gray-50 border-t border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+            onClick={() => toggleTableExpansion(messageIndex)}>
+            <span className="text-blue-600 font-medium text-sm">
+              {isExpanded ? "접기" : "더 보기"}
+            </span>
+            <svg
+              className={`ml-1 w-5 h-5 text-blue-600 transform transition-transform duration-200 ${
+                isExpanded ? "rotate-180" : ""
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        )}
+      </div>
+    );
   };
 
   // AI 로딩 컴포넌트
@@ -121,6 +221,8 @@ const ChatContent: React.FC = () => {
                 hour: "2-digit",
                 minute: "2-digit",
               });
+              const isSelected = selectedMessageIndex === index;
+              const isStandardArray = !isUser && Array.isArray(message.content);
 
               return (
                 <div key={index} className="mb-6">
@@ -140,7 +242,7 @@ const ChatContent: React.FC = () => {
                       {/* 사용자 메시지 */}
                       <div className="pl-10">
                         <div className="text-primary-gray font-pretendard font-normal rounded-lg">
-                          {message.content}
+                          {message.content as string}
                         </div>
                       </div>
                     </div>
@@ -155,13 +257,42 @@ const ChatContent: React.FC = () => {
                         <span className="ml-2 text-xs text-gray-500">
                           {formattedTime}
                         </span>
-                      </div>
-                      {/* AI 메시지 */}
-                      <div className="pl-10">
-                        <div className="bg-white font-pretendard font-medium text-gray-800 rounded-lg px-4 py-2 shadow-sm">
-                          <div className="whitespace-pre-wrap">
-                            {message.content}
+
+                        {/* 표준 배열인 경우에만 선택 버튼 표시 */}
+                        {isStandardArray && (
+                          <div className="ml-auto">
+                            <button
+                              onClick={() => toggleTableSelection(index)}
+                              className={`px-3 py-1 rounded text-sm font-medium transition-colors duration-200 ${
+                                isSelected
+                                  ? "bg-blue-500 text-white"
+                                  : "bg-white text-primary-blue border border-primary-blue hover:bg-blue-50"
+                              }`}>
+                              {isSelected ? "선택완료" : "선택하기"}
+                            </button>
                           </div>
+                        )}
+                      </div>
+
+                      {/* AI 메시지 - 타입에 따라 렌더링 */}
+                      <div className="pl-10">
+                        <div
+                          className={`bg-white font-pretendard font-medium text-gray-800 rounded-lg px-4 py-2 shadow-sm 
+                            transition-all duration-200 
+                            ${
+                              isSelected
+                                ? "border-2 border-blue-500"
+                                : "border border-transparent"
+                            }`}>
+                          {typeof message.content === "string" ? (
+                            // 일반 텍스트인 경우
+                            <div className="whitespace-pre-wrap">
+                              {message.content}
+                            </div>
+                          ) : (
+                            // 표준 배열인 경우
+                            renderStandardsTable(message.content, index)
+                          )}
                         </div>
                       </div>
                     </div>
