@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { ClipLoader } from "react-spinners";
 import IntroContent from "./IntroContent";
 import Prompt from "./Prompt";
+import Button from "../common/Button"; // Button 컴포넌트 import
 import axios from "axios";
 
 // 메시지 타입 정의
@@ -30,6 +31,9 @@ const ChatContent: React.FC = () => {
   const [selectedMessageIndex, setSelectedMessageIndex] = useState<
     number | null
   >(null); // 선택된 메시지 인덱스
+  const [isProcessing, setIsProcessing] = useState<boolean>(false); // 진행하기 버튼 로딩 상태
+  const [showModal, setShowModal] = useState<boolean>(false); // 모달 표시 여부
+  const [isHistoryLoading, setIsHistoryLoading] = useState<boolean>(true);
 
   // 스크롤을 위한 ref
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -42,9 +46,60 @@ const ChatContent: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // 컴포넌트 마운트 시 대화 기록 불러오기
+  useEffect(() => {
+    const fetchConversationHistory = async () => {
+      setIsHistoryLoading(true);
+      try {
+        const session_id = "123123123"; // 하드코딩된 세션 ID 사용
+        const result = await axios.get(
+          `https://s-pat.site/api/standard/${session_id}/conversation`
+        );
+
+        console.log("Conversation History:", result.data);
+
+        // 대화 기록이 있는 경우 메시지 상태로 변환
+        if (result.data && result.data.length > 0) {
+          const historyMessages: Message[] = [];
+
+          // 각 대화 항목을 Message 객체로 변환
+          result.data.forEach((item: any) => {
+            // 사용자 메시지 추가
+            historyMessages.push({
+              type: "user",
+              content: item.query,
+              timestamp: new Date(item.created_at),
+            });
+
+            // AI 응답 메시지 추가 (표준 배열)
+            if (item.answer && item.answer.standards) {
+              historyMessages.push({
+                type: "assistant",
+                content: item.answer.standards,
+                timestamp: new Date(item.created_at),
+              });
+            }
+          });
+
+          // 대화 기록을 메시지 상태에 설정
+          setMessages(historyMessages);
+        }
+      } catch (error) {
+        console.error("Error fetching conversation history:", error);
+        // 오류 발생 시 빈 메시지 배열로 초기화
+        setMessages([]);
+      } finally {
+        setIsHistoryLoading(false);
+      }
+    };
+
+    // 함수 호출
+    fetchConversationHistory();
+  }, []); // 빈 의존성 배열로 마운트 시 한 번만 실행
+
   // API 호출 함수
   const fetchAssistantResponse = async (prompt: string) => {
-    const session_id = "1234567";
+    const session_id = "123123123";
     const result = await axios.post(
       `https://s-pat.site/api/standard/${session_id}`,
       { query: prompt }
@@ -111,6 +166,30 @@ const ChatContent: React.FC = () => {
     setSelectedMessageIndex((prev) =>
       prev === messageIndex ? null : messageIndex
     );
+  };
+
+  // 진행하기 버튼 클릭 핸들러
+  const handleProceed = () => {
+    // 모달 표시
+    setShowModal(true);
+  };
+
+  // 모달 확인 버튼 핸들러
+  const handleModalConfirm = async () => {
+    setIsProcessing(true); // 로딩 상태 시작
+    try {
+      console.log("진행하기 버튼 클릭됨");
+    } catch (error) {
+      console.error("진행 중 오류가 발생했습니다:", error);
+      // 오류 처리 로직
+    } finally {
+      setIsProcessing(false); // 로딩 상태 종료
+    }
+  };
+
+  // 모달 취소 버튼 핸들러
+  const handleModalCancel = () => {
+    setShowModal(false);
   };
 
   // 표준 테이블 렌더링 함수
@@ -209,7 +288,21 @@ const ChatContent: React.FC = () => {
           // 대화가 시작되지 않았으면 IntroContent 표시
           <div className="flex justify-center items-center h-full pt-12">
             <div className="w-full max-w-5xl">
-              <IntroContent />
+              {isHistoryLoading ? (
+                <div className="flex justify-center">
+                  <ClipLoader
+                    color="#3b82f6"
+                    loading={true}
+                    size={40}
+                    aria-label="대화 기록 로딩 중"
+                  />
+                  <p className="ml-4 text-blue-500 font-samsung700">
+                    이전 대화 기록을 불러오는 중입니다...
+                  </p>
+                </div>
+              ) : (
+                <IntroContent />
+              )}
             </div>
           </div>
         ) : (
@@ -261,15 +354,12 @@ const ChatContent: React.FC = () => {
                         {/* 표준 배열인 경우에만 선택 버튼 표시 */}
                         {isStandardArray && (
                           <div className="ml-auto">
-                            <button
-                              onClick={() => toggleTableSelection(index)}
-                              className={`px-3 py-1 rounded text-sm font-medium transition-colors duration-200 ${
-                                isSelected
-                                  ? "bg-blue-500 text-white"
-                                  : "bg-white text-primary-blue border border-primary-blue hover:bg-blue-50"
-                              }`}>
+                            <Button
+                              variant={isSelected ? "primary" : "outline"}
+                              size="sm"
+                              onClick={() => toggleTableSelection(index)}>
                               {isSelected ? "선택완료" : "선택하기"}
-                            </button>
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -308,6 +398,58 @@ const ChatContent: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* 진행하기 버튼 영역 - 메시지 영역과 입력 영역 사이 */}
+      {selectedMessageIndex !== null && (
+        <div className="absolute bottom-[120px] right-4 flex justify-center items-center py-4">
+          <Button
+            variant="primary"
+            size="md"
+            onClick={handleProceed}
+            isLoading={isProcessing}>
+            진행하기
+          </Button>
+        </div>
+      )}
+
+      {/* 모달 컴포넌트 */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          {/* 배경 오버레이 */}
+          <div
+            className="absolute inset-0 bg-gray-900 bg-opacity-50"
+            onClick={handleModalCancel}></div>
+
+          {/* 모달 내용 */}
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 z-10">
+            {/* 모달 헤더 */}
+            <div className="px-4 pt-4 mt-6">
+              <h3 className="text-lg font-pretendard font-semibold text-black">
+                해당 분류체계를 진행하시겠습니까?
+              </h3>
+            </div>
+
+            {/* 모달 본문 */}
+            <div className="px-4 py-2 font-pretendard text-primary-gray">
+              <p>진행하기 버튼을 누르시면 다음 단계로 넘어갑니다.</p>
+            </div>
+
+            {/* 모달 푸터 (버튼 영역) */}
+            <div className="p-4 bg-gray-50 rounded-b-lg flex justify-end space-x-2">
+              <Button variant="outline" size="md" onClick={handleModalCancel}>
+                취소
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
+                onClick={handleModalConfirm}
+                isLoading={isProcessing}>
+                진행하기
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 입력 영역 - 항상 하단에 고정 */}
       <div className="absolute bottom-0 left-0 right-0">
