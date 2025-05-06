@@ -11,13 +11,21 @@ const createSessionId = () => {
 
 const Step0ModeSelect: React.FC = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-white to-gray-50">
-      <main className="flex-grow flex flex-col items-center justify-center p-8">
-        <div className="max-w-4xl w-full">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50/30 relative overflow-hidden">
+      {/* 배경 그라데이션 효과 요소들 */}
+      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-b from-blue-100/30 to-transparent rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-blue-100/20 to-transparent rounded-full blur-3xl transform -translate-x-1/4 translate-y-1/4"></div>
+      <div className="absolute top-1/4 left-1/4 w-1/4 h-1/4 bg-gradient-to-tr from-cyan-100/20 to-transparent rounded-full blur-3xl"></div>
+
+      <main className="flex-grow flex flex-col items-center justify-center p-8 relative z-10">
+        <div className="max-w-4xl w-full backdrop-blur-sm">
           {/* 앱 소개 섹션 */}
           <div className="text-center mb-14">
             <h1 className="font-pretendard font-bold text-primary-black text-5xl mb-6">
-              S-PAT (Samsung Patent AI Technology)
+              S-PAT{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-blue-700">
+                Samsung Patent AI Technology
+              </span>
             </h1>
             <p className="font-samsung400 text-primary-gray text-lg max-w-2xl mx-auto">
               SPAT은 AI 기반 특허 분류 시스템으로, 효율적인 특허 관리와 분석을
@@ -27,26 +35,26 @@ const Step0ModeSelect: React.FC = () => {
               특허 문서를 빠르고 정확하게 분류하여 업무 효율성을 높이세요.
             </p>
             <div className="flex flex-wrap justify-center gap-4 mb-8">
-              <div className="bg-gray-100 font-samsung400 px-4 py-2 rounded-full text-sm font-medium text-gray-700 flex items-center">
+              <div className="bg-white/80 backdrop-blur-sm shadow-sm font-samsung400 px-4 py-2 rounded-full text-sm font-medium text-gray-700 flex items-center">
                 <BadgeCheck
-                  className="h-4 w-4 mr-1"
+                  className="h-4 w-4 mr-1 text-blue-500"
                   fill="currentColor"
                   color="white"
                   strokeWidth={1}
                 />
                 AI 기반 분류
               </div>
-              <div className="bg-gray-100 font-samsung400 px-4 py-2 rounded-full text-sm font-medium text-gray-700 flex items-center">
+              <div className="bg-white/80 backdrop-blur-sm shadow-sm font-samsung400 px-4 py-2 rounded-full text-sm font-medium text-gray-700 flex items-center">
                 <FileText
-                  className="h-4 w-4 mr-1"
+                  className="h-4 w-4 mr-1 text-blue-500"
                   fill="currentColor"
                   color="white"
                   strokeWidth={1}
                 />
                 특허 문서 관리
               </div>
-              <div className="bg-gray-100 font-samsung400 px-4 py-2 rounded-full text-sm font-medium text-gray-700 flex items-center">
-                <ChartNoAxesCombined className="h-4 w-4 mr-1" />
+              <div className="bg-white/80 backdrop-blur-sm shadow-sm font-samsung400 px-4 py-2 rounded-full text-sm font-medium text-gray-700 flex items-center">
+                <ChartNoAxesCombined className="h-4 w-4 mr-1 text-blue-500" />
                 데이터 분석
               </div>
             </div>
@@ -58,7 +66,7 @@ const Step0ModeSelect: React.FC = () => {
             <Link
               to="/user/step1"
               onClick={() => createSessionId()}
-              className="flex-1 p-6 rounded-lg border-2 shadow-md border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md transition-all">
+              className="flex-1 p-6 rounded-lg bg-white/90 backdrop-blur-sm border-2 shadow-lg border-blue-100 hover:border-blue-300 hover:bg-blue-50/90 hover:shadow-xl transition-all">
               <div className="flex items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-800 font-samsung700">
                   사용자 모드
@@ -74,21 +82,21 @@ const Step0ModeSelect: React.FC = () => {
                 <li className="flex items-center ">
                   <Check
                     strokeWidth={3}
-                    className="h-4 w-4 mr-2 text-primary-blue"
+                    className="h-4 w-4 mr-2 text-blue-500"
                   />
                   사용자 맞춤화 특허 분류 체계 생성
                 </li>
                 <li className="flex items-center">
                   <Check
                     strokeWidth={3}
-                    className="h-4 w-4 mr-2 text-primary-blue"
+                    className="h-4 w-4 mr-2 text-blue-500"
                   />
                   AI 기반 특허 데이터 자동 분류
                 </li>
                 <li className="flex items-center">
                   <Check
                     strokeWidth={3}
-                    className="h-4 w-4 mr-2 text-primary-blue"
+                    className="h-4 w-4 mr-2 text-blue-500"
                   />
                   분류 결과 확인 및 다운로드
                 </li>
@@ -99,7 +107,7 @@ const Step0ModeSelect: React.FC = () => {
             <Link
               to="/admin/step1"
               onClick={() => createSessionId()}
-              className="flex-1 p-6 rounded-lg border-2 shadow-md border-gray-200 hover:border-[#ae9aff] hover:bg-[#EEF1FF] hover:shadow-md transition-all">
+              className="flex-1 p-6 rounded-lg bg-white/90 backdrop-blur-sm border-2 shadow-lg border-blue-100 hover:border-blue-300 hover:bg-blue-50/90 hover:shadow-xl transition-all">
               <div className="flex items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-800 font-samsung700">
                   관리자 모드
@@ -115,21 +123,21 @@ const Step0ModeSelect: React.FC = () => {
                 <li className="flex items-center">
                   <Check
                     strokeWidth={3}
-                    className="h-4 w-4 mr-2 text-[#5D3FD3]"
+                    className="h-4 w-4 mr-2 text-blue-600"
                   />
                   다중 LLM 병렬 분류
                 </li>
                 <li className="flex items-center">
                   <Check
                     strokeWidth={3}
-                    className="h-4 w-4 mr-2 text-[#5D3FD3]"
+                    className="h-4 w-4 mr-2 text-blue-600"
                   />
                   벡터 유사도 기반 정량적 평가
                 </li>
                 <li className="flex items-center">
                   <Check
                     strokeWidth={3}
-                    className="h-4 w-4 mr-2 text-[#5D3FD3]"
+                    className="h-4 w-4 mr-2 text-blue-600"
                   />
                   LLM 자체 평가 및 전문가 피드백 시스템
                 </li>
