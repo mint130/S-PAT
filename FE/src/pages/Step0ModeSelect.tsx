@@ -2,6 +2,13 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { BadgeCheck, ChartNoAxesCombined, Check, FileText } from "lucide-react";
 
+// 세션 ID 생성 및 저장 함수
+const createSessionId = () => {
+  const sessionId = Math.random().toString(36).substring(2, 10);
+  localStorage.setItem("sessionId", sessionId);
+  return sessionId;
+};
+
 const Step0ModeSelect: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -49,7 +56,8 @@ const Step0ModeSelect: React.FC = () => {
           <div className="flex flex-col md:flex-row gap-6 mb-10">
             {/* 사용자 모드 */}
             <Link
-              to="/user"
+              to="/user/step1"
+              onClick={() => createSessionId()}
               className="flex-1 p-6 rounded-lg border-2 shadow-md border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md transition-all">
               <div className="flex items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-800 font-samsung700">
@@ -89,7 +97,8 @@ const Step0ModeSelect: React.FC = () => {
 
             {/* 관리자 모드 */}
             <Link
-              to="/admin"
+              to="/admin/step1"
+              onClick={() => createSessionId()}
               className="flex-1 p-6 rounded-lg border-2 shadow-md border-gray-200 hover:border-[#ae9aff] hover:bg-[#EEF1FF] hover:shadow-md transition-all">
               <div className="flex items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-800 font-samsung700">
