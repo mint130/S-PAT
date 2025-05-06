@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
+import DataTable from "../common/DataTable";
 
 interface PatentTableProps {
   file: File;
@@ -9,6 +10,7 @@ interface PatentTableProps {
 const PatentTable: React.FC<PatentTableProps> = ({ file, fileBuffer }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [patentData, setPatentData] = useState<any[]>([]);
 
   useEffect(() => {
     // 파일 데이터 처리
@@ -26,7 +28,8 @@ const PatentTable: React.FC<PatentTableProps> = ({ file, fileBuffer }) => {
         // 시트 데이터를 JSON으로 변환
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-        // 콘솔에 데이터 출력
+        // JSON 데이터 상태에 저장
+        setPatentData(jsonData);
         console.log("파일에서 읽은 데이터:", jsonData);
 
         setIsLoading(false);
@@ -40,7 +43,7 @@ const PatentTable: React.FC<PatentTableProps> = ({ file, fileBuffer }) => {
     if (fileBuffer) {
       processFileData();
     }
-  }, [file, fileBuffer]);
+  }, [fileBuffer]);
 
   // 로딩 중이라면
   if (isLoading) {
@@ -68,24 +71,25 @@ const PatentTable: React.FC<PatentTableProps> = ({ file, fileBuffer }) => {
     );
   }
 
-  // 파일 처리 완료
-  const bufferSize = fileBuffer.byteLength;
+  // 데이터가 없다면
+  if (patentData.length === 0) {
+    return (
+      <div className="flex flex-col w-full h-full pt-8">
+        <div className="p-4 border border-gray-200 rounded-lg shadow-sm bg-white h-96 flex items-center justify-center">
+          <p>파일에 데이터가 없습니다.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col w-full h-full pt-8">
       <div className="p-4 border border-gray-200 rounded-lg shadow-sm bg-white h-96 overflow-auto">
         <div className="mb-4">
-          <p>
-            <strong>파일명:</strong> {file.name}
-          </p>
-          <p>
-            <strong>파일 크기:</strong> {(bufferSize / 1024).toFixed(2)} KB
-          </p>
+          <p>{file.name}</p>
         </div>
 
-        <div className="bg-gray-100 p-4 rounded">
-          <p>ArrayBuffer가 성공적으로 생성되었습니다.</p>
-        </div>
+        <DataTable data={patentData} />
       </div>
     </div>
   );
