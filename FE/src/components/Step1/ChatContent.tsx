@@ -176,8 +176,15 @@ const ChatContent: React.FC = () => {
 
   // 모달 확인 버튼 핸들러
   const handleModalConfirm = async () => {
-    setShowModal(false);
-    // 이제 여기에 다음 step을 처리하는 로직 추가 예정.
+    setIsProcessing(true); // 로딩 상태 시작
+    try {
+      console.log("진행하기 버튼 클릭됨");
+    } catch (error) {
+      console.error("진행 중 오류가 발생했습니다:", error);
+      // 오류 처리 로직
+    } finally {
+      setIsProcessing(false); // 로딩 상태 종료
+    }
   };
 
   // 모달 취소 버튼 핸들러
