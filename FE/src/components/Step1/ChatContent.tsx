@@ -4,6 +4,7 @@ import IntroContent from "./IntroContent";
 import Prompt from "./Prompt";
 import Button from "../common/Button"; // Button 컴포넌트 import
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 // 메시지 타입 정의
 type MessageType = "user" | "assistant";
@@ -41,6 +42,8 @@ const ChatContent: React.FC = () => {
   // 대화가 시작되었는지 여부
   const chatStarted = messages.length > 0;
 
+  const navigate = useNavigate(); // navigate 훅 사용
+
   // 메시지가 추가될 때마다 스크롤 아래로 이동
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -51,7 +54,11 @@ const ChatContent: React.FC = () => {
     const fetchConversationHistory = async () => {
       setIsHistoryLoading(true);
       try {
-        const session_id = "123123123"; // 하드코딩된 세션 ID 사용
+        const session_id = localStorage.getItem("sessionId"); // 로컬스토리지에서 세션 ID 가져오기
+        console.log("sessionId :", session_id);
+        if (!session_id) {
+          navigate("/"); // 세션 ID가 없으면 홈으로 리다이렉트
+        }
         const result = await axios.get(
           `https://s-pat.site/api/standard/${session_id}/conversation`
         );
@@ -99,7 +106,7 @@ const ChatContent: React.FC = () => {
 
   // API 호출 함수
   const fetchAssistantResponse = async (prompt: string) => {
-    const session_id = "123123123";
+    const session_id = localStorage.getItem("sessionId"); // 로컬스토리지에서 세션 ID 가져오기
     const result = await axios.post(
       `https://s-pat.site/api/standard/${session_id}`,
       { query: prompt }
