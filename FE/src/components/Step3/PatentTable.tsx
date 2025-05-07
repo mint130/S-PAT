@@ -83,14 +83,12 @@ const PatentTable: React.FC<PatentTableProps> = ({ file, fileBuffer }) => {
   }
 
   return (
-    <div className="flex flex-col w-full h-full pt-8">
-      <div className="p-4 border border-gray-200 rounded-lg shadow-sm bg-white h-96 overflow-auto">
-        <div className="mb-4">
-          <p>{file.name}</p>
-        </div>
-
-        <DataTable data={patentData} />
+    <div className="flex flex-col gap-4 w-full h-full mt-8 p-4 border border-gray-200 rounded-lg shadow-sm bg-white overflow-auto">
+      <div className="">
+        <p>{file.name}</p>
       </div>
+
+      <DataTable data={patentData} />
     </div>
   );
 };
