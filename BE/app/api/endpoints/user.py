@@ -1,13 +1,18 @@
 import base64
 import io
+import json
 import os
+import re
 from typing import Any, Dict, List
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
 import pandas as pd
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from datetime import datetime
 from dotenv import load_dotenv
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
 from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories import ChatMessageHistory
@@ -23,7 +28,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.chains import RetrievalQA
 
-from app.schemas.classification import ClassificationResponse, Patent
+from app.schemas.classification import ClassificationResponse, ClassificationSchema, Patent
 from app.schemas.conversation import ConversationRequest, ConversationResponse, SessionHistoryResponse
 from app.db.database import get_db
 from app.models.conversation import Conversation
@@ -32,6 +37,9 @@ from app.crud.crud_conversation import create_conversation_record, get_conversat
 
 load_dotenv()
 
+# 결과 저장 디렉토리
+RESULT_DIR = "./classified_excels"
+os.makedirs(RESULT_DIR, exist_ok=True)
 
 user_router = APIRouter(prefix="/user")
 embeddings_openai = OpenAIEmbeddings(model="text-embedding-3-large", dimensions=3072)
@@ -41,10 +49,14 @@ user_vector_stores: Dict[str, FAISS] = {}
 
 # 특허 정보를 바탕으로 분류하는 함수
 def classify_patent(retriever, patent_info: str) -> Dict[str, str]:
+    
+    # 출력 파서 정의
+    parser = PydanticOutputParser(pydantic_object=ClassificationSchema)
+    
     # 프롬프트 템플릿 정의
     template = """
     다음은 특허 분류 데이터베이스에서 검색된 유사한 특허 정보입니다:
-    `
+    
     {context}
     
     위 참고 정보를 바탕으로, 다음 특허 정보에 대한 대분류, 중분류, 소분류를 제공해주세요.
@@ -55,15 +67,10 @@ def classify_patent(retriever, patent_info: str) -> Dict[str, str]:
     
     특허 정보: {query}
     
-    응답 형식:
-    대분류코드: [코드]
-    대분류명칭: [명칭]
-    중분류코드: [코드]
-    중분류명칭: [명칭]
-    소분류코드: [코드] 
-    소분류명칭: [명칭]
+    너는 다음 JSON 형태로만 응답해야 해: {format_instructions}
     """
-    
+
+
     prompt = ChatPromptTemplate.from_template(template)
     
         # 메타데이터를 포함한 형식으로 문서 포맷팅
@@ -108,7 +115,11 @@ def classify_patent(retriever, patent_info: str) -> Dict[str, str]:
         return "\n\n---\n\n".join(formatted_docs)
     
     rag_chain = (
-        {"context": retriever | format_docs, "query": RunnablePassthrough()}
+        {
+            "context": retriever | format_docs,
+            "query": RunnablePassthrough(),
+            "format_instructions": lambda _: parser.get_format_instructions()
+        }
         | prompt
         | llm
         | StrOutputParser()
@@ -119,47 +130,18 @@ def classify_patent(retriever, patent_info: str) -> Dict[str, str]:
     
     # 결과 파싱
     try:
-        # 기본값 설정
-        classifications = {
-            "majorCode": "",
-            "middleCode": "",
-            "smallCode": "",
-            "majorTitle": "",
-            "middleTitle": "",
-            "smallTitle": ""
+        cleaned = re.sub(r"```(?:json)?\s*([\s\S]+?)\s*```", r"\1", result.strip())
+        parsed = json.loads(cleaned)
+
+        return {
+            "majorCode": parsed.get("majorCode", "미분류"),
+            "majorTitle": parsed.get("majorTitle", "미분류"),
+            "middleCode": parsed.get("middleCode", "미분류"),
+            "middleTitle": parsed.get("middleTitle", "미분류"),
+            "smallCode": parsed.get("smallCode", "미분류"),
+            "smallTitle": parsed.get("smallTitle", "미분류"),
         }
-        
-        lines = result.strip().split('\n')
-        
-        for line in lines:
-            if "대분류 코드:" in line or "대분류코드:" in line:
-                classifications["majorCode"] = line.split(":")[1].strip()
-            elif "대분류 명칭:" in line or "대분류명칭:" in line:
-                classifications["majorTitle"] = line.split(":")[1].strip()
-            elif "중분류 코드:" in line or "중분류코드:" in line:
-                classifications["middleCode"] = line.split(":")[1].strip()
-            elif "중분류 명칭:" in line or "중분류명칭:" in line:
-                classifications["middleTitle"] = line.split(":")[1].strip()
-            elif "소분류 코드:" in line or "소분류코드:" in line:
-                classifications["smallCode"] = line.split(":")[1].strip()
-            elif "소분류 명칭:" in line or "소분류명칭:" in line:
-                classifications["smallTitle"] = line.split(":")[1].strip()
-        
-        # 값이 없으면 기본값 설정
-        if not classifications["majorCode"]:
-            classifications["majorCode"] = "미분류"
-        if not classifications["middleCode"]:
-            classifications["middleCode"] = "미분류"
-        if not classifications["smallCode"]:
-            classifications["smallCode"] = "미분류"
-        if not classifications["majorTitle"]:
-            classifications["majorTitle"] = "미분류"
-        if not classifications["middleTitle"]:
-            classifications["middleTitle"] = "미분류"
-        if not classifications["smallTitle"]:
-            classifications["smallTitle"] = "미분류"
-            
-        return classifications
+
     except Exception as e:
         print(f"분류 결과 파싱 중 오류: {str(e)}")
         # 파싱 실패 시 기본값 반환
@@ -332,7 +314,7 @@ async def classify_patent_data(session_id: str, file: UploadFile = File(...)):
         df = pd.read_excel(file_object)
         
         # retriever 생성
-        retriever = user_vector_stores[session_id].as_retriever(search_kwargs={"k": 5})
+        retriever = user_vector_stores[session_id].as_retriever(search_kwargs={"k": 3})
         
         # 특허 데이터 목록 생성
         patents = []
@@ -377,18 +359,31 @@ async def classify_patent_data(session_id: str, file: UploadFile = File(...)):
             
             patents.append(patent_data)
         
-        # 엑셀 파일로 저장
-        output = io.BytesIO()
-        df.to_excel(output, index=False)
-        output.seek(0)
-        
-        # Base64로 인코딩
-        excel_base64 = base64.b64encode(output.getvalue()).decode('utf-8')
+        # 임시 파일명 생성
+        filename = f"{session_id}_classified.xlsx"
+        save_path = f"./classified_excels/{filename}"
+
+        # 저장 디렉토리 확인
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+        # 먼저 데이터프레임을 엑셀로 저장
+        buffer = io.BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name="Sheet1")
+        buffer.seek(0)
+
+        # 헤더 노란색 처리
+        wb = load_workbook(buffer)
+        ws = wb.active
+        yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+        for cell in ws[1]:
+            cell.fill = yellow_fill
+
+        # 저장
+        wb.save(save_path)
         
         # 응답 생성
         response = ClassificationResponse(
-            file=excel_base64,
-            contentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             patents=patents
         )
         
@@ -396,5 +391,19 @@ async def classify_patent_data(session_id: str, file: UploadFile = File(...)):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"파일 처리 중 오류 발생: {str(e)}")
+    
+
+
+@user_router.get("/{session_id}/classification/excel", summary="특허 분류 결과 엑셀 파일 반환환", description="사용자 로컬 디스크에 저장된 분류 결과 엑셀 파일을 반환합니다")
+def download_classified_excel(session_id: str):
+    file_path = os.path.join(RESULT_DIR, f"{session_id}_classified.xlsx")
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="엑셀 파일이 존재하지 않습니다.")
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename=f"{session_id}_classified.xlsx"
+    )
 
 
