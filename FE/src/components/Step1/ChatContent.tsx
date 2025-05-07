@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ClipLoader } from "react-spinners";
+import { File } from "lucide-react";
 import IntroContent from "./IntroContent";
 import Prompt from "./Prompt";
 import Button from "../common/Button"; // Button 컴포넌트 import
@@ -24,6 +25,15 @@ interface Message {
   timestamp: Date;
 }
 
+// 파일 정보 인터페이스 추가
+interface UploadedFile {
+  name: string;
+  size: number;
+  type: string;
+  buffer: ArrayBuffer;
+  originalFile: File; // 원본 File 객체 추가
+}
+
 const ChatContent: React.FC = () => {
   // 상태 관리
   const [messages, setMessages] = useState<Message[]>([]);
@@ -35,6 +45,10 @@ const ChatContent: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState<boolean>(false); // 진행하기 버튼 로딩 상태
   const [showModal, setShowModal] = useState<boolean>(false); // 모달 표시 여부
   const [isHistoryLoading, setIsHistoryLoading] = useState<boolean>(true);
+
+  // 파일 업로드 관련 상태 추가
+  const [showFileModal, setShowFileModal] = useState<boolean>(false);
+  const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
 
   // 스크롤을 위한 ref
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -115,6 +129,27 @@ const ChatContent: React.FC = () => {
     return result.data;
   };
 
+  // API 호출 함수 (파일 업로드)
+  const fetchAiWithFile = async (file: File, prompt: string) => {
+    const session_id = localStorage.getItem("sessionId"); // 로컬스토리지에서 세션 ID 가져오기
+    const formData = new FormData();
+    formData.append("file", file); // 파일 추가
+    formData.append("query", prompt); // 쿼리도 FormData에 추가
+
+    const result = await axios.post(
+      `https://s-pat.site/api/standard/${session_id}/upload/prompt`,
+      formData, // FormData 자체를 body로 전송
+      {
+        headers: {
+          "Content-Type": "multipart/form-data", // 헤더 설정
+        },
+      }
+    );
+
+    console.log("API Response with File:", result.data);
+    return result.data;
+  };
+
   // 메시지 제출 핸들러
   const handleSubmit = async (promptText: string) => {
     if (!promptText.trim()) return;
@@ -130,8 +165,16 @@ const ChatContent: React.FC = () => {
     setIsLoading(true);
 
     try {
+      let response;
+
       // API 호출
-      const response = await fetchAssistantResponse(promptText);
+      if (uploadedFile) {
+        // 파일이 업로드된 경우
+        response = await fetchAiWithFile(uploadedFile.originalFile, promptText);
+      } else {
+        // 파일이 업로드되지 않은 경우
+        response = await fetchAssistantResponse(promptText);
+      }
 
       // 응답 메시지 추가
       const assistantMessage: Message = {
@@ -141,6 +184,7 @@ const ChatContent: React.FC = () => {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+      setUploadedFile(null); // 파일 업로드 후 초기화
     } catch (error) {
       console.error("Error fetching response:", error);
 
@@ -179,6 +223,44 @@ const ChatContent: React.FC = () => {
   const handleProceed = () => {
     // 모달 표시
     setShowModal(true);
+  };
+
+  // 파일 처리 함수 추가
+  const handleFileProcessed = (file: File, buffer: ArrayBuffer) => {
+    // 파일 정보 저장
+    setUploadedFile({
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      buffer: buffer,
+      originalFile: file, // 원본 File 객체 저장
+    });
+
+    // 파일 업로드 모달 표시
+    setShowFileModal(true);
+  };
+
+  // 파일 처리 옵션 선택 함수
+  const handleFileOption = (option: string) => {
+    // 선택된 옵션에 따른 처리
+    if (option === "direct") {
+      // 파일 그대로 분류 체계 적용 로직
+      console.log("파일 그대로 분류 체계 적용");
+      // 여기엔 그냥 넘어가면 됨
+    } else if (option === "llm") {
+      // LLM으로 분류체계 처리 로직
+      console.log("LLM으로 분류체계 처리");
+      // 바로 step2로 넘어감
+    }
+
+    // 모달 닫기
+    setShowFileModal(false);
+  };
+
+  // 파일 모달 닫기 함수
+  const handleFileModalClose = () => {
+    setUploadedFile(null);
+    setShowFileModal(false);
   };
 
   // 모달 확인 버튼 핸들러
@@ -419,6 +501,41 @@ const ChatContent: React.FC = () => {
         </div>
       )}
 
+      {/* 파일명 나오게 하기 */}
+      {uploadedFile !== null && (
+        <div className="absolute bottom-[120px] left-0 flex items-center py-4">
+          <div className="bg-select-box border border-select-box-border font-pretendard rounded-md p-3 flex items-center">
+            <div className="w-6 h-6 mr-3 flex-shrink-0">
+              <File strokeWidth={1} color="blue" />
+            </div>
+            <span
+              className="text-sm text-primary-black truncate max-w-[200px]"
+              title={uploadedFile.name}>
+              {uploadedFile.name.length > 20
+                ? uploadedFile.name.substring(0, 20) + "..."
+                : uploadedFile.name}
+            </span>
+            <button
+              onClick={() => setUploadedFile(null)}
+              className="ml-2 text-gray-500 hover:text-gray-700">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 모달 컴포넌트 */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -458,9 +575,120 @@ const ChatContent: React.FC = () => {
         </div>
       )}
 
+      {/* 파일 업로드 모달 */}
+      {showFileModal && uploadedFile && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          {/* 배경 오버레이 */}
+          <div
+            className="absolute inset-0 bg-gray-900 bg-opacity-50"
+            onClick={handleFileModalClose}></div>
+
+          {/* 모달 내용 */}
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 z-10">
+            {/* 모달 헤더 */}
+            <div className="px-6 py-4 flex justify-between items-center border-b border-gray-200">
+              <h3 className="text-lg font-pretendard font-semibold text-black">
+                파일 업로드 완료
+              </h3>
+              <button
+                onClick={handleFileModalClose}
+                className="text-gray-500 hover:text-gray-700">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* 파일 정보 */}
+            <div className="px-6 py-4">
+              <div className="bg-select-box border border-select-box-border font-pretendard rounded-md p-3 flex items-center mb-4">
+                <div className="w-6 h-6 mr-3 flex-shrink-0">
+                  <File strokeWidth={1} color="blue" />
+                </div>
+                <span className="text-sm text-primary-black truncate">
+                  {uploadedFile.name}
+                </span>
+              </div>
+
+              <p className="text-sm text-gray-700 font-pretendard mb-4">
+                업로드된 파일을 어떻게 활용하시겠습니까?
+              </p>
+
+              {/* 옵션 1: 파일 그대로 사용 */}
+              <div
+                className="border border-gray-200 rounded-md p-4 mb-3 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+                onClick={() => handleFileOption("direct")}>
+                <div className="flex justify-between items-center mb-1">
+                  <h4 className="font-medium font-pretendard text-gray-900">
+                    파일 그대로 분류 체계 적용
+                  </h4>
+                  <svg
+                    className="w-5 h-5 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
+                <p className="text-xs font-pretendard text-gray-500">
+                  업로드된 파일을 그대로 분류 체계에 사용합니다.
+                </p>
+              </div>
+
+              {/* 옵션 2: LLM으로 처리 */}
+              <div
+                className="border border-gray-200 rounded-md p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+                onClick={() => handleFileOption("llm")}>
+                <div className="flex justify-between items-center mb-1">
+                  <h4 className="font-medium font-pretendard text-gray-900">
+                    LLM으로 분류체계 처리하기
+                  </h4>
+                  <svg
+                    className="w-5 h-5 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
+                <p className="text-xs font-pretendard text-gray-500">
+                  업로드된 파일의 키워드로 LLM을 활용하여 분류체계를 처리합니다.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 입력 영역 - 항상 하단에 고정 */}
       <div className="absolute bottom-0 left-0 right-0">
-        <Prompt onSubmit={handleSubmit} isLoading={isLoading} />
+        <Prompt
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+          onFileProcessed={handleFileProcessed}
+        />
       </div>
     </div>
   );
