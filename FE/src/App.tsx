@@ -4,6 +4,7 @@ import Layout from "./components/Layout/Layout";
 
 import Step0ModeSelect from "./pages/Step0ModeSelect";
 import Step1ClassificationSetup from "./pages/Step1ClassificationSetup";
+import Step2ClassificationEdit from "./pages/Step2ClassificationEdit";
 import Step3PatentClassification from "./pages/Step3PatentClassification";
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
         {/* 사용자 모드 */}
         <Route path="/user" element={<Layout />}>
           <Route path="step1" element={<Step1ClassificationSetup />} />
+          <Route path="step2" element={<Step2ClassificationEdit />} />
           <Route path="step3" element={<Step3PatentClassification />} />
           <Route index element={<Step1ClassificationSetup />} />
         </Route>

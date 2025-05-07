@@ -268,6 +268,16 @@ const ChatContent: React.FC = () => {
     setIsProcessing(true); // 로딩 상태 시작
     try {
       console.log("진행하기 버튼 클릭됨");
+      // 선택된 메시지 인덱스가 있을 때만 처리
+      if (selectedMessageIndex !== null) {
+        // 선택된 분류체계 가져오기
+        const selectedStandards = messages[selectedMessageIndex].content;
+
+        // state와 함께 Step2로 네비게이션
+        navigate("/user/step2", {
+          state: { selectedStandards },
+        });
+      }
     } catch (error) {
       console.error("진행 중 오류가 발생했습니다:", error);
       // 오류 처리 로직
