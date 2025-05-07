@@ -19,6 +19,12 @@ class ClassificationRequest(BaseModel):
 
 
 class ClassificationResponse(BaseModel):
-    file: str = Field(..., description="처리된 엑셀 파일 (Base64 인코딩)")
-    contentType: str = Field(default="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", description="파일 타입")
     patents: List[Patent] = Field(..., description="처리된 특허 정보 목록")
+
+class ClassificationSchema(BaseModel):
+    majorCode: str
+    majorTitle: str
+    middleCode: str
+    middleTitle: str
+    smallCode: str
+    smallTitle: str
