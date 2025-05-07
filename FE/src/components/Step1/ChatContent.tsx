@@ -460,7 +460,7 @@ const ChatContent: React.FC = () => {
 
       {/* 입력 영역 - 항상 하단에 고정 */}
       <div className="absolute bottom-0 left-0 right-0">
-        <Prompt onSubmit={handleSubmit} />
+        <Prompt onSubmit={handleSubmit} isLoading={isLoading} />
       </div>
     </div>
   );
