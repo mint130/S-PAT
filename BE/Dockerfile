@@ -1,5 +1,5 @@
 # 
-FROM python:3.11-slim
+FROM python:3.11
 
 # 컨테이너 내 작업 디렉토리를 /code로 설정
 WORKDIR /code
