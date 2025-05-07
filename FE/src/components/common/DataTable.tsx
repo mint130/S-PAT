@@ -6,7 +6,7 @@ import {
   createColumnHelper,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ListFilter, Check } from "lucide-react";
+import { ListFilter, Check, X } from "lucide-react";
 
 interface DataTableProps {
   data: any[];
@@ -29,6 +29,9 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
 
   // "모두 선택" 체크박스 상태
   const [allSelected, setAllSelected] = useState(true);
+
+  // 검색어 상태 추가
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   // 드롭다운 참조 (외부 클릭 감지용)
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -75,6 +78,19 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
     setAllSelected(newValue);
   };
 
+  // 필터링된 데이터 계산
+  const filteredData = useMemo(() => {
+    if (!searchTerm.trim()) return data;
+
+    return data.filter((row) => {
+      return keys.some((key) => {
+        const value = row[key];
+        if (value === null || value === undefined) return false;
+        return String(value).toLowerCase().includes(searchTerm.toLowerCase());
+      });
+    });
+  }, [data, searchTerm, keys]);
+
   const columns = useMemo(() => {
     // 각 키에 대한 컬럼 정의 생성
     return keys.map((key) => {
@@ -96,7 +112,7 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
 
   // 테이블 인스턴스 생성
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     state: {
       columnVisibility,
@@ -108,7 +124,28 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
   return (
     <div className="flex flex-col space-y-4 h-full overflow-auto">
       {/* 필터 아이콘 및 드롭다운 */}
-      <div className="flex justify-end relative" ref={dropdownRef}>
+      <div
+        className="flex justify-end relative items-center space-x-2"
+        ref={dropdownRef}>
+        {/* 검색 입력 필드 */}
+        <div className="relative flex-grow max-w-xs">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="검색..."
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {/* 기존 Columns 버튼 */}
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none">
