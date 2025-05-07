@@ -1,5 +1,8 @@
 # 
-FROM python:3.11
+FROM python:3.11-slim
+
+# curl 설치
+RUN apt update && apt install -y curl
 
 # 컨테이너 내 작업 디렉토리를 /code로 설정
 WORKDIR /code
