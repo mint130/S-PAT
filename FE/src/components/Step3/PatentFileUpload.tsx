@@ -160,16 +160,6 @@ const PatentFileUpload: React.FC<PatentFileUploadProps> = ({
           </div>
         )}
       </div>
-
-      {/* 이전/다음 버튼 영역 */}
-      <div className="flex justify-between w-full mt-10">
-        <Button variant="outline" size="md" className="w-24">
-          이전
-        </Button>
-        <Button variant="primary" size="md" className="w-24">
-          다음
-        </Button>
-      </div>
     </div>
   );
 };

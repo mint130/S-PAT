@@ -2,6 +2,7 @@ import { useState } from "react";
 import Title from "../components/common/Title";
 import PatentFileUpload from "../components/Step3/PatentFileUpload";
 import PatentTable from "../components/Step3/PatentTable";
+import Button from "../components/common/Button";
 
 function Step3PatentClassification() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -25,6 +26,20 @@ function Step3PatentClassification() {
       ) : (
         <PatentTable file={uploadedFile} fileBuffer={fileBuffer} />
       )}
+
+      {/* 이전/다음 버튼 영역 */}
+      <div className="flex justify-between w-full mt-10">
+        <Button variant="outline" size="md" className="w-24">
+          이전
+        </Button>
+        <Button
+          variant="primary"
+          size="md"
+          className="w-24"
+          disabled={!uploadedFile || !fileBuffer}>
+          다음
+        </Button>
+      </div>
     </div>
   );
 }
