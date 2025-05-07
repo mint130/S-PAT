@@ -7,8 +7,21 @@ from fastapi import UploadFile, HTTPException
 from app.schemas.llm import LLMClassificationResult, LLMClassificationSample, MultiLLMClassificationResponse
 import asyncio
 import time
+from app.core.config import settings
+from anthropic import Anthropic
+import google.generativeai as genai
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# 각 LLM별 클라이언트(혹은 API 키) 준비
+openai_api_key = settings.OPENAI_API_KEY
+claude_api_key = settings.CLAUDE_API_KEY
+gemini_api_key = settings.GEMINI_API_KEY
+grok3_api_key = settings.GROK3_API_KEY
+
+gpt_client = OpenAI(api_key=openai_api_key)
+claude_client = Anthropic(api_key=claude_api_key)
+genai.configure(api_key=gemini_api_key)
+gemini_model = genai.GenerativeModel("gemini-pro")
+
 
 async def process_standards_with_llm(file: UploadFile, query: str) -> tuple[List[StandardItem], str]:
     try:
@@ -19,12 +32,12 @@ async def process_standards_with_llm(file: UploadFile, query: str) -> tuple[List
         prompt = f"""
 다음은 기술 분류 체계입니다:
 
-{[{
+{[{{
     "code": item.code,
     "level": item.level,
     "name": item.name,
     "description": item.description
-} for item in standards]}
+}} for item in standards]}
 
 사용자 질문: {query}
 
@@ -34,8 +47,8 @@ async def process_standards_with_llm(file: UploadFile, query: str) -> tuple[List
 """
 
         # GPT API 호출
-        response = client.chat.completions.create(
-            model="gpt-4-turbo-preview",  # 또는 다른 적절한 모델
+        response = gpt_client.chat.completions.create(
+            model="gpt-4o",  # 또는 다른 적절한 모델
             messages=[
                 {"role": "system", "content": "당신은 기술 분류 체계 전문가입니다. 주어진 분류 체계를 기반으로 사용자의 질문에 답변해주세요."},
                 {"role": "user", "content": prompt}
@@ -57,6 +70,7 @@ async def process_standards_with_llm(file: UploadFile, query: str) -> tuple[List
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"처리 중 오류가 발생했습니다: {str(e)}")
 
+
 # --- 여러 LLM을 비동기로 호출하는 함수 ---
 async def classify_patent_with_multiple_llms(patent_data: List[dict], options: dict = None) -> MultiLLMClassificationResponse:
     # 각 LLM별 분류 함수 호출 (비동기)
@@ -69,12 +83,18 @@ async def classify_patent_with_multiple_llms(patent_data: List[dict], options: d
     results = await asyncio.gather(*tasks)
     return MultiLLMClassificationResponse(results=results)
 
-# --- 각 LLM별 분류 함수 (실제 API 연동은 추후 구현) ---
+# --- 각 LLM별 분류 함수 (실제 API 연동) ---
 async def classify_with_gpt(patent_data: List[dict], options: dict = None) -> LLMClassificationResult:
     start = time.time()
-    # 실제 GPT API 호출 및 결과 파싱 로직 필요
-    # 아래는 예시/mock 데이터
-    await asyncio.sleep(0.5)  # mock delay
+    # 프롬프트 구성 예시
+    prompt = "GPT용 프롬프트 예시"
+    response = gpt_client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.1,
+        max_tokens=2000
+    )
+    # 실제 응답 파싱 필요
     sample = [LLMClassificationSample(
         applicationNumber="KR10-2023-0045678",
         title="자연어처리모델을 이용한...",
@@ -91,7 +111,13 @@ async def classify_with_gpt(patent_data: List[dict], options: dict = None) -> LL
 
 async def classify_with_claude(patent_data: List[dict], options: dict = None) -> LLMClassificationResult:
     start = time.time()
-    await asyncio.sleep(0.5)
+    prompt = "Claude용 프롬프트 예시"
+    response = claude_client.messages.create(
+        model="claude-3-opus-20240229",
+        max_tokens=2000,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    # 실제 응답 파싱 필요
     sample = [LLMClassificationSample(
         applicationNumber="KR10-2023-0098765",
         title="로봇 수술을 위한 시스템 및 방법",
@@ -108,7 +134,9 @@ async def classify_with_claude(patent_data: List[dict], options: dict = None) ->
 
 async def classify_with_gemini(patent_data: List[dict], options: dict = None) -> LLMClassificationResult:
     start = time.time()
-    await asyncio.sleep(0.5)
+    prompt = "Gemini용 프롬프트 예시"
+    response = gemini_model.generate_content(prompt)
+    # 실제 응답 파싱 필요
     sample = [LLMClassificationSample(
         applicationNumber="KR10-2023-0012345",
         title="AI 기반 영상 처리 장치",
@@ -125,7 +153,19 @@ async def classify_with_gemini(patent_data: List[dict], options: dict = None) ->
 
 async def classify_with_grok3(patent_data: List[dict], options: dict = None) -> LLMClassificationResult:
     start = time.time()
-    await asyncio.sleep(0.5)
+    prompt = "Grok3용 프롬프트 예시"
+    client = OpenAI(
+        api_key=grok3_api_key,
+        base_url="https://api.x.ai/v1",
+    )
+
+    completion = client.chat.completions.create(
+        model="grok-3-beta",
+        messages=[
+            {"role": "user", "content": "What is the meaning of life?"}
+        ]
+    )
+    # 실제 응답 파싱 필요
     sample = [LLMClassificationSample(
         applicationNumber="KR10-2023-0076543",
         title="스마트 센서 네트워크",
