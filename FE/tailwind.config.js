@@ -6,6 +6,21 @@ module.exports = {
       minWidth: {
         app: "510px",
       },
+      // 배경 그라데이션 설정
+      opacity: {
+        10: "0.1",
+        68: "0.68",
+        70: "0.70",
+      },
+      blur: {
+        133: "133.11px",
+        310: "310.59px",
+        377: "377.15px",
+        412: "412.22px",
+      },
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+      },
       colors: {
         transparent: "transparent",
         black: "#000000",
@@ -29,6 +44,19 @@ module.exports = {
         Claude: "#D77757",
         Gemini: "#3693DA",
         Grok: "#999999",
+
+        // 배경 요소 색상 추가
+        mask: "#2388FF",
+        "element1-from": "#0679FF",
+        "element1-to": "#2A8CFF",
+        element2: "#5344FE",
+        element3: "#FE445A",
+        element4: "#D74D12",
+        element5: "#AC0CB9",
+      },
+      mixBlendMode: {
+        overlay: "overlay",
+        darken: "darken",
       },
       fontFamily: {
         pretendard: ["Pretendard", "sans-serif"],
@@ -109,6 +137,13 @@ module.exports = {
           "&::-webkit-scrollbar": {
             display: "none",
           },
+        },
+        // 블렌드 모드 유틸리티
+        ".mix-blend-overlay": {
+          "mix-blend-mode": "overlay",
+        },
+        ".mix-blend-darken": {
+          "mix-blend-mode": "darken",
         },
       });
     },
