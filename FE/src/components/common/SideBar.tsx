@@ -41,7 +41,7 @@ const SideBar: React.FC = () => {
   };
 
   return (
-    <div className="w-1/5 p-6 flex flex-col">
+    <div className="w-1/6 p-5 flex flex-col">
       {/* 로고 영역 */}
       <div className="flex items-center justify-center mb-8 p-2">
         <h1 className="text-logo font-bold text-blue-600">S-PAT</h1>
@@ -54,14 +54,15 @@ const SideBar: React.FC = () => {
           className={`mb-4 rounded-md ${
             currentStep === 1 ? "bg-white shadow" : ""
           }`}>
-          <div className={`px-4 py-4`}>
+          <div className={"px-[10px] py-4"}>
             <p
               className={`${
                 currentStep === 1
                   ? "text-[#19213D] text-sm font-samsung400"
                   : "text-primary-gray text-sm font-samsung400"
               }`}>
-              Step 1 특허 분류 체계 준비
+              <span>Step 1</span>
+              <span className="mx-2">특허 분류 체계 준비</span>
             </p>
           </div>
         </div>
@@ -71,14 +72,15 @@ const SideBar: React.FC = () => {
           className={`mb-4 rounded-md ${
             currentStep === 2 ? "bg-white shadow" : ""
           }`}>
-          <div className={`px-4 py-4`}>
+          <div className={`px-[10px] py-4`}>
             <p
               className={`${
                 currentStep === 2
-                  ? "text-[#19213D] text-sm font-samsung400"
+                  ? "text-[#19213D] text-sm font-samsung400 "
                   : "text-primary-gray text-sm font-samsung400"
               }`}>
-              Step 2 특허 분류 체계 수정
+              <span>Step 2</span>
+              <span className="mx-2">특허 분류 체계 수정</span>
             </p>
           </div>
         </div>
@@ -88,14 +90,15 @@ const SideBar: React.FC = () => {
           className={`mb-4 rounded-md ${
             currentStep === 3 ? "bg-white shadow" : ""
           }`}>
-          <div className={`px-4 py-4`}>
+          <div className={`px-[10px] py-4`}>
             <p
               className={`${
                 currentStep === 3
                   ? "text-[#19213D] text-sm font-samsung400"
                   : "text-primary-gray text-sm font-samsung400"
               }`}>
-              Step 3 특허 데이터 분류
+              <span>Step 3</span>
+              <span className="mx-2">특허 데이터 분류</span>
             </p>
           </div>
         </div>
@@ -105,14 +108,15 @@ const SideBar: React.FC = () => {
           className={`mb-4 rounded-md ${
             currentStep === 4 ? "bg-white shadow" : ""
           }`}>
-          <div className={`px-4 py-4`}>
+          <div className={`pl-[10px] py-4`}>
             <p
               className={`${
                 currentStep === 4
                   ? "text-[#19213D] text-sm font-samsung400"
                   : "text-primary-gray text-sm font-samsung400"
               }`}>
-              Step 4 특허 데이터 분류 결과
+              <span>Step 4</span>
+              <span className="mx-2">특허 데이터 분류 결과</span>
             </p>
           </div>
         </div>
@@ -123,14 +127,16 @@ const SideBar: React.FC = () => {
             className={`mb-4 rounded-md ${
               currentStep === 5 ? "bg-white shadow" : ""
             }`}>
-            <div className={`px-4 py-4`}>
+            <div className={`px-[10px] py-4`}>
               <p
                 className={`${
                   currentStep === 5
                     ? "text-[#19213D] text-sm font-samsung400"
                     : "text-primary-gray text-sm font-samsung400"
                 }`}>
-                Step 5 성능 비교 및 최적 모델 선택
+                {/* Step 5 성능 비교 및 최적 모델 선택 */}
+                <span>Step 5</span>
+                <span className="mx-2">최적 모델 선택</span>
               </p>
             </div>
           </div>
@@ -142,8 +148,8 @@ const SideBar: React.FC = () => {
         {/* 다크모드 토글 */}
         <div className="flex items-center justify-between mb-6 px-2">
           <div className="flex items-center">
-            <Moon className="h-5 w-5 text-primary-gray mr-2" />
-            <span className="text-primary-gray text-[14px] font-samsung400">
+            <Moon className="h-4 w-4 text-primary-gray mr-2" />
+            <span className="text-primary-gray text-sm font-samsung400">
               Dark mode
             </span>
           </div>

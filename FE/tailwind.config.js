@@ -80,7 +80,7 @@ module.exports = {
           },
         ],
         subtitle: [
-          "15px", // 서브 타이틀 크기
+          "13px", // 서브 타이틀 크기
           {
             lineHeight: "24px",
             letterSpacing: "-0.2px",
