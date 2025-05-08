@@ -5,6 +5,7 @@ import Step0ModeSelect from "./pages/Step0ModeSelect";
 import Step1ClassificationSetup from "./pages/Step1ClassificationSetup";
 import Step2ClassificationEdit from "./pages/Step2ClassificationEdit";
 import Step3PatentClassification from "./pages/Step3PatentClassification";
+import Step4PatentResult from "./pages/Step4PatentResult";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="step1" element={<Step1ClassificationSetup />} />
           <Route path="step2" element={<Step2ClassificationEdit />} />
           <Route path="step3" element={<Step3PatentClassification />} />
+          <Route path="step4" element={<Step4PatentResult />} />
           <Route index element={<Step1ClassificationSetup />} />
         </Route>
 
