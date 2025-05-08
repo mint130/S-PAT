@@ -53,8 +53,7 @@ async def process_standards_with_llm(file: UploadFile, query: str) -> tuple[List
                 {"role": "system", "content": "당신은 기술 분류 체계 전문가입니다. 주어진 분류 체계를 기반으로 사용자의 질문에 답변해주세요."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.1,
-            max_tokens=2000
+            temperature=0
         )
 
         # GPT 응답 처리
@@ -91,8 +90,7 @@ async def classify_with_gpt(patent_data: List[dict], options: dict = None) -> LL
     response = gpt_client.chat.completions.create(
         model="gpt-4o",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.1,
-        max_tokens=2000
+        temperature=0
     )
     # 실제 응답 파싱 필요
     sample = [LLMClassificationSample(
@@ -114,7 +112,6 @@ async def classify_with_claude(patent_data: List[dict], options: dict = None) ->
     prompt = "Claude용 프롬프트 예시"
     response = claude_client.messages.create(
         model="claude-3-opus-20240229",
-        max_tokens=2000,
         messages=[{"role": "user", "content": prompt}]
     )
     # 실제 응답 파싱 필요
