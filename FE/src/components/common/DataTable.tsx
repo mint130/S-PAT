@@ -6,13 +6,51 @@ import {
   createColumnHelper,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ListFilter, Check, X } from "lucide-react";
+import { ListFilter, Check, Search, X } from "lucide-react";
 
 interface DataTableProps {
   data: any[];
+  fileName: String;
+  isLoading?: boolean;
+  error?: string | null;
 }
 
-const DataTable: React.FC<DataTableProps> = ({ data }) => {
+const DataTable: React.FC<DataTableProps> = ({
+  data,
+  fileName,
+  isLoading = false,
+  error = null,
+}) => {
+  if (isLoading) {
+    return (
+      <div className="h-96 flex items-center justify-center">
+        <p>파일 데이터를 처리 중입니다...</p>
+      </div>
+    );
+  }
+
+  // 오류가 있다면
+  if (error) {
+    return (
+      <div className="h-96 overflow-auto">
+        <div className="mb-4 text-red-500">
+          <p>
+            <strong>오류:</strong> {error}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 데이터가 없다면
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-96 flex items-center justify-center">
+        <p>파일에 데이터가 없습니다.</p>
+      </div>
+    );
+  }
+
   // 데이터의 첫 번째 행에서 컬럼 정보 자동 생성
   const columnHelper = createColumnHelper<any>();
 
@@ -122,74 +160,71 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
   });
 
   return (
-    <div className="flex flex-col space-y-4 h-full overflow-auto">
-      {/* 필터 아이콘 및 드롭다운 */}
-      <div
-        className="flex justify-end relative items-center space-x-2"
-        ref={dropdownRef}>
-        {/* 검색 입력 필드 */}
-        <div className="relative flex-grow max-w-xs">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="검색..."
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-          {searchTerm && (
+    <div className="flex flex-col gap-4 w-full h-full mt-5 p-3 border border-gray-200 rounded-lg shadow-sm bg-white overflow-auto">
+      <header className="flex items-center justify-between">
+        <h1 className="font-pretendard font-bold">{fileName}</h1>
+        <div className="flex gap-5 justify-center items-center">
+          {/* Column 필터 영역 */}
+          <div
+            className="flex relative items-center space-x-2"
+            ref={dropdownRef}>
             <button
-              onClick={() => setSearchTerm("")}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
-              <X className="h-4 w-4" />
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-1 h-8 text-sm font-semibold text-gray-500">
+              <ListFilter className="h-4 w-4" />
+              <span>Columns</span>
             </button>
-          )}
-        </div>
 
-        {/* 기존 Columns 버튼 */}
-        <button
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none">
-          <ListFilter className="h-4 w-4 mr-1" />
-          <span>Columns</span>
-        </button>
+            {isDropdownOpen && (
+              <div className="absolute right-0 top-8 z-10 w-52 max-h-72 p-1 bg-white border border-gray-200 rounded-md overflow-auto">
+                {/* 전체 선택 */}
+                <div
+                  className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-100/80 rounded-md"
+                  onClick={toggleAllColumns}>
+                  {allSelected ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <div className="h-4 w-4"></div>
+                  )}
+                  <span className="text-sm font-pretendard">(모두 선택)</span>
+                </div>
 
-        {isDropdownOpen && (
-          <div className="absolute right-0 mt-10 z-10 w-56 bg-white border border-gray-200 rounded-md shadow-lg">
-            <div className="p-3 max-h-72 overflow-y-auto">
-              {/* 전체 선택 체크박스 */}
-              <div
-                className="flex items-center cursor-pointer p-2 hover:bg-gray-50 rounded-md"
-                onClick={toggleAllColumns}>
-                {allSelected ? (
-                  <Check className="h-4 w-4 text-blue-500 mr-2" />
-                ) : (
-                  <div className="h-4 w-4 text-gray-400 mr-2"></div>
-                )}
-                <span className="text-sm font-medium">(모두 선택)</span>
-              </div>
-
-              <div className="my-2 border-t border-gray-200"></div>
-
-              {/* 개별 컬럼 체크박스 */}
-              <div className="space-y-1">
+                {/* 개별 컬럼 선택 */}
                 {keys.map((key) => (
                   <div
                     key={key}
-                    className="flex items-center cursor-pointer p-2 hover:bg-gray-50 rounded-md"
+                    className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-100/80 rounded-md "
                     onClick={() => toggleColumnVisibility(key)}>
                     {columnVisibility[key] ? (
-                      <Check className="h-4 w-4 text-blue-500 mr-2" />
+                      <Check className="h-4 w-4 flex-shrink-0" />
                     ) : (
-                      <div className="h-4 w-4 text-gray-400 mr-2"></div>
+                      <div className="h-4 w-4 flex-shrink-0"></div>
                     )}
-                    <span className="text-sm">{key}</span>
+                    <span className="text-sm font-pretendard text-nowrap">
+                      {key}
+                    </span>
                   </div>
                 ))}
               </div>
-            </div>
+            )}
           </div>
-        )}
-      </div>
+
+          {/* 검색 영역 */}
+          <div className="relative">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search"
+              className="w-56 h-8 pl-7 pr-3 py-1 text-sm border border-gray-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-gray-500"
+            />
+            <Search
+              className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 opacity-40"
+              strokeWidth={3}
+            />
+          </div>
+        </div>
+      </header>
 
       {/* 테이블 부분 */}
       <div className="h-full overflow-auto">
