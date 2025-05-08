@@ -26,7 +26,7 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ title, items }) => {
         )}
       </div>
 
-      <h3 className="font-samsungSharp text-primary-gray mb-2 text-base">
+      <h3 className="font-samsungSharp text-primary-gray mb-4 text-base">
         {title}
       </h3>
 
@@ -34,7 +34,7 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ title, items }) => {
         {items.map((item, index) => (
           <li
             key={index}
-            className="p-2 text-xs max-w-[300px] text-primary-black border border-gray-200 rounded-md text-center font-samsung400 mx-auto bg-white">
+            className="p-2 text-[10px] max-w-[250px] text-[#3F3F3F] border border-[#F0F2F5] rounded-md text-center font-samsung400 mx-auto bg-white">
             {item}
           </li>
         ))}
@@ -63,7 +63,7 @@ const IntroContent: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-screen-xl mx-auto px-4 sm:px-16 flex flex-col justify-center grow">
+    <div className="max-w-screen-xl mx-auto px-4 sm:px-32 flex flex-col justify-center grow">
       <div className="text-center ">
         <h1 className="text-3xl font-samsungSharp font-bold text-primary-black mb-6">
           <span className="text-primary-blue">S</span>amsung{" "}

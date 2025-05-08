@@ -7,7 +7,7 @@ const Layout: React.FC = () => {
     <>
       <div className="h-screen w-full bg-background flex justify-between">
         <Sidebar />
-        <div className="w-4/5 rounded-xl relative overflow-hidden shadow-lg flex flex-col justify-start m-2">
+        <div className="w-5/6 rounded-xl relative overflow-hidden shadow-lg flex flex-col justify-start m-2">
           <div className="absolute inset-0 bg-white"></div>
 
           {/* 배경 효과 요소 - 하단 40% */}

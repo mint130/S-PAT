@@ -1,5 +1,4 @@
 import { Routes, Route, BrowserRouter } from "react-router-dom";
-import TestPages from "./pages/TestPages";
 import Layout from "./components/Layout/Layout";
 
 import Step0ModeSelect from "./pages/Step0ModeSelect";
@@ -12,8 +11,6 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Step0ModeSelect />} />
-
-        <Route path="/test" element={<TestPages />} />
 
         {/* 사용자 모드 */}
         <Route path="/user" element={<Layout />}>

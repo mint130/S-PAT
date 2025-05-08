@@ -124,7 +124,7 @@ const Prompt: React.FC<PromptProps> = ({
         onDragOver={handleDrag}
         onDrop={handleDrop}>
         <textarea
-          className={`w-full min-h-[60px] rounded-lg focus:outline-none resize-none text-gray-700 font-samsung400 text-subtitle break-words ${
+          className={`w-full min-h-[60px] rounded-lg focus:outline-none resize-none text-gray-700 font-samsung400 text-sm break-words ${
             isLoading || fileLoading ? "cursor-not-allowed" : ""
           }`}
           placeholder="특허 분류 체계를 생성하기 위한 프롬프트를 입력해주세요"
