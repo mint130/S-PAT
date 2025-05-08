@@ -54,7 +54,7 @@ const SideBar: React.FC = () => {
           className={`mb-4 rounded-md ${
             currentStep === 1 ? "bg-white shadow" : ""
           }`}>
-          <div className={`px-4 ${currentStep === 1 ? "py-5" : "py-3"}`}>
+          <div className={`px-4 py-4`}>
             <p
               className={`${
                 currentStep === 1
@@ -71,7 +71,7 @@ const SideBar: React.FC = () => {
           className={`mb-4 rounded-md ${
             currentStep === 2 ? "bg-white shadow" : ""
           }`}>
-          <div className={`px-4 ${currentStep === 2 ? "py-5" : "py-3"}`}>
+          <div className={`px-4 py-4`}>
             <p
               className={`${
                 currentStep === 2
@@ -88,7 +88,7 @@ const SideBar: React.FC = () => {
           className={`mb-4 rounded-md ${
             currentStep === 3 ? "bg-white shadow" : ""
           }`}>
-          <div className={`px-4 ${currentStep === 3 ? "py-5" : "py-3"}`}>
+          <div className={`px-4 py-4`}>
             <p
               className={`${
                 currentStep === 3
@@ -105,7 +105,7 @@ const SideBar: React.FC = () => {
           className={`mb-4 rounded-md ${
             currentStep === 4 ? "bg-white shadow" : ""
           }`}>
-          <div className={`px-4 ${currentStep === 4 ? "py-5" : "py-3"}`}>
+          <div className={`px-4 py-4`}>
             <p
               className={`${
                 currentStep === 4
@@ -123,7 +123,7 @@ const SideBar: React.FC = () => {
             className={`mb-4 rounded-md ${
               currentStep === 5 ? "bg-white shadow" : ""
             }`}>
-            <div className={`px-4 ${currentStep === 5 ? "py-5" : "py-3"}`}>
+            <div className={`px-4 py-4`}>
               <p
                 className={`${
                   currentStep === 5
