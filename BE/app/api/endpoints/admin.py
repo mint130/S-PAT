@@ -6,7 +6,7 @@ from app.schemas.llm import MultiLLMClassificationResponse
 
 admin_router = APIRouter(prefix="/admin")
 
-@admin_router.post("/{session_id}/classification", response_model=MultiLLMClassificationResponse, summary="여러 LLM으로 특허 분류 및 평가", description="4개의 LLM(GPT, Claude, Gemini, Grok3)으로 특허 분류 및 평가 결과를 반환합니다.")
+@admin_router.post("/{session_id}/classification", response_model=MultiLLMClassificationResponse, summary="여러 LLM으로 특허 분류 및 평가 (작업중)", description="4개의 LLM(GPT, Claude, Gemini, Grok3)으로 특허 분류 및 평가 결과를 반환합니다.")
 async def classify_patent_by_multi_llm(session_id: str, file: UploadFile = File(...)):
     try:
         # 1. 엑셀 파일 처리 (특허 데이터 추출)
