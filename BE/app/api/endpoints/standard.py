@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
@@ -26,6 +27,9 @@ from app.crud.crud_llm import process_standards_with_llm
 
 load_dotenv()
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)  # 모듈 이름 기반으로 로거 생성
+
 standard_router = APIRouter(prefix="/standard")
 
 llm = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model_name="gpt-4o", temperature=0)
@@ -35,15 +39,15 @@ output_parser = JsonOutputParser()
 
 # template 정의
 template = """
-너는 특허 분류 체계를 생성하는 AI야.
+당신은 특허 분류 체계를 제작하는 특허 분류 전문가입니다.
+당신은 유저의 요청과 필수 규칙에 따라 특허 분류 체계를 상세히 작성해야 합니다.
+아래는 유저의 요청과 그 응답의 예시입니다.
 
-아래는 입력과 그에 대한 정답 예시야.
-
-[예시1]
+[예시]
 요청:
-휴머노이드의 플랫폼 기술에 대한 분류 체계를 만들어줘.
+휴머노이드 기술에 대한 분류 체계를 만들어 주세요.
 
-정답:
+응답:
 [
   {{
     "code": "H01",
@@ -62,47 +66,14 @@ template = """
     "level": "소분류",
     "name": "경량 합금 프레임",
     "description": "알루미늄 합금 또는 탄소 복합 소재 등 고강도 경량 재료를 활용하여 휴머노이드 프레임 무게를 줄이고 기능성을 향상시키는 기술."
-  }}
-]
-
----
-
-[예시2]
-요청:
-자동차 바퀴 특허 기술에 대한 분류 체계를 만들어줘.
-
-정답:
-[
-  {{
-  "code": "A01",
-  "level": "대분류",
-  "name": "자동차 바퀴 기술",
-  "description": "자동차의 구동, 제동, 조향 성능에 직결되는 바퀴(휠 및 타이어) 관련 핵심 기술로, 구조, 재료, 성능 향상, 내구성, 환경 대응 등을 포함한다."
   }},
   {{
-  "code": "A01-01",
-  "level": "중분류",
-  "name": "휠 구조 및 재료 기술",
-  "description": "자동차 바퀴의 휠에 적용되는 구조적 설계 및 사용 재료에 관한 기술로, 경량화, 강성 확보, 디자인 향상 등을 포함한다."
+    "code": "H02",
+    "level": "대분류",
+    "name": "휴머노이드 운동 제어",
+    "description": "다관절 관절 구조를 기반으로 한 사람과 유사한 운동을 구현하며, 보행 안정성 및 동작 다양성 확보를 위한 제어 기술 집합."
   }},
-  {{
-  "code": "A01-01-01",
-  "level": "소분류",
-  "name": "단조 알루미늄 휠",
-  "description": "고온·고압에서 가공된 알루미늄을 사용하여 강도와 경량을 동시에 확보한 휠 제조 기술로, 고성능 차량에 주로 적용된다."
-  }},
-  {{
-  "code": "A01-02",
-  "level": "중분류",
-  "name": "타이어 성능 향상 기술",
-  "description": "노면 접지력, 주행 안정성, 마모 저항성, 연비 향상 등을 위해 타이어의 재질, 구조, 패턴 등을 최적화하는 기술."
-  }},
-  {{
-  "code": "A01-02-01",
-  "level": "소분류",
-  "name": "저연비 실리카 타이어",
-  "description": "타이어 트레드에 실리카를 첨가하여 회전 저항을 줄이고 연비를 향상시키는 동시에 젖은 노면에서의 접지력을 유지하는 친환경 기술."
-  }}
+  ...
 ]
 
 [이전 생성한 분류 체계]
@@ -111,12 +82,20 @@ template = """
 [유저의 요청]
 {user_input}
 
-유저의 요청에 맞게 분류 체계를 생성해서 JSON 배열 형태로 반환해줘. 
-각 항목은 code, level, name, description 필드를 포함해야 해. 
-각 코드는 계층 구조(대분류: H01, 중분류: H01-01, 소분류: H01-01-01)를 따라야 해.
-반드시 이전에 생성한 분류 체계의 주제와 도메인을 유지하면서 확장해야 해.
-예를 들어, 이전에 비행기 날개에 대한 분류였다면, 추가되는 분류도 반드시 비행기 날개 관련 기술이어야 해.
-이전 생성한 분류체계가 있다면 요청에 따라 새로운 체계를 생성하는 것이 아닌 기존 분류체계에서 수정하여 반영해줘.
+[필수 규칙]
+1. 유저의 요청에 맞게 생성한 분류 체계는 JSON 배열 형태로 반환해야 한다.
+2. 각 항목은 code, level, name, description 필드만 무조건 포함해야 한다.
+3. 각 코드는 계층 구조를 따라야 한다.
+    예를 들어, 대분류: A01, 중분류: A01-01, 소분류: A01-01-01
+4. 이전 생성한 분류 체계가 있다면, 반드시 그 주제와 도메인을 유지하면서 확장해야 한다.
+5. 이전 생성한 분류 체계가 있다면, 사용자의 요청에 따라 이전 생성한 분류 체계에서 수정하여 반영해야 한다.
+6. 각 분류마다 지정된 최소 분류 개수 이상의 분류 항목이 있어야 한다.
+    [최소 분류 개수]
+    대분류: 무조건 5개 이상,
+    중분류: 각 대분류마다 5개 이상,
+    소분류: 각 중분류마다 3개 이상
+    적어도 총 대분류5 + 중분류25 + 소분류75 = 105개의 항목이 존재해야 한다(중요).
+7. 응답의 길이는 길어도 좋다.
 """
 
 
@@ -150,7 +129,7 @@ async def create_conversation(session_id: str, conv: ConversationRequest, db: Se
 
         # 메모리에 입력 저장
         memory.chat_memory.add_user_message(conv.query)
-        print("메모리 내용:", memory.load_memory_variables)
+        # print("메모리 내용:", memory.load_memory_variables)
 
         # Chain 만들기
         chain = RunnableMap({
@@ -160,9 +139,9 @@ async def create_conversation(session_id: str, conv: ConversationRequest, db: Se
 
         # Chain 실행
         response = await chain.ainvoke({"user_input": conv.query})
-        print(f"Running chain with input: {conv.query}")
-        print(f"Chain response type: {type(response)}")
-        print(f"Chain response: {response[0]}")
+        # print(f"Running chain with input: {conv.query}")
+        # print(f"Chain response type: {type(response)}")
+        # print(f"Chain response: {response[0]}")
 
         # db에 대화 저장
         create_conversation_record(db, session_id, conv.query, response)
