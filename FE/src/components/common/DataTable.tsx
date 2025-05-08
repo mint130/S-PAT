@@ -7,7 +7,7 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { ListFilter, Check, Search, X } from "lucide-react";
+import { ListFilter, Check, Search } from "lucide-react";
 
 interface DataTableProps {
   data: any[];
