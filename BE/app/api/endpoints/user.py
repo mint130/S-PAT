@@ -3,9 +3,11 @@ import io
 import json
 import os
 import re
+import time
 from typing import Any, Dict, List
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
+from langchain_google_genai import ChatGoogleGenerativeAI
 import pandas as pd
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -27,6 +29,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.chains import RetrievalQA
+from langchain_xai import ChatXAI
+from langchain_anthropic import ChatAnthropic
 
 from app.schemas.classification import ClassificationResponse, ClassificationSchema, Patent
 from app.schemas.conversation import ConversationRequest, ConversationResponse, SessionHistoryResponse
@@ -43,12 +47,28 @@ os.makedirs(RESULT_DIR, exist_ok=True)
 
 user_router = APIRouter(prefix="/user")
 embeddings_openai = OpenAIEmbeddings(model="text-embedding-3-large", dimensions=3072)
-llm = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model_name="gpt-4o", temperature=0)
+
+gpt = ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model_name="gpt-4o", temperature=0)
+claude = ChatAnthropic(
+    model="claude-3-7-sonnet-20250219",
+    temperature=0,
+    api_key=os.getenv("CLAUDE_API_KEY")
+)
+gemini = ChatGoogleGenerativeAI(
+    model="gemini-2.0-flash",
+    temperature=0,
+    google_api_key=os.getenv("GEMINI_API_KEY")
+)
+grok = ChatXAI(
+    model="grok-3-beta",
+    temperature=0,
+    xai_api_key=os.getenv("GROK3_API_KEY")
+)
 
 user_vector_stores: Dict[str, FAISS] = {}
 
 # 특허 정보를 바탕으로 분류하는 함수
-def classify_patent(retriever, patent_info: str) -> Dict[str, str]:
+def classify_patent(llm, retriever, patent_info: str) -> Dict[str, str]:
     
     # 출력 파서 정의
     parser = PydanticOutputParser(pydantic_object=ClassificationSchema)
@@ -288,7 +308,7 @@ async def save_standard(session_id: str, standard: ConversationResponse, db:Sess
 
 
 @user_router.post("/{session_id}/classification", response_model=ClassificationResponse, summary="특허 데이터 엑셀 파일 업로드 후 분류", description="엑셀 파일을 업로드하여 분류 한 후 분류결과 엑셀파일과 JSON을 반환합니다.")
-async def classify_patent_data(session_id: str, file: UploadFile = File(...)):
+async def classify_patent_data(session_id: str, LLM: str, file: UploadFile = File(...)):
     # 업로드된 파일이 엑셀 파일인지 확인
     if not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail="업로드된 파일은 Excel (.xlsx 또는 .xls) 형식이어야 합니다")
@@ -304,6 +324,16 @@ async def classify_patent_data(session_id: str, file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="벡터 DB에 분류 체계 데이터가 없습니다. 먼저 분류 체계를 저장해주세요.")
 
     try:
+        # 최적의 LLM 셋팅
+        if LLM=="GPT":
+            llm = gpt
+        elif LLM == "CLAUDE":
+            llm = claude
+        elif LLM == "GEMINI":
+            llm = gemini
+        else:
+            llm = grok
+
         # 파일 내용을 메모리에서 읽기
         contents = await file.read()
         
@@ -334,7 +364,7 @@ async def classify_patent_data(session_id: str, file: UploadFile = File(...)):
             patent_info = f"특허명: {title} 요약: {abstract}"
             
             # RAG를 통한 분류
-            classifications = classify_patent(retriever, patent_info)
+            classifications = classify_patent(llm, retriever, patent_info)
             
             # 원본 데이터프레임에 분류 결과 추가
             df.loc[index, '대분류코드'] = classifications["majorCode"]
@@ -358,6 +388,7 @@ async def classify_patent_data(session_id: str, file: UploadFile = File(...)):
             )
             
             patents.append(patent_data)
+            time.sleep(0.5)
         
         # 임시 파일명 생성
         filename = f"{session_id}_classified.xlsx"
