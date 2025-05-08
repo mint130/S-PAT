@@ -8,7 +8,6 @@ function Step1ClassificationSetup() {
         text="분류 체계 준비"
         subText="특허 분류를 위해 맞춤형 분류 체계를 AI로 생성하거나 기존 체계 파일을 업로드하세요."
       />
-
       <ChatContent />
     </div>
   );
