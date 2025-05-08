@@ -6,11 +6,12 @@ import {
   createColumnHelper,
   VisibilityState,
 } from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { ListFilter, Check, Search, X } from "lucide-react";
 
 interface DataTableProps {
   data: any[];
-  fileName: String;
+  fileName: string;
   isLoading?: boolean;
   error?: string | null;
 }
@@ -73,6 +74,9 @@ const DataTable: React.FC<DataTableProps> = ({
 
   // 드롭다운 참조 (외부 클릭 감지용)
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // 테이블 컨테이너 참조 (가상화용)
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   // 모든 컬럼이 선택되었는지 확인하여 "모두 선택" 체크박스 상태 업데이트
   useEffect(() => {
@@ -146,7 +150,7 @@ const DataTable: React.FC<DataTableProps> = ({
         size: 150,
       });
     });
-  }, [data]);
+  }, [keys]);
 
   // 테이블 인스턴스 생성
   const table = useReactTable({
@@ -158,6 +162,23 @@ const DataTable: React.FC<DataTableProps> = ({
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  // 가상화된 행 생성을 위한 virtualizer 설정
+  const { rows } = table.getRowModel();
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => 35, // 각 행의 예상 높이
+    overscan: 10, // 화면 위/아래에 추가로 렌더링할 행 수
+  });
+
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const totalSize = rowVirtualizer.getTotalSize();
+  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0;
+  const paddingBottom =
+    virtualRows.length > 0
+      ? totalSize - (paddingTop + virtualRows[virtualRows.length - 1].end)
+      : 0;
 
   return (
     <div className="flex flex-col gap-4 w-full h-full mt-5 p-3 border border-gray-200 rounded-lg shadow-sm bg-white overflow-auto">
@@ -176,7 +197,7 @@ const DataTable: React.FC<DataTableProps> = ({
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 top-8 z-10 w-52 max-h-72 p-1 bg-white border border-gray-200 rounded-md overflow-auto">
+              <div className="absolute right-0 top-8 z-20 w-52 max-h-72 p-1 bg-white border border-gray-200 rounded-md overflow-auto shadow-md">
                 {/* 전체 선택 */}
                 <div
                   className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-100/80 rounded-md"
@@ -200,7 +221,7 @@ const DataTable: React.FC<DataTableProps> = ({
                     ) : (
                       <div className="h-4 w-4 flex-shrink-0"></div>
                     )}
-                    <span className="text-sm font-pretendard text-nowrap">
+                    <span className="text-sm font-pretendard truncate">
                       {key}
                     </span>
                   </div>
@@ -227,13 +248,16 @@ const DataTable: React.FC<DataTableProps> = ({
       </header>
 
       {/* 테이블 부분 */}
-      <div className="h-full overflow-auto">
+      <div ref={tableContainerRef} className="h-full overflow-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50 sticky top-0">
+          <thead className="bg-gray-50 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <th key={header.id} scope="col">
+                  <th
+                    key={header.id}
+                    scope="col"
+                    className="px-3 py-2 text-left">
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -245,16 +269,45 @@ const DataTable: React.FC<DataTableProps> = ({
               </tr>
             ))}
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
+          <tbody>
+            {/* 상단 패딩 역할을 하는 빈 행 */}
+            {paddingTop > 0 && (
+              <tr>
+                <td
+                  style={{ height: `${paddingTop}px` }}
+                  colSpan={keys.length}
+                />
               </tr>
-            ))}
+            )}
+
+            {/* 가상화된 행 */}
+            {virtualRows.map((virtualRow) => {
+              const row = rows[virtualRow.index];
+              return (
+                <tr key={row.id} className="hover:bg-gray-50">
+                  {row.getVisibleCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className="px-3 py-2 border-b border-gray-200">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+
+            {/* 하단 패딩 역할을 하는 빈 행 */}
+            {paddingBottom > 0 && (
+              <tr>
+                <td
+                  style={{ height: `${paddingBottom}px` }}
+                  colSpan={keys.length}
+                />
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
