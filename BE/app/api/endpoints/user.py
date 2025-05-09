@@ -73,7 +73,7 @@ grok = ChatXAI(
 user_vector_stores: Dict[str, FAISS] = {}
 
 # 특허 정보를 바탕으로 분류하는 함수
-def classify_patent(llm, retriever, patent_info: str) -> Dict[str, str]:
+async def classify_patent(llm, retriever, patent_info: str) -> Dict[str, str]:
     
     # 출력 파서 정의
     parser = PydanticOutputParser(pydantic_object=ClassificationSchema)
@@ -151,7 +151,7 @@ def classify_patent(llm, retriever, patent_info: str) -> Dict[str, str]:
     )
     
     # 체인 실행
-    result = rag_chain.invoke(patent_info)
+    result = await rag_chain.ainvoke(patent_info)
     
     # 결과 파싱
     try:
@@ -373,7 +373,7 @@ async def classify_patent_data(session_id: str, LLM: str, file: UploadFile = Fil
             patent_info = f"특허명: {title} 요약: {abstract}"
             
             # RAG를 통한 분류
-            classifications = classify_patent(llm, retriever, patent_info)
+            classifications = await classify_patent(llm, retriever, patent_info)
             
             # 원본 데이터프레임에 분류 결과 추가
             df.loc[index, '대분류코드'] = classifications["majorCode"]
