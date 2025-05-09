@@ -45,51 +45,15 @@ const PatentTable: React.FC<PatentTableProps> = ({ file, fileBuffer }) => {
     }
   }, [fileBuffer]);
 
-  // 로딩 중이라면
-  if (isLoading) {
-    return (
-      <div className="flex flex-col w-full h-full pt-8">
-        <div className="p-4 border border-gray-200 rounded-lg shadow-sm bg-white h-96 flex items-center justify-center">
-          <p>파일 데이터를 처리 중입니다...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // 오류가 있다면
-  if (error) {
-    return (
-      <div className="flex flex-col w-full h-full pt-8">
-        <div className="p-4 border border-gray-200 rounded-lg shadow-sm bg-white h-96 overflow-auto">
-          <div className="mb-4 text-red-500">
-            <p>
-              <strong>오류:</strong> {error}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 데이터가 없다면
-  if (patentData.length === 0) {
-    return (
-      <div className="flex flex-col w-full h-full pt-8">
-        <div className="p-4 border border-gray-200 rounded-lg shadow-sm bg-white h-96 flex items-center justify-center">
-          <p>파일에 데이터가 없습니다.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col gap-4 w-full h-full mt-8 p-4 border border-gray-200 rounded-lg shadow-sm bg-white overflow-auto">
-      <div className="">
-        <p>{file.name}</p>
-      </div>
-
-      <DataTable data={patentData} />
-    </div>
+    <>
+      <DataTable
+        data={patentData}
+        fileName={file.name}
+        isLoading={isLoading}
+        error={error}
+      />
+    </>
   );
 };
 

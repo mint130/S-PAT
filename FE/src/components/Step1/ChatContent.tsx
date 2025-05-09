@@ -4,6 +4,7 @@ import { File } from "lucide-react";
 import IntroContent from "./IntroContent";
 import Prompt from "./Prompt";
 import Button from "../common/Button"; // Button 컴포넌트 import
+import NextModal from "../common/NextModal"; // NextModal 컴포넌트 import
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -268,6 +269,16 @@ const ChatContent: React.FC = () => {
     setIsProcessing(true); // 로딩 상태 시작
     try {
       console.log("진행하기 버튼 클릭됨");
+      // 선택된 메시지 인덱스가 있을 때만 처리
+      if (selectedMessageIndex !== null) {
+        // 선택된 분류체계 가져오기
+        const selectedStandards = messages[selectedMessageIndex].content;
+
+        // state와 함께 Step2로 네비게이션
+        navigate("/user/step2", {
+          state: { selectedStandards },
+        });
+      }
     } catch (error) {
       console.error("진행 중 오류가 발생했습니다:", error);
       // 오류 처리 로직
@@ -536,44 +547,15 @@ const ChatContent: React.FC = () => {
         </div>
       )}
 
-      {/* 모달 컴포넌트 */}
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          {/* 배경 오버레이 */}
-          <div
-            className="absolute inset-0 bg-gray-900 bg-opacity-50"
-            onClick={handleModalCancel}></div>
-
-          {/* 모달 내용 */}
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 z-10">
-            {/* 모달 헤더 */}
-            <div className="px-4 pt-4 mt-6">
-              <h3 className="text-lg font-pretendard font-semibold text-black">
-                해당 분류체계를 진행하시겠습니까?
-              </h3>
-            </div>
-
-            {/* 모달 본문 */}
-            <div className="px-4 py-2 font-pretendard text-primary-gray">
-              <p>진행하기 버튼을 누르시면 다음 단계로 넘어갑니다.</p>
-            </div>
-
-            {/* 모달 푸터 (버튼 영역) */}
-            <div className="p-4 bg-gray-50 rounded-b-lg flex justify-end space-x-2">
-              <Button variant="outline" size="md" onClick={handleModalCancel}>
-                취소
-              </Button>
-              <Button
-                variant="primary"
-                size="md"
-                onClick={handleModalConfirm}
-                isLoading={isProcessing}>
-                진행하기
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 기존 모달 대신 ConfirmationModal 컴포넌트 사용 */}
+      <NextModal
+        isOpen={showModal}
+        title="해당 분류체계를 진행하시겠습니까?"
+        description="진행하기 버튼을 누르시면 다음 단계로 넘어갑니다."
+        onCancel={handleModalCancel}
+        onConfirm={handleModalConfirm}
+        isLoading={isProcessing}
+      />
 
       {/* 파일 업로드 모달 */}
       {showFileModal && uploadedFile && (

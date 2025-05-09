@@ -6,7 +6,7 @@ interface TitleProps {
 function Title({ text, subText }: TitleProps) {
   return (
     <div className="flex flex-col">
-      <div className="font-pretendard font-bold text-primary-black text-title">
+      <div className="font-pretendard font-bold text-primary-black text-title mb-1">
         {text}
       </div>
       <div className="font-samsung400 text-primary-gray text-subtitle">
