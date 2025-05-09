@@ -36,28 +36,33 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       {/* 모달 내용 */}
       <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 z-10">
         {/* 모달 헤더 */}
-        <div className="px-4 pt-4 mt-6">
-          <h3 className="text-lg font-pretendard font-semibold text-black">
+        <div className="px-6 pt-4 mt-4">
+          <h3 className="text-xl font-pretendard font-semibold text-black">
             {title}
           </h3>
         </div>
 
         {/* 모달 본문 */}
         {description && (
-          <div className="px-4 py-2 font-pretendard text-primary-gray">
+          <div className="text-base px-6 pb-6 mt-2 font-pretendard text-primary-gray">
             <p>{description}</p>
           </div>
         )}
 
         {/* 모달 푸터 (버튼 영역) */}
-        <div className="p-4 bg-gray-50 rounded-b-lg flex justify-end space-x-2">
-          <Button variant="outline" size="md" onClick={onCancel}>
+        <div className="px-6 pt-4 rounded-b-lg flex justify-end space-x-2 mb-4">
+          <Button
+            variant="outline"
+            size="md"
+            onClick={onCancel}
+            className="w-auto min-w-fit px-4">
             취소
           </Button>
           <Button
             variant="primary"
             size="md"
             onClick={onConfirm}
+            className="w-auto min-w-fit px-4"
             isLoading={isLoading}>
             진행하기
           </Button>
