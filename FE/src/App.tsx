@@ -5,6 +5,8 @@ import Step0ModeSelect from "./pages/Step0ModeSelect";
 import Step1ClassificationSetup from "./pages/Step1ClassificationSetup";
 import Step2ClassificationEdit from "./pages/Step2ClassificationEdit";
 import Step3PatentClassification from "./pages/Step3PatentClassification";
+import Step4PatentResult from "./pages/Step4PatentResult";
+import LoadingTest from "./pages/LoadingTest";
 
 function App() {
   return (
@@ -12,7 +14,10 @@ function App() {
       <Routes>
         <Route path="/" element={<Step0ModeSelect />} />
 
-        <Route path="/test" element={<TestPages />} />
+        {/* 로딩 테스트 */}
+        <Route path="/loading" element={<Layout />}>
+          <Route path="test" element={<LoadingTest />} />
+        </Route>
 
         {/* 사용자 모드 */}
         <Route path="/user" element={<Layout />}>
