@@ -12,7 +12,7 @@ class StandardItem(BaseModel):
     description: str
 
 class StandardResponse(BaseModel):
-    standard: List[StandardItem]
+    standards: List[StandardItem]
 
 class StandardRequest(BaseModel):
     query: str

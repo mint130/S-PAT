@@ -31,7 +31,6 @@ async def health_check():
 @app.get("/redis")
 def redis_test(redis=Depends(get_redis)):
     try:
-        redis.set("ping", "pong")
         value = redis.keys('*')
         return {"message": "success", "value": value}
     except Exception as e:
