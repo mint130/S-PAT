@@ -5,12 +5,14 @@ import Title from "../components/common/Title";
 import PatentFileUpload from "../components/Step3/PatentFileUpload";
 import PatentTable from "../components/Step3/PatentTable";
 import Button from "../components/common/Button";
+import NextModal from "../components/common/NextModal";
 
 function Step3PatentClassification() {
   const navigate = useNavigate();
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
 
   // 파일 처리 완료 핸들러
   const handleFileProcessed = (file: File, buffer: ArrayBuffer) => {
@@ -23,10 +25,20 @@ function Step3PatentClassification() {
     navigate("/user/step2");
   };
 
-  // 다음 버튼 클릭 시 API 호출
-  const handleNext = async () => {
+  // 다음 버튼 클릭 시 모달 열기
+  const handleNext = () => {
     if (!uploadedFile) return;
+    setModalOpen(true);
+  };
 
+  // 모달 취소 버튼 클릭 시 모달 닫기
+  const onCancel = () => {
+    setModalOpen(false);
+  };
+
+  // 모달 확인 버튼 클릭 시 API 호출
+  const onConfirm = async () => {
+    if (!uploadedFile) return;
     setLoading(true);
 
     try {
@@ -62,6 +74,7 @@ function Step3PatentClassification() {
       console.error("API 오류:", err);
     } finally {
       setLoading(false);
+      setModalOpen(false);
     }
   };
 
@@ -98,6 +111,16 @@ function Step3PatentClassification() {
           다음
         </Button>
       </div>
+
+      {/* 다음 모달 */}
+      <NextModal
+        isOpen={modalOpen}
+        title="해당 특허데이터로 분류를 진행하시겠습니까?"  
+        description="진행하기 버튼을 누르면 AI가 분류를 시작합니다."
+        onCancel={onCancel}
+        onConfirm={onConfirm}
+        isLoading={loading}
+      />
     </div>
   );
 }
