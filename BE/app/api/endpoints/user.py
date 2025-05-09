@@ -440,7 +440,7 @@ async def classify_patent_data(session_id: str, LLM: str, file: UploadFile = Fil
     
 
 
-@user_router.get("/{session_id}/classification/excel", summary="특허 분류 결과 엑셀 파일 반환환", description="사용자 로컬 디스크에 저장된 분류 결과 엑셀 파일을 반환합니다")
+@user_router.get("/{session_id}/classification/excel", summary="특허 분류 결과 엑셀 파일 반환", description="사용자 로컬 디스크에 저장된 분류 결과 엑셀 파일을 반환합니다")
 def download_classified_excel(session_id: str):
     file_path = os.path.join(RESULT_DIR, f"{session_id}_classified.xlsx")
     if not os.path.exists(file_path):
