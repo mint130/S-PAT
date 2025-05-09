@@ -1,7 +1,8 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routers import api_router
+from app.core.redis import get_redis
 
 
 app = FastAPI(
@@ -26,6 +27,15 @@ app.add_middleware(
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+@app.get("/redis")
+def redis_test(redis=Depends(get_redis)):
+    try:
+        redis.set("ping", "pong")
+        value = redis.keys('*')
+        return {"message": "success", "value": value}
+    except Exception as e:
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     import uvicorn
