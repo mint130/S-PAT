@@ -1,6 +1,7 @@
 import base64
 import io
 import json
+import logging
 import os
 import re
 import time
@@ -40,6 +41,10 @@ from app.crud.crud_conversation import create_conversation_record, get_conversat
 
 
 load_dotenv()
+
+# 로그
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # 결과 저장 디렉토리
 RESULT_DIR = "./classified_excels"
@@ -331,7 +336,7 @@ async def classify_patent_data(session_id: str, LLM: str, file: UploadFile = Fil
             llm = claude
         elif LLM == "GEMINI":
             llm = gemini
-        else:
+        elif LLM == "GROK":
             llm = grok
 
         # 파일 내용을 메모리에서 읽기
@@ -348,6 +353,10 @@ async def classify_patent_data(session_id: str, LLM: str, file: UploadFile = Fil
         
         # 특허 데이터 목록 생성
         patents = []
+        
+        # 로그 추가
+        start_time = datetime.now()
+        logger.info(f"[{session_id}] 분류 시작 시간: {start_time}")
         
         # 각 행에 대해 RAG 처리 및 분류 추가
         for index, row in df.iterrows():
@@ -390,6 +399,12 @@ async def classify_patent_data(session_id: str, LLM: str, file: UploadFile = Fil
             patents.append(patent_data)
             time.sleep(0.5)
         
+        # 종료 시간 기록
+        end_time = datetime.now()
+        elapsed = end_time - start_time
+        logger.info(f"[{session_id}] 분류 종료 시간: {end_time}")
+        logger.info(f"[{session_id}] 분류 소요 시간: {elapsed} (총 {elapsed.total_seconds():.2f}초)")
+
         # 임시 파일명 생성
         filename = f"{session_id}_classified.xlsx"
         save_path = f"./classified_excels/{filename}"
