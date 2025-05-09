@@ -174,7 +174,7 @@ async def get_session_history(session_id: str, db: Session = Depends(get_db)):
 @standard_router.post("/{session_id}/upload", response_model=StandardResponse, summary="엑셀 파일 업로드 후 JSON 변환", description="엑셀 파일을 업로드하여 분류 체계를 JSON으로 변환합니다.")
 async def upload_excel(session_id: str, file: UploadFile = File(...)):
     standards = await process_excel_file(file)
-    return {"standard": standards}
+    return {"standards": standards}
 
 
 @standard_router.post("/{session_id}/upload/prompt", response_model=StandardLLMResponse, summary="엑셀 파일 업로드와 프롬프트로 분류 체계 생성", description="엑셀 파일을 업로드하고 GPT를 사용하여 분류 체계를 처리합니다.")
