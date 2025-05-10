@@ -4,17 +4,38 @@ import axios from "axios";
 import Title from "../components/common/Title";
 import DataTable from "../components/common/DataTable";
 import Button from "../components/common/Button";
+import type { ColDef } from "ag-grid-community";
 
 function Step2ClassificationEdit() {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(false);
+  const [rowData, setRowData] = useState<any[]>([]);
+  const [colDefs, setColDefs] = useState<ColDef[]>([]);
 
   const { selectedStandards } = location.state || {};
 
   useEffect(() => {
     if (!selectedStandards) {
       navigate("/user/step1");
+      return;
+    }
+
+    // selectedStandards를 rowData로 변환
+    if (Array.isArray(selectedStandards)) {
+      setRowData(selectedStandards);
+
+      // 첫 번째 항목에서 컬럼 정의 생성
+      if (selectedStandards.length > 0) {
+        const firstItem = selectedStandards[0];
+        const columns = Object.keys(firstItem).map((key) => ({
+          field: key,
+          headerName: key,
+          editable: true,
+          flex: 1,
+        }));
+        setColDefs(columns);
+      }
     }
   }, [selectedStandards, navigate]);
 
@@ -48,13 +69,17 @@ function Step2ClassificationEdit() {
     }
   };
 
+  if (!selectedStandards) {
+    return null;
+  }
+
   return (
     <div className="flex flex-col h-screen p-8 pb-6">
       <Title
         text="분류 체계 수정"
         subText="Step1에서 생성된 분류 체계를 수정하세요. 테이블을 직접 편집하거나 필요에 따라 항목을 추가/삭제할 수 있습니다."
       />
-      <DataTable data={selectedStandards} fileName="선택된 체계" />
+      <DataTable rowData={rowData} colDefs={colDefs} />
 
       {/* 이전/다음 버튼 영역 */}
       <div className="flex justify-between w-full mt-10">
