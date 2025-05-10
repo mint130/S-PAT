@@ -37,13 +37,14 @@ module.exports = {
         // 선택된 박스
         "select-box": "#F6FAFF",
         "select-box-border": "#B8D8FF", // 선택된 박스의 border
+        "select-box-border-soild": "#2878FC", // 선택된 박스의 border hover
         "select-box-icon": "#64A7FF", // 선택된 박스의 border hover
 
         // LLM 모델 색
         GPT: "#000000",
         Claude: "#D77757",
         Gemini: "#3693DA",
-        Grok: "#999999",
+        Grok: "#000000",
 
         // 배경 요소 색상 추가
         mask: "#2388FF",
