@@ -412,6 +412,9 @@ async def classify_patent_data(
             
             time.sleep(0.5)
         
+        # 세션 데이터 만료 시간 설정 (24시간)
+        redis.expire(session_id, 86400)  # 86400초 = 24시간
+        
         # 종료 시간 기록
         end_time = datetime.now()
         elapsed = end_time - start_time
