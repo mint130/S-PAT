@@ -73,7 +73,7 @@ const SelectLLM = () => {
 
   return (
     <div className="py-2" ref={containerRef}>
-      <div className="flex space-x-4">
+      <div className="flex space-x-2">
         {llmOptions.map((llm) => (
           <button
             key={llm.id}
