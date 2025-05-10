@@ -40,6 +40,8 @@ module.exports = {
         "select-box-border-soild": "#2878FC", // 선택된 박스의 border hover
         "select-box-icon": "#64A7FF", // 선택된 박스의 border hover
 
+        BarColor: "#5A6ACF",
+
         // LLM 모델 색
         GPT: "#000000",
         Claude: "#D77757",
