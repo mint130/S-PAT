@@ -33,6 +33,7 @@ from langchain.chains import RetrievalQA
 from langchain_xai import ChatXAI
 from langchain_anthropic import ChatAnthropic
 
+from app.core.redis import get_redis
 from app.schemas.classification import ClassificationResponse, ClassificationSchema, Patent
 from app.schemas.conversation import ConversationRequest, ConversationResponse, SessionHistoryResponse
 from app.db.database import get_db
@@ -313,7 +314,12 @@ async def save_standard(session_id: str, standard: ConversationResponse, db:Sess
 
 
 @user_router.post("/{session_id}/classification", response_model=ClassificationResponse, summary="특허 데이터 엑셀 파일 업로드 후 분류", description="엑셀 파일을 업로드하여 분류 한 후 분류결과 엑셀파일과 JSON을 반환합니다.")
-async def classify_patent_data(session_id: str, LLM: str, file: UploadFile = File(...)):
+async def classify_patent_data(
+    session_id: str, 
+    LLM: str, 
+    file: UploadFile = File(...),
+    redis = Depends(get_redis)
+):
     # 업로드된 파일이 엑셀 파일인지 확인
     if not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail="업로드된 파일은 Excel (.xlsx 또는 .xls) 형식이어야 합니다")
@@ -395,8 +401,15 @@ async def classify_patent_data(session_id: str, LLM: str, file: UploadFile = Fil
                 middleTitle=classifications["middleTitle"],
                 smallTitle=classifications["smallTitle"]
             )
-            
+            # 1. 로그 출력
+            logger.info(f"[{session_id}] 분류된 특허: {patent_data.model_dump()}")
+
+            # 2. redis에 저장
+            redis.rpush(session_id, patent_data.model_dump_json())
+
+            # 3. 리스트 추가
             patents.append(patent_data)
+            
             time.sleep(0.5)
         
         # 종료 시간 기록
@@ -439,6 +452,15 @@ async def classify_patent_data(session_id: str, LLM: str, file: UploadFile = Fil
         raise HTTPException(status_code=500, detail=f"파일 처리 중 오류 발생: {str(e)}")
     
 
+@user_router.get("/{session_id}/classification", summary="특허 분류 결과 json 반환", response_model=ClassificationResponse, description="세션 아이디로 저장된 분류결과 JSON을 반환합니다.")
+async def get_classified_patents(session_id: str, redis = Depends(get_redis)):
+    # redis에 저장된 세션이 없을 경우
+    if not redis.exists(session_id):
+        raise HTTPException(status_code=404, detail="해당 세션에 대한 분류 결과가 존재하지 않습니다.")
+
+    items = redis.lrange(session_id, 0, -1)
+    patents = [Patent.model_validate(json.loads(item)) for item in items]
+    return ClassificationResponse(patents=patents)
 
 @user_router.get("/{session_id}/classification/excel", summary="특허 분류 결과 엑셀 파일 반환", description="사용자 로컬 디스크에 저장된 분류 결과 엑셀 파일을 반환합니다")
 def download_classified_excel(session_id: str):
