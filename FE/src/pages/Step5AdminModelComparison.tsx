@@ -22,7 +22,7 @@ function Step5AdminModelComparison() {
         {/* 바 차트 영역 - flex-grow-2 (2/5 비율) */}
         <div
           className="grid grid-cols-3 gap-6 w-full flex-grow-2"
-          style={{ flex: "2" }}>
+          style={{ flex: "3" }}>
           {/* 유사도 차트 */}
           <LLMBarChart
             title="벡터 유사도"
@@ -51,7 +51,7 @@ function Step5AdminModelComparison() {
         {/* 응답 시간과 종합점수 영역 - flex-grow-3 (3/5 비율) */}
         <div
           className="grid grid-cols-2 gap-6 w-full flex-grow-3 mt-2"
-          style={{ flex: "3" }}>
+          style={{ flex: "8" }}>
           <ResponseTime />
           <TotalScore />
         </div>
