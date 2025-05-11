@@ -41,7 +41,7 @@ from app.schemas.conversation import ConversationRequest, ConversationResponse, 
 from app.db.database import get_db
 from app.models.conversation import Conversation
 from app.crud.crud_conversation import create_conversation_record, get_conversation_history_by_session
-from app.schemas.test import CompletionMessage, Progress, Message
+from app.schemas.test import Progress, Message
 
 
 load_dotenv()
@@ -157,7 +157,6 @@ async def process_patent_classification(
                 current=index + 1,
                 total=total_patents,
                 percentage=round(((index + 1) / total_patents) * 100, 2),
-                patent=patent_data
             )
             await progress_queue.put(progress_data.model_dump())  
 
@@ -197,10 +196,9 @@ async def process_patent_classification(
         wb.save(save_path)
         
         # 작업 완료 메시지
-        completion_data = CompletionMessage(
+        completion_data = Message(
             status="completed",
             message="분류 작업이 완료되었습니다.",
-            results=patents
         )
 
         await progress_queue.put(completion_data.model_dump())  
