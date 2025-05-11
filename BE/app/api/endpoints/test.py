@@ -268,32 +268,8 @@ async def save_standard(session_id: str, standard: ConversationResponse, db:Sess
     return True
     
 
-@test_router.get("/{session_id}/classification", summary="특허 분류 결과 json 반환", response_model=ClassificationResponse, description="세션 아이디로 저장된 분류결과 JSON을 반환합니다.")
-async def get_classified_patents(session_id: str, redis = Depends(get_redis)):
-    # redis에 저장된 세션이 없을 경우
-    if not redis.exists(session_id):
-        raise HTTPException(status_code=404, detail="해당 세션에 대한 분류 결과가 존재하지 않습니다.")
-
-    items = redis.lrange(session_id, 0, -1)
-    patents = [Patent.model_validate(json.loads(item)) for item in items]
-    return ClassificationResponse(patents=patents)
-
-
-@test_router.get("/{session_id}/classification/excel", summary="특허 분류 결과 엑셀 파일 반환", description="사용자 로컬 디스크에 저장된 분류 결과 엑셀 파일을 반환합니다")
-def download_classified_excel(session_id: str):
-    file_path = os.path.join(RESULT_DIR, f"{session_id}_classified.xlsx")
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="엑셀 파일이 존재하지 않습니다.")
-
-    return FileResponse(
-        path=file_path,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        filename=f"{session_id}_classified.xlsx"
-    )
-
-
 # 1. 파일 업로드 엔드포인트 (작업 시작만 담당), 202 반환
-@test_router.post("/{session_id}/upload", status_code=status.HTTP_202_ACCEPTED, response_model = Message)
+@test_router.post("/{session_id}/upload", status_code=status.HTTP_202_ACCEPTED, response_model = Message, summary="특허 데이터 파일 업로드", description="분류 하고 싶은 특허 데이터 파일을 업로드합니다.")
 async def upload_and_start_classification(
     background_tasks: BackgroundTasks,
     session_id: str, 
@@ -374,7 +350,7 @@ async def upload_and_start_classification(
 
 
 # 2. 진행 상황 스트리밍 엔드포인트 (SSE)
-@test_router.get("/{session_id}/progress")
+@test_router.get("/{session_id}/progress", summary="특허 분류 진행도 반환", description="특허 분류 진행도를 퍼센테이지로 반환합니다.")
 async def stream_classification_progress(session_id: str):
     # 세션에 대한 진행 큐가 존재하는지 확인
     if session_id not in session_progress_queues:
@@ -391,4 +367,27 @@ async def stream_classification_progress(session_id: str):
         progress_event_generator(progress_queue),
         media_type="text/event-stream",
         headers={"Content-Type": "text/event-stream; charset=utf-8"}
+    )
+
+@test_router.get("/{session_id}/classification", summary="특허 분류 결과 json 반환", response_model=ClassificationResponse, description="세션 아이디로 저장된 분류결과 JSON을 반환합니다.")
+async def get_classified_patents(session_id: str, redis = Depends(get_redis)):
+    # redis에 저장된 세션이 없을 경우
+    if not redis.exists(session_id):
+        raise HTTPException(status_code=404, detail="해당 세션에 대한 분류 결과가 존재하지 않습니다.")
+
+    items = redis.lrange(session_id, 0, -1)
+    patents = [Patent.model_validate(json.loads(item)) for item in items]
+    return ClassificationResponse(patents=patents)
+
+
+@test_router.get("/{session_id}/classification/excel", summary="특허 분류 결과 엑셀 파일 반환", description="사용자 로컬 디스크에 저장된 분류 결과 엑셀 파일을 반환합니다")
+def download_classified_excel(session_id: str):
+    file_path = os.path.join(RESULT_DIR, f"{session_id}_classified.xlsx")
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="엑셀 파일이 존재하지 않습니다.")
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename=f"{session_id}_classified.xlsx"
     )
