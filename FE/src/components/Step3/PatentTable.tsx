@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import DataTable from "../common/DataTable";
+import type { ColDef } from "ag-grid-community";
 
 interface PatentTableProps {
   file: File;
@@ -8,16 +9,13 @@ interface PatentTableProps {
 }
 
 const PatentTable: React.FC<PatentTableProps> = ({ file, fileBuffer }) => {
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [patentData, setPatentData] = useState<any[]>([]);
+  const [colDefs, setColDefs] = useState<ColDef<any, any>[]>([]);
 
   useEffect(() => {
     // 파일 데이터 처리
     const processFileData = async () => {
       try {
-        setIsLoading(true);
-
         // XLSX 라이브러리를 사용하여 파일 파싱
         const workbook = XLSX.read(fileBuffer, { type: "array" });
 
@@ -31,12 +29,8 @@ const PatentTable: React.FC<PatentTableProps> = ({ file, fileBuffer }) => {
         // JSON 데이터 상태에 저장
         setPatentData(jsonData);
         console.log("파일에서 읽은 데이터:", jsonData);
-
-        setIsLoading(false);
       } catch (err) {
         console.error("step3 파일 처리 중 오류 발생:", err);
-        setError("파일을 처리하는 중 오류가 발생했습니다.");
-        setIsLoading(false);
       }
     };
 
@@ -45,14 +39,22 @@ const PatentTable: React.FC<PatentTableProps> = ({ file, fileBuffer }) => {
     }
   }, [fileBuffer]);
 
+  useEffect(() => {
+    // patentData가 있을 때 colDefs 생성
+    if (patentData.length > 0) {
+      const keys = Object.keys(patentData[0]);
+      const generatedColDefs = keys.map((key) => ({
+        field: key,
+        headerName: key,
+        minWidth: 100,
+      }));
+      setColDefs(generatedColDefs);
+    }
+  }, [patentData]);
+
   return (
     <>
-      <DataTable
-        data={patentData}
-        fileName={file.name}
-        isLoading={isLoading}
-        error={error}
-      />
+      <DataTable rowData={patentData} colDefs={colDefs} />
     </>
   );
 };
