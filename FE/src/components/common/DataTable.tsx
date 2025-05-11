@@ -1,8 +1,8 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
-import { Search } from "lucide-react";
+import { Search, ListFilter, Check, AlertCircle } from "lucide-react";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -11,9 +11,94 @@ interface DataTableProps {
   colDefs: ColDef[];
 }
 
+// 컬럼 메뉴 컴포넌트 분리
+interface ColumnMenuProps {
+  colDefs: ColDef[];
+  columnVisibility: Record<string, boolean>;
+  setColumnVisibility: React.Dispatch<
+    React.SetStateAction<Record<string, boolean>>
+  >;
+  onColumnChange: (field: string) => void;
+}
+
+const ColumnMenu: React.FC<ColumnMenuProps> = ({
+  colDefs,
+  columnVisibility,
+  setColumnVisibility,
+  onColumnChange,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const columnMenuRef = useRef<HTMLDivElement>(null);
+
+  // 초기 컬럼 상태 설정
+  useEffect(() => {
+    const initialVisibility: Record<string, boolean> = {};
+    colDefs.forEach((col) => {
+      if (col.field) {
+        initialVisibility[col.field] = true;
+      }
+    });
+    setColumnVisibility(initialVisibility);
+  }, [colDefs]);
+
+  // 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        columnMenuRef.current &&
+        !columnMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={columnMenuRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+        <ListFilter size={16} />
+        <span>Columns</span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+          <div className="py-1">
+            <div className="max-h-64 overflow-y-auto">
+              {colDefs.map((column) => {
+                return (
+                  <div
+                    key={column.field}
+                    className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => onColumnChange(column.field!)}>
+                    <div className="flex items-center justify-center w-4 h-4">
+                      {columnVisibility[column.field!] && (
+                        <Check size={14} className="text-blue-600" />
+                      )}
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">
+                      {column.headerName || column.field}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const DataTable: React.FC<DataTableProps> = ({ rowData, colDefs }) => {
   const gridRef = useRef<AgGridReact>(null);
   const [quickFilterText, setQuickFilterText] = useState("");
+  const [columnVisibility, setColumnVisibility] = useState<
+    Record<string, boolean>
+  >({});
 
   const defaultColDef: ColDef = {
     flex: 1,
@@ -21,10 +106,29 @@ const DataTable: React.FC<DataTableProps> = ({ rowData, colDefs }) => {
     resizable: true,
   };
 
+  const toggleColumnVisibility = (field: string) => {
+    // ag-grid API 업데이트
+    gridRef.current!.api.setColumnsVisible([field], !columnVisibility[field]);
+    // React 상태 업데이트
+    setColumnVisibility((prev) => ({
+      ...prev,
+      [field]: !columnVisibility[field],
+    }));
+  };
+
   return (
     <div className="flex flex-col h-full">
-      {/* 검색 영역 */}
-      <div className="mb-4">
+      {/* 상단 컨트롤 영역 */}
+      <div className="mb-2 flex justify-end items-center gap-4">
+        {/* 컬럼 필터 버튼 */}
+        <ColumnMenu
+          colDefs={colDefs}
+          columnVisibility={columnVisibility}
+          setColumnVisibility={setColumnVisibility}
+          onColumnChange={toggleColumnVisibility}
+        />
+
+        {/* 검색 영역 */}
         <div className="relative w-96">
           <input
             type="text"
@@ -41,14 +145,38 @@ const DataTable: React.FC<DataTableProps> = ({ rowData, colDefs }) => {
       </div>
 
       {/* 테이블 영역 */}
-      <div className="flex-1">
-        <AgGridReact
-          ref={gridRef}
-          rowData={rowData}
-          columnDefs={colDefs}
-          defaultColDef={defaultColDef}
-          quickFilterText={quickFilterText}
-        />
+      <div className="flex-1 relative">
+        {false ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 border border-gray-200 rounded-md">
+            <AlertCircle className="text-gray-400 mb-3" size={48} />
+            <h3 className="text-lg font-medium text-gray-600 mb-1">
+              표시할 컬럼이 없습니다
+            </h3>
+            <p className="text-sm text-gray-500 text-center">
+              "Columns" 버튼을 클릭하여
+              <br />
+              표시할 컬럼을 선택해주세요.
+            </p>
+          </div>
+        ) : (
+          <AgGridReact
+            ref={gridRef}
+            rowData={rowData}
+            columnDefs={colDefs}
+            defaultColDef={defaultColDef}
+            quickFilterText={quickFilterText}
+            // onColumnVisible={(event) => {
+            // // 외부에서 컬럼 가시성이 변경될 때 상태 동기화
+            // if (event.column?.getColDef().field) {
+            //   setColumnVisibility((prev) => ({
+            //     ...prev,
+            //     [event.column.getColDef().field!]: event.visible,
+            //   }));
+            // }
+            // console.log(event);
+            // }}
+          />
+        )}
       </div>
     </div>
   );
