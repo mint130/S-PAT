@@ -1,35 +1,38 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route, BrowserRouter } from "react-router-dom";
+import Layout from "./components/Layout/Layout";
+
+import Step0ModeSelect from "./pages/Step0ModeSelect";
+import Step1ClassificationSetup from "./pages/Step1ClassificationSetup";
+import Step2ClassificationEdit from "./pages/Step2ClassificationEdit";
+import Step3PatentClassification from "./pages/Step3PatentClassification";
+import Step4PatentResult from "./pages/Step4PatentResult";
+
+import Step5AdminModelComparison from "./pages/Step5AdminModelComparison";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Step0ModeSelect />} />
+
+        {/* 사용자 모드 */}
+        <Route path="/user" element={<Layout />}>
+          <Route path="step1" element={<Step1ClassificationSetup />} />
+          <Route path="step2" element={<Step2ClassificationEdit />} />
+          <Route path="step3" element={<Step3PatentClassification />} />
+          <Route path="step4" element={<Step4PatentResult />} />
+          <Route index element={<Step1ClassificationSetup />} />
+        </Route>
+
+        {/* 관리자 모드 */}
+        <Route path="/admin" element={<Layout />}>
+          <Route path="step1" element={<Step1ClassificationSetup />} />
+          <Route path="step5" element={<Step5AdminModelComparison />} />
+          <Route index element={<Step1ClassificationSetup />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
