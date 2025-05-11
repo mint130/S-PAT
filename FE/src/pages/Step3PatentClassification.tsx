@@ -88,7 +88,7 @@ function Step3PatentClassification() {
       {!uploadedFile || !fileBuffer ? (
         <PatentFileUpload onFileProcessed={handleFileProcessed} />
       ) : (
-        <PatentTable file={uploadedFile} fileBuffer={fileBuffer} />
+        <PatentTable fileBuffer={fileBuffer} />
       )}
 
       {/* 이전/다음 버튼 영역 */}

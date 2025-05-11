@@ -10,7 +10,7 @@ function Step2ClassificationEdit() {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(false);
-  const [colDefs, setColDefs] = useState<ColDef<any, any>[]>([
+  const [colDefs] = useState<ColDef<any, any>[]>([
     {
       headerName: "코드",
       field: "code",

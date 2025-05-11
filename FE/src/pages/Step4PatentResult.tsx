@@ -8,7 +8,7 @@ import type { ColDef } from "ag-grid-community";
 function Step4PatentResult() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [colDefs, setColDefs] = useState<ColDef<any, any>[]>([
+  const [colDefs] = useState<ColDef<any, any>[]>([
     {
       headerName: "출원 번호",
       field: "applicationNumber",

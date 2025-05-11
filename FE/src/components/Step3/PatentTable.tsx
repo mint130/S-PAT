@@ -4,11 +4,11 @@ import DataTable from "../common/DataTable";
 import type { ColDef } from "ag-grid-community";
 
 interface PatentTableProps {
-  file: File;
+  // file: File;
   fileBuffer: ArrayBuffer;
 }
 
-const PatentTable: React.FC<PatentTableProps> = ({ file, fileBuffer }) => {
+const PatentTable: React.FC<PatentTableProps> = ({ fileBuffer }) => {
   const [patentData, setPatentData] = useState<any[]>([]);
   const [colDefs, setColDefs] = useState<ColDef<any, any>[]>([]);
 
