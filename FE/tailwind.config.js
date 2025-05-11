@@ -47,6 +47,7 @@ module.exports = {
         Claude: "#D77757",
         Gemini: "#3693DA",
         Grok: "#000000",
+        Grok2: "#999999",
 
         // 배경 요소 색상 추가
         mask: "#2388FF",

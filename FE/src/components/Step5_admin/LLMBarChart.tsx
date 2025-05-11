@@ -9,6 +9,7 @@ interface LLMBarChartProps {
   unit?: string;
   color?: string;
   barSize?: number;
+  height?: number;
 }
 
 function LLMBarChart({
@@ -17,6 +18,7 @@ function LLMBarChart({
   unit = "점",
   color = "#000000",
   barSize = 30,
+  height,
 }: LLMBarChartProps) {
   // Zustand 스토어에서 데이터 가져오기
   const llmData = useLLMStore((state) => state.llmData);
@@ -28,19 +30,19 @@ function LLMBarChart({
   }));
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full">
       {/* 제목 */}
       <div className="flex space-x-2">
         <ChartNoAxesColumnIncreasing />
-        <div className="text-pretendard font-extrabold  mb-2">{title}</div>
+        <div className="text-pretendard font-extrabold mb-2">{title}</div>
       </div>
       {/* 차트 */}
-      <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+      <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm flex-1 flex items-center justify-center">
         <BarChart
           width={360}
-          height={210}
+          height={height || 210}
           data={chartData}
-          margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
+          margin={{ top: 10, right: 10, left: -20, bottom: -5 }}>
           <CartesianGrid strokeDasharray="1 3" stroke="#C9C9C9" />
           <XAxis
             dataKey="name"
