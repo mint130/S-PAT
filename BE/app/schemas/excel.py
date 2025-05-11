@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from fastapi import UploadFile
 
@@ -12,7 +12,7 @@ class StandardItem(BaseModel):
     description: str
 
 class StandardResponse(BaseModel):
-    standard: List[StandardItem]
+    standards: List[StandardItem]
 
 class StandardRequest(BaseModel):
     query: str

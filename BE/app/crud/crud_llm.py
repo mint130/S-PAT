@@ -8,8 +8,18 @@ from app.schemas.llm import LLMClassificationResult, LLMClassificationSample, Mu
 import asyncio
 import time
 from app.core.config import settings
+import logging
+from langchain_openai import ChatOpenAI
+from langchain.memory import ConversationBufferMemory
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.runnables import RunnablePassthrough
+from langchain.schema.runnable import RunnableMap
 #from anthropic import Anthropic
 #import google.generativeai as genai
+
+logger = logging.getLogger(__name__)
 
 # 각 LLM별 클라이언트(혹은 API 키) 준비
 openai_api_key = settings.OPENAI_API_KEY
@@ -22,22 +32,21 @@ gpt_client = OpenAI(api_key=openai_api_key)
 #genai.configure(api_key=gemini_api_key)
 #gemini_model = genai.GenerativeModel("gemini-pro")
 
-
-async def process_standards_with_llm(file: UploadFile, query: str) -> tuple[List[StandardItem], str]:
-    try:
-        # 엑셀 파일 처리
-        standards = await process_excel_file(file)
-        
-        # GPT 프롬프트 구성
-        prompt = f"""
+class LLMProcessor:
+    def __init__(self):
+        self.llm = ChatOpenAI(
+            api_key=settings.OPENAI_API_KEY,
+            model_name="gpt-4o",
+            temperature=0
+        )
+        self.output_parser = JsonOutputParser()
+        self.prompt = PromptTemplate(
+            input_variables=["standards", "query"],
+            template="""
+당신은 특허 분류 체계를 제작하는 특허 분류 전문가입니다.
 다음은 기술 분류 체계입니다:
 
-{[{{
-    "code": item.code,
-    "level": item.level,
-    "name": item.name,
-    "description": item.description
-}} for item in standards]}
+{standards}
 
 사용자 질문: {query}
 
@@ -45,134 +54,59 @@ async def process_standards_with_llm(file: UploadFile, query: str) -> tuple[List
 답변은 반드시 주어진 분류 체계 내에서 적절한 항목을 선택하여 제시해야 합니다.
 선택한 항목들은 원래 형식을 그대로 유지하여 JSON 배열 형태로 반환해주세요.
 """
-
-        # GPT API 호출
-        response = gpt_client.chat.completions.create(
-            model="gpt-4o",  # 또는 다른 적절한 모델
-            messages=[
-                {"role": "system", "content": "당신은 기술 분류 체계 전문가입니다. 주어진 분류 체계를 기반으로 사용자의 질문에 답변해주세요."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0
         )
+        self.memories = {}
 
-        # GPT 응답 처리
+    def _get_memory(self, session_id: str) -> ConversationBufferMemory:
+        if session_id not in self.memories:
+            chat_history = ChatMessageHistory()
+            self.memories[session_id] = ConversationBufferMemory(
+                memory_key="chat_history",
+                chat_memory=chat_history,
+                return_messages=True
+            )
+        return self.memories[session_id]
+
+    async def process_with_llm(self, standards: List[StandardItem], query: str, session_id: str) -> List[StandardItem]:
         try:
-            gpt_response = response.choices[0].message.content
-            # JSON 문자열을 파싱하여 StandardItem 객체 리스트로 변환하는 로직 필요
-            # 이 부분은 GPT의 응답 형식에 따라 적절히 구현해야 함
+            # 메모리 가져오기
+            memory = self._get_memory(session_id)
             
-            return standards, gpt_response
+            # 메모리에 입력 저장
+            memory.chat_memory.add_user_message(query)
+
+            # Chain 구성
+            chain = RunnableMap({
+                "standards": lambda x: "\n".join([
+                    f"코드: {item.code}, 단계: {item.level}, 명칭: {item.name}, 설명: {item.description}"
+                    for item in standards
+                ]),
+                "query": RunnablePassthrough()
+            }) | self.prompt | self.llm | self.output_parser
+
+            # Chain 실행
+            response = await chain.ainvoke({"query": query})
+            
+            # 메모리에 응답 저장
+            memory.chat_memory.add_ai_message(response)
+
+            # 응답 파싱
+            processed_standards = self._parse_response(response)
+            return processed_standards
+
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"GPT 응답 처리 중 오류가 발생했습니다: {str(e)}")
+            logger.error(f"LLM 처리 중 오류 발생: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"LLM 처리 중 오류가 발생했습니다: {str(e)}")
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"처리 중 오류가 발생했습니다: {str(e)}")
+    def _parse_response(self, response: str) -> List[StandardItem]:
+        try:
+            # JSON 문자열을 파싱하여 StandardItem 객체 리스트로 변환
+            # 실제 구현에서는 response를 적절히 파싱하여 StandardItem 객체 리스트를 생성해야 함
+            # 여기서는 임시로 빈 리스트 반환
+            return []
+        except Exception as e:
+            logger.error(f"응답 파싱 중 오류 발생: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"응답 파싱 중 오류가 발생했습니다: {str(e)}")
 
-
-# --- 여러 LLM을 비동기로 호출하는 함수 ---
-# async def classify_patent_with_multiple_llms(patent_data: List[dict], options: dict = None) -> MultiLLMClassificationResponse:
-#     # 각 LLM별 분류 함수 호출 (비동기)
-#     tasks = [
-#         classify_with_gpt(patent_data, options),
-#         classify_with_claude(patent_data, options),
-#         classify_with_gemini(patent_data, options),
-#         classify_with_grok3(patent_data, options)
-#     ]
-#     results = await asyncio.gather(*tasks)
-#     return MultiLLMClassificationResponse(results=results)
-
-# # --- 각 LLM별 분류 함수 (실제 API 연동) ---
-# async def classify_with_gpt(patent_data: List[dict], options: dict = None) -> LLMClassificationResult:
-#     start = time.time()
-#     # 프롬프트 구성 예시
-#     prompt = "GPT용 프롬프트 예시"
-#     response = gpt_client.chat.completions.create(
-#         model="gpt-4o",
-#         messages=[{"role": "user", "content": prompt}],
-#         temperature=0
-#     )
-#     # 실제 응답 파싱 필요
-#     sample = [LLMClassificationSample(
-#         applicationNumber="KR10-2023-0045678",
-#         title="자연어처리모델을 이용한...",
-#         abstract="본 발명은...",
-#         majorCode="H04",
-#         middleCode="H04-01",
-#         smallCode="H04-01-01",
-#         majorTitle="인터페이스 및 인지 시스템",
-#         middleTitle="음성 인식 인터페이스",
-#         smallTitle="경량화 음성 모델"
-#     )]
-#     speed = time.time() - start
-#     return LLMClassificationResult(name="gpt", speed=speed, similarity=0.95, llmEval=0.9, sample=sample)
-
-# async def classify_with_claude(patent_data: List[dict], options: dict = None) -> LLMClassificationResult:
-#     start = time.time()
-#     prompt = "Claude용 프롬프트 예시"
-#     response = claude_client.messages.create(
-#         model="claude-3-opus-20240229",
-#         messages=[{"role": "user", "content": prompt}]
-#     )
-#     # 실제 응답 파싱 필요
-#     sample = [LLMClassificationSample(
-#         applicationNumber="KR10-2023-0098765",
-#         title="로봇 수술을 위한 시스템 및 방법",
-#         abstract="수술 기구와...",
-#         majorCode="H05",
-#         middleCode="H05-01",
-#         smallCode="H05-01-01",
-#         majorTitle="핸들(Hand) 기술",
-#         middleTitle="메커니컬 핸들",
-#         smallTitle="액추에이터 기반 관련 손"
-#     )]
-#     speed = time.time() - start
-#     return LLMClassificationResult(name="claude", speed=speed, similarity=0.92, llmEval=0.88, sample=sample)
-
-# async def classify_with_gemini(patent_data: List[dict], options: dict = None) -> LLMClassificationResult:
-#     start = time.time()
-#     prompt = "Gemini용 프롬프트 예시"
-#     response = gemini_model.generate_content(prompt)
-#     # 실제 응답 파싱 필요
-#     sample = [LLMClassificationSample(
-#         applicationNumber="KR10-2023-0012345",
-#         title="AI 기반 영상 처리 장치",
-#         abstract="영상 신호를...",
-#         majorCode="G06",
-#         middleCode="G06-01",
-#         smallCode="G06-01-01",
-#         majorTitle="영상 처리",
-#         middleTitle="딥러닝 영상 분석",
-#         smallTitle="경량화 영상 모델"
-#     )]
-#     speed = time.time() - start
-#     return LLMClassificationResult(name="gemini", speed=speed, similarity=0.93, llmEval=0.89, sample=sample)
-
-# async def classify_with_grok3(patent_data: List[dict], options: dict = None) -> LLMClassificationResult:
-#     start = time.time()
-#     prompt = "Grok3용 프롬프트 예시"
-#     client = OpenAI(
-#         api_key=grok3_api_key,
-#         base_url="https://api.x.ai/v1",
-#     )
-
-#     completion = client.chat.completions.create(
-#         model="grok-3-beta",
-#         messages=[
-#             {"role": "user", "content": "What is the meaning of life?"}
-#         ]
-#     )
-#     # 실제 응답 파싱 필요
-#     sample = [LLMClassificationSample(
-#         applicationNumber="KR10-2023-0076543",
-#         title="스마트 센서 네트워크",
-#         abstract="센서 데이터 처리...",
-#         majorCode="B07",
-#         middleCode="B07-01",
-#         smallCode="B07-01-01",
-#         majorTitle="센서 네트워크",
-#         middleTitle="스마트 센서",
-#         smallTitle="저전력 센서"
-#     )]
-#     speed = time.time() - start
-#     return LLMClassificationResult(name="grok3", speed=speed, similarity=0.91, llmEval=0.87, sample=sample) 
+# 싱글톤 인스턴스 생성
+llm_processor = LLMProcessor()

@@ -3,27 +3,22 @@ import os
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from datetime import datetime
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from langchain.output_parsers import PydanticOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain.schema.runnable import RunnableMap
-from langchain_openai import OpenAIEmbeddings
 
 from app.schemas.conversation import ConversationRequest, ConversationResponse, SessionHistoryResponse
 from app.db.database import get_db
 from app.models.conversation import Conversation
 from app.crud.crud_conversation import create_conversation_record, get_conversation_history_by_session
-
 from app.crud.crud_excel import process_excel_file
 from app.schemas.excel import StandardResponse, StandardLLMResponse
-from app.crud.crud_llm import process_standards_with_llm
+from app.crud.crud_llm import llm_processor
 
 load_dotenv()
 
@@ -184,30 +179,27 @@ async def process_with_llm(
     query: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    # 1. 엑셀 파일 처리
-    standards = await process_excel_file(file)
-    
-    # 2. 메모리 가져오기
-    if session_id not in conversation_memories:
-        conversation_memories[session_id] = ConversationBufferMemory(memory_key="chat_history")
-    memory = conversation_memories[session_id]
-
-    # 3. 메모리에 입력 저장
-    memory.chat_memory.add_user_message(query)
-
-    # 4. Chain 만들기
-    chain = RunnableMap({
-        "chat_history": memory.load_memory_variables,
-        "user_input": RunnablePassthrough()
-    }) | prompt | llm | output_parser
-
-    # 5. Chain 실행
-    response = await chain.ainvoke({"user_input": query})
-    
-    # 6. db에 대화 저장
-    create_conversation_record(db, session_id, query, response)
-    
-    return {
-        "standards": response,
-        "query": query
-    }
+    try:
+        logger.info(f"세션 {session_id}에 대한 요청 처리 시작")
+        
+        # 1. 엑셀 파일 처리
+        logger.info("엑셀 파일 처리 중...")
+        standards = await process_excel_file(file)
+        
+        # 2. LLM 처리
+        logger.info("LLM 처리 중...")
+        processed_standards = await llm_processor.process_with_llm(standards, query, session_id)
+        
+        # 3. 대화 기록 저장
+        logger.info("대화 기록 저장 중...")
+        create_conversation_record(db, session_id, query, processed_standards)
+        
+        logger.info("요청 처리 완료")
+        return {
+            "standards": processed_standards,
+            "query": query
+        }
+        
+    except Exception as e:
+        logger.error(f"요청 처리 중 오류 발생: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
