@@ -8,6 +8,8 @@ import Step3PatentClassification from "./pages/Step3PatentClassification";
 import Step4PatentResult from "./pages/Step4PatentResult";
 // import LoadingTest from "./pages/LoadingTest";
 
+import Step5AdminModelComparison from "./pages/Step5AdminModelComparison";
+
 function App() {
   return (
     <BrowserRouter>
@@ -31,6 +33,7 @@ function App() {
         {/* 관리자 모드 */}
         <Route path="/admin" element={<Layout />}>
           <Route path="step1" element={<Step1ClassificationSetup />} />
+          <Route path="step5" element={<Step5AdminModelComparison />} />
           <Route index element={<Step1ClassificationSetup />} />
         </Route>
       </Routes>

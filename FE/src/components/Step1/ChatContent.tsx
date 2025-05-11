@@ -151,6 +151,23 @@ const ChatContent: React.FC = () => {
     return result.data;
   };
 
+  const fetchToJson = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file); // 파일 추가
+    const session_id = localStorage.getItem("sessionId"); // 로컬스토리지에서 세션 ID 가져오기
+    const result = await axios.post(
+      `https://s-pat.site/api/standard/${session_id}/upload`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data", // 헤더 설정
+        },
+      }
+    );
+    console.log("API Response with File:", result.data);
+    return result.data;
+  };
+
   // 메시지 제출 핸들러
   const handleSubmit = async (promptText: string) => {
     if (!promptText.trim()) return;
@@ -244,14 +261,22 @@ const ChatContent: React.FC = () => {
   // 파일 처리 옵션 선택 함수
   const handleFileOption = (option: string) => {
     // 선택된 옵션에 따른 처리
+    console.log("이거 뭐야? 살려줘", uploadedFile!.originalFile);
+
     if (option === "direct") {
       // 파일 그대로 분류 체계 적용 로직
       console.log("파일 그대로 분류 체계 적용");
+      fetchToJson(uploadedFile!.originalFile).then((response) => {
+        console.log("LLM 처리 결과:", response);
+        const selectedStandards = response.standards; // LLM 처리 결과에서 표준 배열 가져오기
+        // state와 함께 Step2로 네비게이션
+        navigate("/user/step2", {
+          state: { selectedStandards },
+        });
+      });
       // 여기엔 그냥 넘어가면 됨
     } else if (option === "llm") {
-      // LLM으로 분류체계 처리 로직
       console.log("LLM으로 분류체계 처리");
-      // 바로 step2로 넘어감
     }
 
     // 모달 닫기
@@ -273,6 +298,7 @@ const ChatContent: React.FC = () => {
       if (selectedMessageIndex !== null) {
         // 선택된 분류체계 가져오기
         const selectedStandards = messages[selectedMessageIndex].content;
+        console.log("선택된 분류체계:", selectedStandards);
 
         // state와 함께 Step2로 네비게이션
         navigate("/user/step2", {
