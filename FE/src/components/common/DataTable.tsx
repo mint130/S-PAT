@@ -9,6 +9,8 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 interface DataTableProps {
   rowData: any[];
   colDefs: ColDef[];
+  edit?: boolean;
+  gridRef?: React.MutableRefObject<AgGridReact | null>;
 }
 
 // 컬럼 메뉴 컴포넌트 분리
@@ -93,8 +95,14 @@ const ColumnMenu: React.FC<ColumnMenuProps> = ({
   );
 };
 
-const DataTable: React.FC<DataTableProps> = ({ rowData, colDefs }) => {
-  const gridRef = useRef<AgGridReact>(null);
+const DataTable: React.FC<DataTableProps> = ({
+  rowData,
+  colDefs,
+  edit = false,
+  gridRef: externalGridRef,
+}) => {
+  const internalGridRef = useRef<AgGridReact>(null);
+  const gridRef = externalGridRef || internalGridRef;
   const [quickFilterText, setQuickFilterText] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<
     Record<string, boolean>
@@ -104,6 +112,7 @@ const DataTable: React.FC<DataTableProps> = ({ rowData, colDefs }) => {
     flex: 1,
     sortable: true,
     resizable: true,
+    editable: edit,
   };
 
   const toggleColumnVisibility = (field: string) => {
