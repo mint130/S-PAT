@@ -24,11 +24,7 @@ gemini = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0, google_
 grok = ChatXAI(model="grok-3-beta", temperature=0, xai_api_key=settings.GROK3_API_KEY)
 
 # 유사도 평가 기준점 설정
-SIMILARITY_THRESHOLDS = {
-    "major": 0.6,
-    "middle": 0.5,
-    "small": 0.4
-}
+THRESHOLD = 0.5  # 단일 임계값으로 변경
 
 async def classify_with_llm(llm: Any, retriever: Any, patent_info: str) -> Dict[str, str]:
     """
@@ -121,72 +117,99 @@ async def evaluate_classification_by_vector(
 ) -> Dict[str, Any]:
     """
     벡터 기반 유사도로 분류 결과를 평가합니다.
+    가장 유사한 문서 하나만을 사용하여 평가합니다.
     """
     # 1. 특허 정보와 가장 유사한 분류 체계 검색 (유사도 점수 포함)
-    similar_docs = await retriever.aget_relevant_documents(patent_info)
+    vectorstore = retriever.vectorstore
     
-    # 2. 가장 높은 유사도를 가진 분류 체계 선택
-    best_match = similar_docs[0]
-    best_score = best_match[1]
-    best_classification = best_match[0].metadata
+    similar_docs_with_score = await vectorstore.asimilarity_search_with_relevance_scores(patent_info, k=1)
+    best_match, best_score = similar_docs_with_score[0]
     
-    # 3. 유사도 기준점을 기반으로 평가
-    def evaluate_classification(llm_code: str, best_code: str, level: str) -> Dict[str, Any]:
-        threshold = SIMILARITY_THRESHOLDS[level]
-        
-        if best_score < threshold:
-            # 유사도가 기준점 미만인 경우
-            if llm_code == "미분류":
-                return {
-                    "is_correct": True,
-                    "reason": f"유사도({best_score:.2f})가 기준점({threshold}) 미만이므로 미분류가 정확함"
-                }
-            else:
-                return {
-                    "is_correct": False,
-                    "reason": f"유사도({best_score:.2f})가 기준점({threshold}) 미만이므로 미분류여야 함"
-                }
+    # numpy 타입을 Python 기본 타입으로 변환하고 0~1 사이로 정규화
+    best_score = float(best_score)
+    normalized_score = (best_score + 1) / 2  # -1~1 범위를 0~1 범위로 변환
+    
+    # 2. 평가 로직
+    # LLM이 미분류로 분류한 경우
+    is_unclassified = (
+        classification_result["majorCode"] == "미분류" or
+        classification_result["middleCode"] == "미분류" or
+        classification_result["smallCode"] == "미분류"
+    )
+    
+    # 평가 결과 결정
+    if is_unclassified:
+        # 미분류로 분류한 경우
+        if normalized_score < THRESHOLD:
+            # 유사도가 기준점보다 낮으면 미분류가 정확
+            is_correct = True
+            reason = f"유사도({normalized_score:.2f})가 기준점({THRESHOLD}) 미만이므로 미분류가 정확함"
         else:
-            # 유사도가 기준점 이상인 경우
-            if llm_code == "미분류":
-                return {
-                    "is_correct": False,
-                    "reason": f"유사도({best_score:.2f})가 기준점({threshold}) 이상이므로 분류가 필요함"
-                }
-            else:
-                return {
-                    "is_correct": llm_code == best_code,
-                    "reason": "일반 분류 비교"
-                }
+            # 유사도가 기준점보다 높으면 미분류가 부정확
+            is_correct = False
+            reason = f"유사도({normalized_score:.2f})가 기준점({THRESHOLD}) 이상이므로 분류가 필요함"
+    else:
+        # 일반 분류의 경우
+        if normalized_score < THRESHOLD:
+            # 유사도가 기준점보다 낮으면 분류가 부정확
+            is_correct = False
+            reason = f"유사도({normalized_score:.2f})가 기준점({THRESHOLD}) 미만이므로 미분류여야 함"
+        else:
+            # 유사도가 기준점보다 높으면 분류 결과 비교
+            is_correct = (
+                classification_result["majorCode"] == best_match.metadata.get("grand_parent_code", "미분류") and
+                classification_result["middleCode"] == best_match.metadata.get("parent_code", "미분류") and
+                classification_result["smallCode"] == best_match.metadata.get("code", "미분류")
+            )
+            reason = "분류 결과가 일치함" if is_correct else "분류 결과가 일치하지 않음"
     
+    # 3. 평가 결과 구성
+    level = best_match.metadata.get("level", "")
+    
+    # 레벨에 따라 적절한 메타데이터 매핑
+    if level == "대분류":
+        major_code = best_match.metadata.get("code", "미분류")
+        major_title = best_match.metadata.get("name", "미분류")
+        middle_code = "미분류"
+        middle_title = "미분류"
+        small_code = "미분류"
+        small_title = "미분류"
+    elif level == "중분류":
+        major_code = best_match.metadata.get("parent_code", "미분류")
+        major_title = best_match.metadata.get("parent_name", "미분류")
+        middle_code = best_match.metadata.get("code", "미분류")
+        middle_title = best_match.metadata.get("name", "미분류")
+        small_code = "미분류"
+        small_title = "미분류"
+    elif level == "소분류":
+        major_code = best_match.metadata.get("grand_parent_code", "미분류")
+        major_title = best_match.metadata.get("grand_parent_name", "미분류")
+        middle_code = best_match.metadata.get("parent_code", "미분류")
+        middle_title = best_match.metadata.get("parent_name", "미분류")
+        small_code = best_match.metadata.get("code", "미분류")
+        small_title = best_match.metadata.get("name", "미분류")
+    else:
+        major_code = "미분류"
+        major_title = "미분류"
+        middle_code = "미분류"
+        middle_title = "미분류"
+        small_code = "미분류"
+        small_title = "미분류"
+
     evaluation = {
-        "similarity_score": best_score,
-        "similarity_threshold": SIMILARITY_THRESHOLDS,
+        "similarity_score": normalized_score,
         "best_match": {
-            "majorCode": best_classification.get("majorCode"),
-            "majorTitle": best_classification.get("majorTitle"),
-            "middleCode": best_classification.get("middleCode"),
-            "middleTitle": best_classification.get("middleTitle"),
-            "smallCode": best_classification.get("smallCode"),
-            "smallTitle": best_classification.get("smallTitle")
+            "majorCode": major_code,
+            "majorTitle": major_title,
+            "middleCode": middle_code,
+            "middleTitle": middle_title,
+            "smallCode": small_code,
+            "smallTitle": small_title
         },
         "llm_classification": classification_result,
         "evaluation": {
-            "major": evaluate_classification(
-                classification_result["majorCode"],
-                best_classification.get("majorCode"),
-                "major"
-            ),
-            "middle": evaluate_classification(
-                classification_result["middleCode"],
-                best_classification.get("middleCode"),
-                "middle"
-            ),
-            "small": evaluate_classification(
-                classification_result["smallCode"],
-                best_classification.get("smallCode"),
-                "small"
-            )
+            "is_correct": is_correct,
+            "reason": reason
         }
     }
     
@@ -200,27 +223,19 @@ async def calculate_vector_based_score(
     """
     total_patents = len(patent_evaluations)
     
-    # 각 레벨별 정확도 계산
-    level_scores = {}
-    for level in ["major", "middle", "small"]:
-        correct_classifications = sum(
-            1 for eval in patent_evaluations 
-            if eval["evaluation"][level]["is_correct"] == True
-        )
-        score = (correct_classifications / total_patents) * 100
-        level_scores[level] = {
-            "total": total_patents,
-            "correct": correct_classifications,
-            "score": score
-        }
+    # 정확한 분류 수 계산
+    correct_classifications = sum(
+        1 for eval in patent_evaluations 
+        if eval["evaluation"]["is_correct"] == True
+    )
     
-    # 전체 평균 점수 계산
-    average_score = sum(level["score"] for level in level_scores.values()) / 3
+    # 전체 정확도 계산
+    accuracy = (correct_classifications / total_patents) * 100
     
     return {
         "total_patents": total_patents,
-        "level_scores": level_scores,
-        "average_score": average_score,
+        "correct_classifications": correct_classifications,
+        "accuracy": accuracy,
         "details": patent_evaluations
     }
 
