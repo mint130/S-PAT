@@ -1,4 +1,12 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Cell,
+} from "recharts";
 import useLLMStore from "../../stores/useLLMStore";
 import { ChartNoAxesColumnIncreasing } from "lucide-react";
 
@@ -22,11 +30,14 @@ function LLMBarChart({
 }: LLMBarChartProps) {
   // Zustand 스토어에서 데이터 가져오기
   const llmData = useLLMStore((state) => state.llmData);
+  const selectedLLM = useLLMStore((state) => state.selectedLLM);
 
-  // 차트 데이터 준비
+  // 차트 데이터 준비 (선택된 LLM에 따라 색상 조정)
   const chartData = llmData.map((item) => ({
     name: item.name,
     [dataKey]: item[dataKey] * 100,
+    // 선택된 LLM이 없거나 현재 항목이 선택된 경우 원래 색상, 아니면 흐린 색상
+    color: !selectedLLM || selectedLLM === item.name ? color : "#E0E0E0",
   }));
 
   return (
@@ -64,7 +75,16 @@ function LLMBarChart({
               border: "1px solid #e2e8f0",
             }}
           />
-          <Bar dataKey={dataKey} fill={color} barSize={barSize} />
+          <Bar
+            dataKey={dataKey}
+            barSize={barSize}
+            fill={color}
+            // 바 색상 커스터마이징
+            fillOpacity={1}>
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Bar>
         </BarChart>
       </div>
     </div>

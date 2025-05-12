@@ -1,28 +1,37 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import ChatGPTIcon from "../../assets/gpt.png";
 import ClaudeIcon from "../../assets/claude.png";
 import GeminiIcon from "../../assets/gemini.png";
 import GrokIcon from "../../assets/grok.png";
+import useLLMStore from "../../stores/useLLMStore";
 
-// LLM 타입 정의 (null 추가)
-type LLMType = "ChatGPT" | "Claude" | "Gemini" | "Grok" | null;
+// 디스플레이 이름과 데이터 이름 간의 매핑
+const displayToDataNameMap: Record<string, string> = {
+  "Chat GPT": "GPT",
+  Claude: "Claude",
+  Gemini: "Gemini",
+  Grok: "Grok",
+};
 
 // LLM 옵션 인터페이스 정의
 interface LLMOption {
-  id: LLMType;
+  id: string;
   name: string;
   icon: string;
   colorClass: string;
 }
 
 const SelectLLM = () => {
-  const [selectedLLM, setSelectedLLM] = useState<LLMType>(null);
+  // Zustand 스토어에서 선택된 LLM 상태와 설정 함수 가져오기
+  const selectedLLM = useLLMStore((state) => state.selectedLLM);
+  const setSelectedLLM = useLLMStore((state) => state.setSelectedLLM);
+
   const containerRef = useRef<HTMLDivElement>(null);
 
   // LLM 옵션 목록 - 각 LLM별 색상 클래스 추가
   const llmOptions: LLMOption[] = [
     {
-      id: "ChatGPT",
+      id: "Chat GPT",
       name: "Chat GPT",
       icon: ChatGPTIcon,
       colorClass: "text-GPT",
@@ -39,15 +48,22 @@ const SelectLLM = () => {
       icon: GeminiIcon,
       colorClass: "text-Gemini",
     },
-    { id: "Grok", name: "Grok", icon: GrokIcon, colorClass: "text-Grok" },
+    {
+      id: "Grok",
+      name: "Grok",
+      icon: GrokIcon,
+      colorClass: "text-Grok",
+    },
   ];
 
   // LLM 선택 핸들러 - 같은 버튼을 다시 누르면 선택 해제
-  const handleSelectLLM = (llmId: LLMType) => {
-    if (selectedLLM === llmId) {
+  const handleSelectLLM = (displayName: string) => {
+    const dataName = displayToDataNameMap[displayName];
+
+    if (selectedLLM === dataName) {
       setSelectedLLM(null); // 같은 버튼 클릭 시 선택 해제
     } else {
-      setSelectedLLM(llmId);
+      setSelectedLLM(dataName);
     }
   };
 
@@ -69,30 +85,35 @@ const SelectLLM = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [setSelectedLLM]);
 
   return (
     <div className="py-2" ref={containerRef}>
       <div className="flex space-x-2">
-        {llmOptions.map((llm) => (
-          <button
-            key={llm.id}
-            onClick={() => handleSelectLLM(llm.id)}
-            className={`flex items-center px-4 py-2 rounded-md transition-all ${
-              llm.colorClass
-            } ${
-              selectedLLM === llm.id
-                ? `bg-select-box font-medium border border-select-box-border-soild`
-                : "border border-gray-300"
-            }`}>
-            <img
-              src={llm.icon}
-              alt={`${llm.name} 아이콘`}
-              className="w-5 h-5 mr-2"
-            />
-            <span>{llm.name}</span>
-          </button>
-        ))}
+        {llmOptions.map((llm) => {
+          // 현재 옵션이 선택되었는지 확인 (데이터 이름 기준)
+          const isSelected = selectedLLM === displayToDataNameMap[llm.id];
+
+          return (
+            <button
+              key={llm.id}
+              onClick={() => handleSelectLLM(llm.id)}
+              className={`flex items-center px-4 py-2 rounded-md transition-all ${
+                llm.colorClass
+              } ${
+                isSelected
+                  ? `bg-select-box font-medium border border-select-box-border-soild`
+                  : "border border-gray-300"
+              }`}>
+              <img
+                src={llm.icon}
+                alt={`${llm.name} 아이콘`}
+                className="w-5 h-5 mr-2"
+              />
+              <span>{llm.name}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

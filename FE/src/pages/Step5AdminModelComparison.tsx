@@ -5,7 +5,11 @@ import LLMBarChart from "../components/Step5_admin/LLMBarChart";
 import ResponseTime from "../components/Step5_admin/ResponseTime";
 import TotalScore from "../components/Step5_admin/TotalScore";
 
+import useLLMStore from "../stores/useLLMStore";
+
 function Step5AdminModelComparison() {
+  const selectedLLM = useLLMStore((state) => state.selectedLLM);
+
   return (
     <div className="flex flex-col min-h-screen p-4 sm:p-6 md:p-8">
       {/* 제목과 LLM 선택 영역 */}
@@ -17,12 +21,11 @@ function Step5AdminModelComparison() {
 
       {/* 컨텐츠 영역 - flex 컨테이너로 변경 */}
       <div
-        className="flex flex-col flex-grow mt-4 w-full"
+        className="flex flex-col flex-grow mt-1 w-full"
         style={{ minHeight: "calc(100vh - 300px)" }}>
-        {/* 바 차트 영역 - flex-grow-2 (2/5 비율) */}
         <div
           className="grid grid-cols-3 gap-6 w-full flex-grow-2"
-          style={{ flex: "3" }}>
+          style={{ flex: "1" }}>
           {/* 유사도 차트 */}
           <LLMBarChart
             title="벡터 유사도"
@@ -48,10 +51,9 @@ function Step5AdminModelComparison() {
           />
         </div>
 
-        {/* 응답 시간과 종합점수 영역 - flex-grow-3 (3/5 비율) */}
         <div
           className="grid grid-cols-2 gap-6 w-full flex-grow-3 mt-2"
-          style={{ flex: "8" }}>
+          style={{ flex: "10" }}>
           <ResponseTime />
           <TotalScore />
         </div>
@@ -73,7 +75,7 @@ function Step5AdminModelComparison() {
           size="md"
           className="w-24"
           onClick={() => {
-            alert("LLM 모델이 최적화되었습니다.");
+            alert(`${selectedLLM} 이 선택되었습니다.`);
           }}>
           완료
         </Button>
