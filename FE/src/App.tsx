@@ -6,7 +6,6 @@ import Step1ClassificationSetup from "./pages/Step1ClassificationSetup";
 import Step2ClassificationEdit from "./pages/Step2ClassificationEdit";
 import Step3PatentClassification from "./pages/Step3PatentClassification";
 import Step4PatentResult from "./pages/Step4PatentResult";
-// import LoadingTest from "./pages/LoadingTest";
 
 import Step5AdminModelComparison from "./pages/Step5AdminModelComparison";
 
@@ -15,11 +14,6 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Step0ModeSelect />} />
-
-        {/* 로딩 테스트 */}
-        {/* <Route path="/loading" element={<Layout />}>
-          <Route path="test" element={<LoadingTest />} />
-        </Route> */}
 
         {/* 사용자 모드 */}
         <Route path="/user" element={<Layout />}>
