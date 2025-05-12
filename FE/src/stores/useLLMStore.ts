@@ -24,6 +24,10 @@ interface LLMStoreState {
   setLLMData: (data: LLMItem[]) => void;
   updateLLM: (name: string, data: Partial<LLMItem>) => void;
   initializeFromResponse: (responseData: ResponseDataItem[]) => void;
+  // 선택된 LLM을 추적하는 상태 추가
+  selectedLLM: string | null;
+  // 선택된 LLM을 설정하는 액션 추가
+  setSelectedLLM: (llm: string | null) => void;
 }
 
 // LLM 데이터를 위한 Zustand 스토어
@@ -59,6 +63,12 @@ const useLLMStore = create<LLMStoreState>((set) => ({
       expert: 0.8, // 전문가 평가 (0-1)
     },
   ],
+
+  // 초기값은 null (아무것도 선택되지 않음)
+  selectedLLM: null,
+
+  // 선택된 LLM을 설정하는 액션
+  setSelectedLLM: (llm) => set({ selectedLLM: llm }),
 
   // LLM 데이터 설정 액션
   setLLMData: (data: LLMItem[]) => set({ llmData: data }),
