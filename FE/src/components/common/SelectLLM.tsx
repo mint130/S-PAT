@@ -7,7 +7,7 @@ import useLLMStore from "../../stores/useLLMStore";
 
 // 디스플레이 이름과 데이터 이름 간의 매핑
 const displayToDataNameMap: Record<string, string> = {
-  "Chat GPT": "GPT",
+  GPT: "GPT",
   Claude: "Claude",
   Gemini: "Gemini",
   Grok: "Grok",
@@ -31,8 +31,8 @@ const SelectLLM = () => {
   // LLM 옵션 목록 - 각 LLM별 색상 클래스 추가
   const llmOptions: LLMOption[] = [
     {
-      id: "Chat GPT",
-      name: "Chat GPT",
+      id: "GPT",
+      name: "GPT",
       icon: ChatGPTIcon,
       colorClass: "text-GPT",
     },
@@ -98,7 +98,7 @@ const SelectLLM = () => {
             <button
               key={llm.id}
               onClick={() => handleSelectLLM(llm.id)}
-              className={`flex items-center px-4 py-2 rounded-md transition-all ${
+              className={`flex items-center justify-center w-28 px-3 py-2 rounded-md transition-all ${
                 llm.colorClass
               } ${
                 isSelected

@@ -31,7 +31,7 @@ function Step5AdminModelComparison() {
             title="벡터 유사도"
             dataKey="similarity"
             color="#5A6ACF"
-            barSize={20}
+            barSize={16}
           />
 
           {/* LLM 평가 차트 */}
@@ -39,7 +39,7 @@ function Step5AdminModelComparison() {
             title="LLM 평가"
             dataKey="llmEval"
             color="#5A6ACF"
-            barSize={20}
+            barSize={16}
           />
 
           {/* 전문가 평가 차트 */}
@@ -47,7 +47,7 @@ function Step5AdminModelComparison() {
             title="전문가 평가"
             dataKey="expert"
             color="#5A6ACF"
-            barSize={20}
+            barSize={16}
           />
         </div>
 
