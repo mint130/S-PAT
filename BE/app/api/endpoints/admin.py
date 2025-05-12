@@ -65,3 +65,87 @@ async def classify_patent_by_multi_llm(session_id: str, file: UploadFile = File(
     except Exception as e:
         logger.error(f"분류 처리 중 오류 발생: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.post("/{session_id}/classification/gpt", response_model=LLMClassificationResult, summary="GPT로 특허 분류 및 평가")
+async def classify_patent_gpt(session_id: str, file: UploadFile = File(...)) -> LLMClassificationResult:
+    try:
+        if not file.filename.endswith((".xlsx", ".xls")):
+            raise HTTPException(status_code=400, detail="엑셀 파일만 업로드 가능합니다.")
+        contents = await file.read()
+        file_object = io.BytesIO(contents)
+        df = pd.read_excel(file_object)
+        if session_id not in user_vector_stores:
+            raise HTTPException(status_code=404, detail="해당 세션에 대한 분류 체계가 존재하지 않습니다.")
+        retriever = user_vector_stores[session_id].as_retriever(search_kwargs={"k": 3})
+        patents, evaluation_score = await process_patent_classification(df, retriever, "gpt")
+        return LLMClassificationResult(
+            name="GPT",
+            patents=patents,
+            evaluation_score=evaluation_score
+        )
+    except Exception as e:
+        logger.error(f"GPT 분류 처리 중 오류 발생: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.post("/{session_id}/classification/claude", response_model=LLMClassificationResult, summary="Claude로 특허 분류 및 평가")
+async def classify_patent_claude(session_id: str, file: UploadFile = File(...)) -> LLMClassificationResult:
+    try:
+        if not file.filename.endswith((".xlsx", ".xls")):
+            raise HTTPException(status_code=400, detail="엑셀 파일만 업로드 가능합니다.")
+        contents = await file.read()
+        file_object = io.BytesIO(contents)
+        df = pd.read_excel(file_object)
+        if session_id not in user_vector_stores:
+            raise HTTPException(status_code=404, detail="해당 세션에 대한 분류 체계가 존재하지 않습니다.")
+        retriever = user_vector_stores[session_id].as_retriever(search_kwargs={"k": 3})
+        patents, evaluation_score = await process_patent_classification(df, retriever, "claude")
+        return LLMClassificationResult(
+            name="CLAUDE",
+            patents=patents,
+            evaluation_score=evaluation_score
+        )
+    except Exception as e:
+        logger.error(f"Claude 분류 처리 중 오류 발생: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.post("/{session_id}/classification/gemini", response_model=LLMClassificationResult, summary="Gemini로 특허 분류 및 평가")
+async def classify_patent_gemini(session_id: str, file: UploadFile = File(...)) -> LLMClassificationResult:
+    try:
+        if not file.filename.endswith((".xlsx", ".xls")):
+            raise HTTPException(status_code=400, detail="엑셀 파일만 업로드 가능합니다.")
+        contents = await file.read()
+        file_object = io.BytesIO(contents)
+        df = pd.read_excel(file_object)
+        if session_id not in user_vector_stores:
+            raise HTTPException(status_code=404, detail="해당 세션에 대한 분류 체계가 존재하지 않습니다.")
+        retriever = user_vector_stores[session_id].as_retriever(search_kwargs={"k": 3})
+        patents, evaluation_score = await process_patent_classification(df, retriever, "gemini")
+        return LLMClassificationResult(
+            name="GEMINI",
+            patents=patents,
+            evaluation_score=evaluation_score
+        )
+    except Exception as e:
+        logger.error(f"Gemini 분류 처리 중 오류 발생: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.post("/{session_id}/classification/grok", response_model=LLMClassificationResult, summary="Grok로 특허 분류 및 평가")
+async def classify_patent_grok(session_id: str, file: UploadFile = File(...)) -> LLMClassificationResult:
+    try:
+        if not file.filename.endswith((".xlsx", ".xls")):
+            raise HTTPException(status_code=400, detail="엑셀 파일만 업로드 가능합니다.")
+        contents = await file.read()
+        file_object = io.BytesIO(contents)
+        df = pd.read_excel(file_object)
+        if session_id not in user_vector_stores:
+            raise HTTPException(status_code=404, detail="해당 세션에 대한 분류 체계가 존재하지 않습니다.")
+        retriever = user_vector_stores[session_id].as_retriever(search_kwargs={"k": 3})
+        patents, evaluation_score = await process_patent_classification(df, retriever, "grok")
+        return LLMClassificationResult(
+            name="GROK",
+            patents=patents,
+            evaluation_score=evaluation_score
+        )
+    except Exception as e:
+        logger.error(f"Grok 분류 처리 중 오류 발생: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

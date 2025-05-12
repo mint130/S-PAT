@@ -144,6 +144,10 @@ async def evaluate_classification_by_vector(
             # 유사도가 기준점보다 낮으면 미분류가 정확
             is_correct = True
             reason = f"유사도({normalized_score:.2f})가 기준점({THRESHOLD}) 미만이므로 미분류가 정확함"
+        elif normalized_score == THRESHOLD:
+            # 유사도가 기준점보다 낮으면 미분류가 정확
+            is_correct = True
+            reason = "분류 결과가 일치함"
         else:
             # 유사도가 기준점보다 높으면 미분류가 부정확
             is_correct = False
