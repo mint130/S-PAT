@@ -6,7 +6,7 @@ import logging
 import os
 import re
 import time
-from typing import Any, AsyncGenerator, Dict, List
+from typing import Any, AsyncGenerator, Dict, List, Union
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -80,7 +80,9 @@ user_vector_stores: Dict[str, FAISS] = {}
 session_progress_queues: Dict[str, asyncio.Queue] = {}
 
 # SSE 이벤트 생성 함수
-def format_sse(data: str, event=None) -> str:
+def format_sse(data: Union[str, dict], event=None) -> str:
+    if isinstance(data, dict):
+        data = json.dumps(data, ensure_ascii=False)
     msg = f"data: {data}\n\n"
     if event is not None:
         msg = f"event: {event}\n{msg}"
