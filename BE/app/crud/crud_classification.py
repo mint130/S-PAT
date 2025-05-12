@@ -223,23 +223,33 @@ async def calculate_vector_based_score(
     patent_evaluations: List[Dict[str, Any]]
 ) -> Dict[str, Any]:
     """
-    벡터 기반 유사도 평가의 최종 점수를 계산합니다.
+    벡터 기반 유사도 평가와 Reasoning LLM 평가의 최종 점수를 계산합니다.
     """
     total_patents = len(patent_evaluations)
     
-    # 정확한 분류 수 계산
-    correct_classifications = sum(
+    # 벡터 기반 평가 점수 계산
+    vector_correct_classifications = sum(
         1 for eval in patent_evaluations 
-        if eval["evaluation"]["is_correct"] == True
+        if eval["vector_based"]["evaluation"]["is_correct"] == True
     )
+    vector_accuracy = (vector_correct_classifications / total_patents) * 100
     
-    # 전체 정확도 계산
-    accuracy = (correct_classifications / total_patents) * 100
+    # Reasoning LLM 평가 점수 계산 (평균 점수)
+    reasoning_scores = [
+        eval["reasoning"]["score"] 
+        for eval in patent_evaluations
+    ]
+    reasoning_average_score = sum(reasoning_scores) / total_patents * 100
     
     return {
         "total_patents": total_patents,
-        "correct_classifications": correct_classifications,
-        "accuracy": accuracy,
+        "vector_based": {
+            "correct_classifications": vector_correct_classifications,
+            "accuracy": vector_accuracy
+        },
+        "reasoning": {
+            "average_score": reasoning_average_score
+        },
         "details": patent_evaluations
     }
 
@@ -298,14 +308,91 @@ async def process_patent_classification(
         patents.append(patent_data)
         
         # 벡터 기반 평가 수행
-        evaluation = await evaluate_classification_by_vector(
+        vector_evaluation = await evaluate_classification_by_vector(
             patent_info,
             classifications,
             retriever
         )
+        
+        # Reasoning LLM 평가 수행 (Claude 사용)
+        reasoning_evaluation = await evaluate_classification_by_reasoning(
+            patent_info,
+            classifications,
+            retriever
+        )
+        
+        # 통합 평가 결과
+        evaluation = {
+            "vector_based": vector_evaluation,
+            "reasoning": reasoning_evaluation,
+            "is_correct": vector_evaluation["evaluation"]["is_correct"] and reasoning_evaluation["is_correct"]
+        }
+        
         evaluations.append(evaluation)
     
     # 최종 평가 점수 계산
     evaluation_score = await calculate_vector_based_score(evaluations)
     
-    return patents, evaluation_score 
+    return patents, evaluation_score
+
+async def evaluate_classification_by_reasoning(
+    patent_info: str,
+    classification_result: Dict[str, str],
+    retriever: Any
+) -> Dict[str, Any]:
+    """
+    Claude를 사용하여 분류 결과를 평가합니다.
+    0.0~1.0 사이의 점수로 평가합니다.
+    """
+    # 프롬프트 템플릿 정의
+    template = """
+    다음은 특허 분류 결과입니다:
+
+    특허 정보:
+    {patent_info}
+
+    분류 결과:
+    - 대분류: {major_code} ({major_title})
+    - 중분류: {middle_code} ({middle_title})
+    - 소분류: {small_code} ({small_title})
+
+    이 분류가 적절한지 평가해주세요.
+    0.0부터 1.0 사이의 점수로 평가해주세요.
+    0.0은 완전히 부적절한 분류, 1.0은 완벽하게 적절한 분류를 의미합니다.
+
+    점수와 함께 평가 근거를 간단히 설명해주세요.
+    """
+
+    prompt = ChatPromptTemplate.from_template(template)
+    
+    # 프롬프트에 값 채우기
+    filled_prompt = prompt.format(
+        patent_info=patent_info,
+        major_code=classification_result["majorCode"],
+        major_title=classification_result["majorTitle"],
+        middle_code=classification_result["middleCode"],
+        middle_title=classification_result["middleTitle"],
+        small_code=classification_result["smallCode"],
+        small_title=classification_result["smallTitle"]
+    )
+    
+    # Claude 호출
+    response = await claude.ainvoke(filled_prompt)
+    
+    # 응답에서 점수 추출 (0.0~1.0 사이의 숫자)
+    try:
+        score_match = re.search(r'0\.\d+|1\.0', response.content)
+        if score_match:
+            score = float(score_match.group())
+        else:
+            score = 0.0
+            logger.warning("점수를 찾을 수 없어 기본값 0.0을 사용합니다.")
+    except Exception as e:
+        logger.error(f"점수를 추출 중 오류 발생: {str(e)}")
+        score = 0.0
+    
+    return {
+        "score": score,
+        "reason": response.content,
+        "is_correct": score >= 0.7  # 0.7 이상을 정확한 분류로 간주
+    } 
