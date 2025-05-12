@@ -34,6 +34,8 @@ from langchain_xai import ChatXAI
 from langchain_anthropic import ChatAnthropic
 
 from app.core.redis import get_redis
+from app.crud.crud_best_llm import get_best_llm, update_best_llm
+from app.schemas.best_llm import LLMCreate, LLMResponse
 from app.schemas.classification import ClassificationResponse, ClassificationSchema, Patent
 from app.schemas.conversation import ConversationRequest, ConversationResponse, SessionHistoryResponse
 from app.db.database import get_db
@@ -477,4 +479,19 @@ def download_classified_excel(session_id: str):
         filename=f"{session_id}_classified.xlsx"
     )
 
+
+@user_router.get("/LLM", response_model=LLMResponse, summary="최적의 LLM 반환", description="DB에 저장된 최적의 LLM을 반환합니다.")
+def read_best_llm(db: Session = Depends(get_db)):
+    llm = get_best_llm(db)
+
+    if llm is None:
+        raise HTTPException(status_code=404, detail="LLM setting not found")
+    return {"LLM": llm}
+
+
+@user_router.post("/LLM", response_model=LLMResponse, summary="최적의 LLM 설정")
+def set_best_llm(llm_data: LLMCreate, db: Session = Depends(get_db)):
+    llm_record = update_best_llm(db, llm_data.LLM)
+
+    return {"LLM": llm_record.llm}
 
