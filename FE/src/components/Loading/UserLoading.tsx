@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface UserLoadingProps {
   sessionId: string;
-  onComplete?: (data?: unknown) => void;
 }
 
-function UserLoading({ sessionId, onComplete }: UserLoadingProps) {
+function UserLoading({ sessionId }: UserLoadingProps) {
+  const navigate = useNavigate();
+
   // 진행률 상태 정의 및 타입 명시
   const [progress, setProgress] = useState<{
     current: number;
@@ -64,12 +66,24 @@ function UserLoading({ sessionId, onComplete }: UserLoadingProps) {
           // 완료 메시지 처리
           if (data.status === "completed") {
             setIsComplete(true);
-            eventSource?.close();
 
-            // 완료 후 1초 대기 후 콜백 실행
+            if (eventSource) {
+              console.log("SSE 연결 종료");
+              eventSource.close();
+            }
+
+            // 타이머 설정 후 직접 라우팅 처리
             setTimeout(() => {
-              if (onComplete) onComplete();
-            }, 1000);
+              try {
+                console.log("navigate 함수로 이동 시도");
+                navigate("/user/step4");
+              } catch (error) {
+                console.error("라우팅 오류, window.location 사용:", error);
+                // 라우터에 문제가 있으면 직접 URL 변경
+                window.location.href = "/user/step4";
+              }
+            }, 2000);
+
             return;
           }
 
@@ -127,7 +141,7 @@ function UserLoading({ sessionId, onComplete }: UserLoadingProps) {
         eventSource.close();
       }
     };
-  }, [sessionId, onComplete]);
+  }, [sessionId, navigate]);
 
   return (
     <div className="h-full flex flex-col items-center justify-center bg-white p-4">

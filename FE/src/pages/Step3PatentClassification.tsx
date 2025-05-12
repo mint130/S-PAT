@@ -40,9 +40,9 @@ function Step3PatentClassification() {
   };
 
   // 분류 완료 시 다음 페이지로 자동 이동
-  const handleClassificationComplete = () => {
-    navigate("/user/step4");
-  };
+  // const handleClassificationComplete = () => {
+  //   navigate("/user/step4");
+  // };
 
   // 모달 확인 버튼 클릭 시 API 호출 및 로딩 화면으로 전환
   const onConfirm = async () => {
@@ -94,10 +94,7 @@ function Step3PatentClassification() {
   return (
     <div className="p-8 pb-6 h-full flex flex-col justify-stretch grow">
       {isClassifying ? (
-        <UserLoading
-          sessionId={sessionId}
-          onComplete={handleClassificationComplete}
-        />
+        <UserLoading sessionId={sessionId} />
       ) : (
         <>
           <Title
