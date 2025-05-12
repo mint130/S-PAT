@@ -111,6 +111,7 @@ function Step2ClassificationEdit() {
           colDefs={colDefs}
           edit={true}
           gridRef={gridRef}
+          selectable={true}
         />
       </div>
 
