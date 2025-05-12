@@ -15,7 +15,9 @@ import {
   AlertCircle,
   Trash2,
   Plus,
+  FileDown,
 } from "lucide-react";
+import * as XLSX from "xlsx";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -176,6 +178,55 @@ const DataTable: React.FC<DataTableProps> = ({
     }
   }, [colDefs, gridRef, setRowData]);
 
+  // 엑셀 다운로드 함수 추가
+  const handleExcelDownload = useCallback(() => {
+    if (!gridRef.current?.api) return;
+
+    // 모든 행 데이터 가져오기
+    const exportData: any[] = [];
+    gridRef.current.api.forEachNode((node) => {
+      if (node.data) {
+        exportData.push(node.data);
+      }
+    });
+
+    // 엑셀 워크시트 생성
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    // 컬럼 헤더 이름 설정 (기본 필드명 대신 headerName 사용)
+    const headerNames: any = {};
+    const headers: string[] = [];
+
+    colDefs.forEach((col, index) => {
+      if (col.field) {
+        const headerName = col.headerName || col.field;
+        headers.push(headerName);
+        const cellRef = XLSX.utils.encode_cell({ r: 0, c: index });
+        headerNames[cellRef] = { v: headerName, t: "s" };
+      }
+    });
+
+    // 워크시트에 헤더 정보 추가
+    XLSX.utils.sheet_add_aoa(worksheet, [headers], { origin: "A1" });
+
+    // 열 너비 설정 (자동으로 조정)
+    const columnWidths = colDefs.map(() => ({ wch: 15 })); // 기본값 15
+    worksheet["!cols"] = columnWidths;
+
+    // 엑셀 워크북 생성
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "데이터");
+
+    // 현재 날짜와 시간 포맷팅
+    const now = new Date();
+    const dateStr = now.toISOString().split("T")[0];
+    const timeStr = now.toTimeString().split(" ")[0].replace(/:/g, "-");
+
+    // 엑셀 파일 다운로드
+    const fileName = `데이터_${dateStr}_${timeStr}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  }, [colDefs, gridRef]);
+
   return (
     <div className="flex flex-col h-full">
       {/* 상단 컨트롤 영역 */}
@@ -190,7 +241,6 @@ const DataTable: React.FC<DataTableProps> = ({
           </button>
         )}
 
-        {/* 기존 컨트롤 버튼들을 하나의 div로 감싸기 */}
         {/* 컬럼 필터 버튼 */}
         <ColumnMenu
           colDefs={colDefs}
@@ -223,6 +273,14 @@ const DataTable: React.FC<DataTableProps> = ({
             size={16}
           />
         </div>
+
+        {/* 엑셀 다운로드 버튼 추가 */}
+        <button
+          onClick={handleExcelDownload}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-green-600">
+          <FileDown size={16} />
+          <span>엑셀 다운로드</span>
+        </button>
       </div>
 
       {/* 테이블 영역 */}
