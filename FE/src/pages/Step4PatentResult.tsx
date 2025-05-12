@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Title from "../components/common/Title";
 import DataTable from "../components/common/DataTable";
@@ -48,14 +48,6 @@ function Step4PatentResult() {
   ]);
 
   const { patentResult } = location.state || [];
-
-  useEffect(() => {
-    console.log(patentResult);
-    if (!patentResult) {
-      navigate("/user/step3");
-    }
-  }, [patentResult, navigate]);
-
   const handlePrevious = () => {
     navigate("/user/step3");
   };
