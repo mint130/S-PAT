@@ -1,5 +1,5 @@
 import { Crown } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import useLLMStore from "../../stores/useLLMStore";
 
 const TotalScore = () => {
@@ -48,9 +48,26 @@ const TotalScore = () => {
     return isSelected ? baseSize + 20 : baseSize;
   };
 
+  // 애니메이션을 위한 상태 추가
+  useEffect(() => {
+    // 선택이 변경될 때 애니메이션을 트리거
+    const circles = document.querySelectorAll(".progress-circle");
+    circles.forEach((circle) => {
+      circle.classList.remove("animate-draw");
+      // 짧은 지연 후 클래스를 다시 추가하여 애니메이션 재시작
+      setTimeout(() => {
+        const modelName = circle.getAttribute("data-model");
+        // 선택된 LLM이 없거나, 현재 원이 선택된 LLM인 경우에만 애니메이션 적용
+        if (!selectedLLM || selectedLLM === modelName) {
+          circle.classList.add("animate-draw");
+        }
+      }, 10);
+    });
+  }, [selectedLLM]);
+
   return (
     <div className="h-full flex flex-col">
-      <h3 className="font-pretendard font-semibold mb-2 flex items-center">
+      <h3 className="font-pretendard font-semibold mb-2 flex items-center text-sm">
         <span className="mr-2">
           <Crown size={16} />
         </span>
@@ -58,6 +75,24 @@ const TotalScore = () => {
       </h3>
       <div className="bg-white p-4 rounded-lg shadow-sm flex-1 flex items-center justify-center overflow-hidden">
         <div className="w-full h-full relative">
+          {/* 애니메이션 스타일 추가 */}
+          <style>
+            {`
+              @keyframes drawCircle {
+                from {
+                  stroke-dashoffset: var(--circumference);
+                }
+                to {
+                  stroke-dashoffset: var(--offset);
+                }
+              }
+              
+              .animate-draw {
+                animation: drawCircle 1.5s ease-in-out forwards;
+              }
+            `}
+          </style>
+
           {calculatedScores.map((model, index) => {
             // 선택된 LLM인지 확인
             const isSelected = !selectedLLM || selectedLLM === model.name;
@@ -73,7 +108,8 @@ const TotalScore = () => {
             const strokeWidth = 2;
 
             // 원 둘레 계산
-            const circumference = 2 * Math.PI * (progressSize / 2);
+            const circumference =
+              2 * Math.PI * ((progressSize - strokeWidth) / 2);
 
             // 프로그레스 값에 따른 스트로크 대시 길이
             const progressOffset = circumference - scorePercent * circumference;
@@ -167,8 +203,10 @@ const TotalScore = () => {
                     stroke="rgba(255, 255, 255, 0.15)"
                     strokeWidth={strokeWidth}
                   />
-                  {/* 프로그레스 서클 (채워진 부분) */}
+                  {/* 프로그레스 서클 (채워진 부분) - 애니메이션 조건 적용 */}
                   <circle
+                    className="progress-circle"
+                    data-model={model.name}
                     cx={progressSize / 2}
                     cy={progressSize / 2}
                     r={(progressSize - strokeWidth) / 2}
@@ -178,8 +216,11 @@ const TotalScore = () => {
                     strokeDasharray={circumference}
                     strokeDashoffset={progressOffset}
                     strokeLinecap="round"
-                    className="transition-all duration-1000 ease-in-out"
-                    style={{ filter: "blur(0.5px)" }} // 약간의 블러 효과
+                    style={{
+                      filter: "blur(0.5px)", // 약간의 블러 효과
+                      ["--circumference" as any]: circumference,
+                      ["--offset" as any]: progressOffset,
+                    }}
                   />
                   {/* 움직이는 점 효과 (선택사항) */}
                   <circle
@@ -191,13 +232,14 @@ const TotalScore = () => {
                         ? "rgba(255, 255, 255, 0.9)"
                         : "rgba(255, 255, 255, 0.7)"
                     }
-                    className="animate-pulse"
+                    className={isSelected ? "animate-pulse" : ""}
                     style={{
                       transformOrigin: `${progressSize / 2}px ${
                         progressSize / 2
                       }px`,
                       transform: `rotate(${scorePercent * 360}deg)`,
                       filter: "blur(0.5px)", // 약간의 블러 효과
+                      transition: `transform 1.5s ease-in-out`,
                     }}
                   />
                 </svg>

@@ -8,7 +8,7 @@ import {
   Cell,
 } from "recharts";
 import useLLMStore from "../../stores/useLLMStore";
-import { ChartNoAxesColumnIncreasing } from "lucide-react";
+import { ChartColumn } from "lucide-react";
 
 // Props 타입 정의
 interface LLMBarChartProps {
@@ -40,27 +40,56 @@ function LLMBarChart({
     color: !selectedLLM || selectedLLM === item.name ? color : "#E0E0E0",
   }));
 
+  // X축 커스텀 틱 컴포넌트
+  const CustomXAxisTick = (props: any) => {
+    const { x, y, payload } = props;
+    const isActive = !selectedLLM || selectedLLM === payload.value;
+
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text
+          x={0}
+          y={0}
+          dy={16}
+          textAnchor="middle"
+          fill={isActive ? "#000000" : "#9CA3AF"}
+          fontFamily="Pretendard"
+          fontSize={12}>
+          {payload.value}
+        </text>
+      </g>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* 제목 */}
       <div className="flex space-x-2">
-        <ChartNoAxesColumnIncreasing />
-        <div className="text-pretendard font-extrabold mb-2">{title}</div>
+        <ChartColumn size={20} />
+        <div className="font-pretendard font-semibold mb-2 text-sm">
+          {title}
+        </div>
       </div>
       {/* 차트 */}
-      <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm flex-1 flex items-center justify-center">
+      <div className="border border-gray-200 rounded-lg bg-white shadow-sm flex-1 flex items-center justify-center py-2">
         <BarChart
           width={360}
-          height={height || 210}
+          height={height || 180}
           data={chartData}
           margin={{ top: 10, right: 10, left: -20, bottom: -5 }}>
           <CartesianGrid strokeDasharray="1 3" stroke="#C9C9C9" />
           <XAxis
             dataKey="name"
             tickLine={false} // X축 틱 마크 제거
+            tick={<CustomXAxisTick />} // 커스텀 틱 컴포넌트 사용
           />
           <YAxis
-            tickCount={6} // 틱 개수 조정
+            tickCount={5} // 틱 개수 조정
+            tick={{
+              fontSize: 12, // Y축 레이블은 항상 검은색
+              fontFamily: "Pretendard",
+              fill: "#000000",
+            }}
           />
           <Tooltip
             formatter={(value) => {
@@ -73,7 +102,12 @@ function LLMBarChart({
             contentStyle={{
               borderRadius: "4px",
               border: "1px solid #e2e8f0",
+              backgroundColor: "#ffffff", // 배경색을 명시적으로 흰색으로 설정
+              fontFamily: "Pretendard",
+              fontSize: "12px",
+              padding: "8px",
             }}
+            cursor={{ fill: "transparent" }} // 호버 시 회색 영역 제거
           />
           <Bar
             dataKey={dataKey}
