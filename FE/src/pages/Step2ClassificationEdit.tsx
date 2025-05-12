@@ -33,7 +33,7 @@ function Step2ClassificationEdit() {
       }
 
       const response = await axios.post(
-        `https://s-pat.site/api/user/${session_id}/standard/save`,
+        `https://s-pat.site/api/test/${session_id}/standard/save`,
         { standards: selectedStandards }
       );
 
