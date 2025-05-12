@@ -10,7 +10,7 @@ interface DataTableProps {
   rowData: any[];
   colDefs: ColDef[];
   edit?: boolean;
-  gridRef?: React.MutableRefObject<AgGridReact | null>;
+  gridRef?: React.RefObject<AgGridReact | null>;
 }
 
 // 컬럼 메뉴 컴포넌트 분리
