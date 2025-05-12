@@ -1,8 +1,21 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { AgGridReact } from "ag-grid-react";
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, RowSelectionOptions } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
-import { Search, ListFilter, Check, AlertCircle } from "lucide-react";
+import {
+  Search,
+  ListFilter,
+  Check,
+  AlertCircle,
+  Trash2,
+  Plus,
+} from "lucide-react";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -11,6 +24,8 @@ interface DataTableProps {
   colDefs: ColDef[];
   edit?: boolean;
   gridRef?: React.RefObject<AgGridReact | null>;
+  selectable?: boolean;
+  setRowData?: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 // 컬럼 메뉴 컴포넌트 분리
@@ -100,6 +115,8 @@ const DataTable: React.FC<DataTableProps> = ({
   colDefs,
   edit = false,
   gridRef: externalGridRef,
+  selectable = false,
+  setRowData,
 }) => {
   const internalGridRef = useRef<AgGridReact>(null);
   const gridRef = externalGridRef || internalGridRef;
@@ -115,6 +132,10 @@ const DataTable: React.FC<DataTableProps> = ({
     editable: edit,
   };
 
+  const rowSelection = useMemo<RowSelectionOptions | undefined>(() => {
+    return selectable ? { mode: "multiRow" } : undefined;
+  }, [selectable]);
+
   const toggleColumnVisibility = (field: string) => {
     // ag-grid API 업데이트
     gridRef.current!.api.setColumnsVisible([field], !columnVisibility[field]);
@@ -125,10 +146,51 @@ const DataTable: React.FC<DataTableProps> = ({
     }));
   };
 
+  const onRemoveSelected = useCallback(() => {
+    const selectedRowData = gridRef.current!.api.getSelectedRows();
+    gridRef.current!.api.applyTransaction({ remove: selectedRowData });
+  }, []);
+
+  // 행 추가 함수
+  const addNewRow = useCallback(() => {
+    // 새 행을 위한 빈 객체 생성
+    const newRow: Record<string, any> = {};
+
+    // colDefs에서 모든 필드에 대해 기본값 설정
+    colDefs.forEach((col) => {
+      if (col.field) {
+        newRow[col.field] = "";
+      }
+    });
+
+    // AG Grid API를 사용하여 새 행 추가
+    if (gridRef.current?.api) {
+      gridRef.current.api.applyTransaction({
+        add: [newRow],
+      });
+    }
+
+    // 상위 컴포넌트의 상태도 업데이트 (제공된 경우)
+    if (setRowData) {
+      setRowData((currentRowData) => [...currentRowData, newRow]);
+    }
+  }, [colDefs, gridRef, setRowData]);
+
   return (
     <div className="flex flex-col h-full">
       {/* 상단 컨트롤 영역 */}
       <div className="mb-2 flex justify-end items-center gap-4">
+        {/* 행 추가 버튼 */}
+        {setRowData && (
+          <button
+            onClick={addNewRow}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-blue-600">
+            <Plus size={16} />
+            <span>행 추가</span>
+          </button>
+        )}
+
+        {/* 기존 컨트롤 버튼들을 하나의 div로 감싸기 */}
         {/* 컬럼 필터 버튼 */}
         <ColumnMenu
           colDefs={colDefs}
@@ -136,6 +198,16 @@ const DataTable: React.FC<DataTableProps> = ({
           setColumnVisibility={setColumnVisibility}
           onColumnChange={toggleColumnVisibility}
         />
+
+        {/* 삭제 버튼 */}
+        {selectable && (
+          <button
+            onClick={onRemoveSelected}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+            <Trash2 size={16} />
+            <span>삭제</span>
+          </button>
+        )}
 
         {/* 검색 영역 */}
         <div className="relative w-96">
@@ -174,16 +246,7 @@ const DataTable: React.FC<DataTableProps> = ({
             columnDefs={colDefs}
             defaultColDef={defaultColDef}
             quickFilterText={quickFilterText}
-            // onColumnVisible={(event) => {
-            // // 외부에서 컬럼 가시성이 변경될 때 상태 동기화
-            // if (event.column?.getColDef().field) {
-            //   setColumnVisibility((prev) => ({
-            //     ...prev,
-            //     [event.column.getColDef().field!]: event.visible,
-            //   }));
-            // }
-            // console.log(event);
-            // }}
+            rowSelection={rowSelection}
           />
         )}
       </div>
