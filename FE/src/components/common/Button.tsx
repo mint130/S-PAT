@@ -2,7 +2,7 @@ import React from "react";
 import { LoaderCircle } from "lucide-react";
 
 // 타입 정의 개선
-type ButtonVariant = "primary" | "outline";
+type ButtonVariant = "primary" | "outline" | "dark-outline";
 type ButtonSize = "sm" | "md" | "lg";
 type TextSize = "xs" | "sm" | "md" | "lg";
 
@@ -26,12 +26,23 @@ function Button({
   ...props // 나머지 모든 속성들 (onClick 포함)
 }: ButtonProps) {
   // 기본 클래스
-  const baseClasses = `flex items-center justify-center border font-pretendard tracking-wider rounded-lg transition-colors whitespace-nowrap ${isLoading ? "cursor-wait" : "disabled:opacity-50 disabled:cursor-not-allowed"}`;
+  const baseClasses = `flex items-center justify-center border font-pretendard tracking-wider rounded-lg transition-colors whitespace-nowrap ${
+    isLoading
+      ? "cursor-wait"
+      : "disabled:opacity-50 disabled:cursor-not-allowed"
+  }`;
 
   // 버튼 색상 스타일
   const variantStyles: Record<ButtonVariant, string> = {
-    primary: `bg-primary-blue text-white border-hover-blue ${!disabled && !isLoading ? "hover:bg-hover-blue" : ""}`, // 파란색 배경, 흰색 텍스트
-    outline: `bg-white text-black border-gray-200 ${!disabled && !isLoading ? "hover:bg-gray-100" : ""}`, // 흰색 배경, 검은색 텍스트
+    primary: `bg-primary-blue text-white border-hover-blue ${
+      !disabled && !isLoading ? "hover:bg-hover-blue" : ""
+    }`, // 파란색 배경, 흰색 텍스트
+    outline: `bg-white text-black border-gray-200 ${
+      !disabled && !isLoading ? "hover:bg-gray-100" : ""
+    }`, // 흰색 배경, 검은색 텍스트
+    "dark-outline": `bg-[#23283D] text-[#E3E7ED] border-[#4B5268] ${
+      !disabled && !isLoading ? "hover:bg-[#2A3048]" : ""
+    }`, // 검은 배경, 흰색 텍스트
   };
 
   // 버튼 크기 스타일

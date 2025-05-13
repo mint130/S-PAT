@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import useThemeStore from "../../stores/useThemeStore";
 
 interface UserLoadingProps {
   sessionId: string;
@@ -7,6 +8,7 @@ interface UserLoadingProps {
 
 function UserLoading({ sessionId }: UserLoadingProps) {
   const navigate = useNavigate();
+  const { isDarkMode } = useThemeStore();
 
   // 진행률 상태 정의 및 타입 명시
   const [progress, setProgress] = useState<{
@@ -144,7 +146,7 @@ function UserLoading({ sessionId }: UserLoadingProps) {
   }, [sessionId, navigate]);
 
   return (
-    <div className="h-full flex flex-col items-center justify-center bg-white p-4">
+    <div className="h-full flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md rounded-2xl p-8 flex flex-col items-center">
         <div
           className="relative flex flex-col items-center mb-6"
@@ -154,34 +156,39 @@ function UserLoading({ sessionId }: UserLoadingProps) {
             {!isComplete && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div
-                  className="absolute w-full h-full rounded-full bg-gradient-to-br from-blue-200 to-blue-400"
+                  className="absolute w-full h-full rounded-full bg-gradient-to-br from-blue-200 to-blue-400 dark:from-blue-500 dark:to-blue-700"
                   style={{
                     animation: "ripple 4s infinite",
-                    opacity: 0.15,
+                    opacity: isDarkMode ? 0.2 : 0.15,
                   }}></div>
                 <div
-                  className="absolute w-full h-full rounded-full bg-gradient-to-br from-blue-200 to-blue-400"
+                  className="absolute w-full h-full rounded-full bg-gradient-to-br from-blue-200 to-blue-400 dark:from-blue-500 dark:to-blue-700"
                   style={{
                     animation: "ripple 4s infinite 1s",
-                    opacity: 0.15,
+                    opacity: isDarkMode ? 0.2 : 0.15,
                   }}></div>
                 <div
-                  className="absolute w-full h-full rounded-full bg-gradient-to-br from-blue-200 to-blue-400"
+                  className="absolute w-full h-full rounded-full bg-gradient-to-br from-blue-200 to-blue-400 dark:from-blue-500 dark:to-blue-700"
                   style={{
                     animation: "ripple 4s infinite 2s",
-                    opacity: 0.15,
+                    opacity: isDarkMode ? 0.2 : 0.15,
                   }}></div>
               </div>
             )}
 
             {/* 완료되면 표시되는 원 */}
             {isComplete && (
-              <div className="absolute w-full h-full rounded-full bg-gradient-to-br from-blue-200 to-blue-400 opacity-15"></div>
+              <div className="absolute w-full h-full rounded-full bg-gradient-to-br from-blue-200 to-blue-400 dark:from-blue-500 dark:to-blue-700 opacity-15 dark:opacity-20"></div>
             )}
 
             {/* 중앙 진행률 텍스트 */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-              <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+              <span
+                className={`text-5xl font-bold ${
+                  isDarkMode
+                    ? "bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent"
+                    : "bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent"
+                }`}>
                 {Math.floor(progress.percentage)}%
               </span>
             </div>
@@ -192,26 +199,26 @@ function UserLoading({ sessionId }: UserLoadingProps) {
         <div className="w-full text-center space-y-3">
           {!isComplete ? (
             <>
-              <h3 className="text-xl font-semibold text-gray-800 font-pretendard mt-12">
+              <h3 className="text-2xl font-semibold text-gray-800 dark:text-[#EDF0F4] font-pretendard mt-12">
                 {progress.currentPhase}
               </h3>
               <div className="flex flex-col items-center space-y-2">
-                <p className="text-gray-600 font-pretendard">
+                <p className="text-gray-600 dark:text-gray-300 font-pretendard">
                   총 <span className="font-medium">{progress.total}</span>개 중{" "}
                   <span className="font-medium">{progress.current}</span>개
                   처리됨
                 </p>
-                <p className="text-gray-500 text-sm font-pretendard">
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-pretendard">
                   예상 남은 시간: {progress.estimatedTimeLeft}
                 </p>
               </div>
             </>
           ) : (
             <>
-              <h3 className="text-2xl font-semibold text-gray-800 font-pretendard">
+              <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 font-pretendard">
                 AI 분류 완료
               </h3>
-              <p className="text-gray-600 font-pretendard mt-2">
+              <p className="text-gray-600 dark:text-gray-300 font-pretendard mt-2">
                 분류 결과 페이지로 이동합니다...
               </p>
             </>
@@ -224,10 +231,10 @@ function UserLoading({ sessionId }: UserLoadingProps) {
           @keyframes ripple {
             0% {
               transform: scale(0.8);
-              opacity: 0.2;
+              opacity: ${isDarkMode ? "0.25" : "0.2"};
             }
             50% {
-              opacity: 0.1;
+              opacity: ${isDarkMode ? "0.15" : "0.1"};
             }
             100% {
               transform: scale(1.8);

@@ -7,6 +7,7 @@ import Button from "../common/Button"; // Button 컴포넌트 import
 import NextModal from "../common/NextModal"; // NextModal 컴포넌트 import
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import useThemeStore from "../../stores/useThemeStore";
 
 // 메시지 타입 정의
 type MessageType = "user" | "assistant";
@@ -46,6 +47,7 @@ const ChatContent: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState<boolean>(false); // 진행하기 버튼 로딩 상태
   const [showModal, setShowModal] = useState<boolean>(false); // 모달 표시 여부
   const [isHistoryLoading, setIsHistoryLoading] = useState<boolean>(true);
+  const { isDarkMode } = useThemeStore();
 
   // 파일 업로드 관련 상태 추가
   const [showFileModal, setShowFileModal] = useState<boolean>(false);
@@ -541,12 +543,16 @@ const ChatContent: React.FC = () => {
       {/* 파일명 나오게 하기 */}
       {uploadedFile !== null && (
         <div className="absolute bottom-[120px] left-0 flex items-center py-4">
-          <div className="bg-select-box border border-select-box-border font-pretendard rounded-md p-3 flex items-center">
-            <div className="w-6 h-6 mr-3 flex-shrink-0">
-              <File strokeWidth={1} color="blue" />
+          <div className="bg-white border border-[#F0F2F5] dark:bg-[#23283D] dark:border-[#4B5268] shadow-sm font-pretendard rounded-md p-3 flex items-center">
+            <div className="w-10 h-10 bg-[#EBF5FF] dark:bg-[#353E5C] border border-[#D0E3FF] dark:border-[#414864] rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+              <File
+                strokeWidth={1.5}
+                color={isDarkMode ? "#64A7FF" : "#64A7FF"}
+                size={20}
+              />
             </div>
             <span
-              className="text-sm text-primary-black truncate max-w-[200px]"
+              className="text-sm text-primary-black dark:text-[#ACB4C0] truncate max-w-[200px]"
               title={uploadedFile.name}>
               {uploadedFile.name.length > 20
                 ? uploadedFile.name.substring(0, 20) + "..."
@@ -592,15 +598,15 @@ const ChatContent: React.FC = () => {
             onClick={handleFileModalClose}></div>
 
           {/* 모달 내용 */}
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 z-10">
+          <div className="bg-white dark:bg-[#23283D] rounded-lg shadow-lg w-full max-w-md mx-4 z-10">
             {/* 모달 헤더 */}
-            <div className="px-6 py-4 flex justify-between items-center border-b border-gray-200">
-              <h3 className="text-lg font-pretendard font-semibold text-black">
+            <div className="px-6 py-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-pretendard font-semibold text-gray-900 dark:text-white">
                 파일 업로드 완료
               </h3>
               <button
                 onClick={handleFileModalClose}
-                className="text-gray-500 hover:text-gray-700">
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                 <svg
                   className="w-5 h-5"
                   fill="none"
@@ -619,29 +625,34 @@ const ChatContent: React.FC = () => {
 
             {/* 파일 정보 */}
             <div className="px-6 py-4">
-              <div className="bg-select-box border border-select-box-border font-pretendard rounded-md p-3 flex items-center mb-4">
-                <div className="w-6 h-6 mr-3 flex-shrink-0">
-                  <File strokeWidth={1} color="blue" />
+              {/* 파일 정보 박스 */}
+              <div className="bg-[#F6FAFF] dark:bg-[#2A2F45] border border-[#D0E3FF] dark:border-[#414864] font-pretendard rounded-md p-3 flex items-center mb-4">
+                <div className="w-10 h-10 bg-[#EBF5FF] dark:bg-[#353E5C] border border-[#D0E3FF] dark:border-[#414864] rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                  <File
+                    strokeWidth={1.5}
+                    color={isDarkMode ? "#64A7FF" : "#64A7FF"}
+                    size={20}
+                  />
                 </div>
-                <span className="text-sm text-primary-black truncate">
+                <span className="text-sm text-gray-900 dark:text-gray-100 truncate">
                   {uploadedFile.name}
                 </span>
               </div>
 
-              <p className="text-sm text-gray-700 font-pretendard mb-4">
+              <p className="text-sm text-gray-700 dark:text-gray-300 font-pretendard mb-4">
                 업로드된 파일을 어떻게 활용하시겠습니까?
               </p>
 
               {/* 옵션 1: 파일 그대로 사용 */}
               <div
-                className="border border-gray-200 rounded-md p-4 mb-3 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+                className="bg-white dark:bg-[#2A2F45] border border-gray-200 dark:border-[#414864] rounded-md p-4 mb-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#353E5C] transition-colors shadow-sm"
                 onClick={() => handleFileOption("direct")}>
                 <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-medium font-pretendard text-gray-900">
+                  <h4 className="font-medium font-pretendard text-gray-900 dark:text-white">
                     파일 그대로 분류 체계 적용
                   </h4>
                   <svg
-                    className="w-5 h-5 text-gray-500"
+                    className="w-5 h-5 text-blue-500 dark:text-blue-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -654,21 +665,21 @@ const ChatContent: React.FC = () => {
                     />
                   </svg>
                 </div>
-                <p className="text-xs font-pretendard text-gray-500">
+                <p className="text-xs font-pretendard text-gray-500 dark:text-gray-400">
                   업로드된 파일을 그대로 분류 체계에 사용합니다.
                 </p>
               </div>
 
               {/* 옵션 2: LLM으로 처리 */}
               <div
-                className="border border-gray-200 rounded-md p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+                className="bg-white dark:bg-[#2A2F45] border border-gray-200 dark:border-[#414864] rounded-md p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#353E5C] transition-colors shadow-sm"
                 onClick={() => handleFileOption("llm")}>
                 <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-medium font-pretendard text-gray-900">
+                  <h4 className="font-medium font-pretendard text-gray-900 dark:text-white">
                     LLM으로 분류체계 처리하기
                   </h4>
                   <svg
-                    className="w-5 h-5 text-gray-500"
+                    className="w-5 h-5 text-blue-500 dark:text-blue-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -681,7 +692,7 @@ const ChatContent: React.FC = () => {
                     />
                   </svg>
                 </div>
-                <p className="text-xs font-pretendard text-gray-500">
+                <p className="text-xs font-pretendard text-gray-500 dark:text-gray-400">
                   업로드된 파일의 키워드로 LLM을 활용하여 분류체계를 처리합니다.
                 </p>
               </div>

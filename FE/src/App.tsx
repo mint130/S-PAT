@@ -1,6 +1,8 @@
 import { Routes, Route, BrowserRouter } from "react-router-dom";
-import Layout from "./components/Layout/Layout";
+import { useEffect } from "react";
+import useThemeStore from "./stores/useThemeStore";
 
+import Layout from "./components/Layout/Layout";
 import Step0ModeSelect from "./pages/Step0ModeSelect";
 import Step1ClassificationSetup from "./pages/Step1ClassificationSetup";
 import Step2ClassificationEdit from "./pages/Step2ClassificationEdit";
@@ -11,6 +13,17 @@ import Step4AdminPatentResult from "./pages/Step4AdminPatentResult";
 import Step5AdminModelComparison from "./pages/Step5AdminModelComparison";
 
 function App() {
+  const { isDarkMode } = useThemeStore();
+
+  useEffect(() => {
+    // 초기 다크모드 상태 적용
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDarkMode]);
+
   return (
     <BrowserRouter>
       <Routes>
