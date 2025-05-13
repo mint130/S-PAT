@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import ChatGPTIcon from "../../assets/gpt.png";
 import ClaudeIcon from "../../assets/claude.png";
 import GeminiIcon from "../../assets/gemini.png";
