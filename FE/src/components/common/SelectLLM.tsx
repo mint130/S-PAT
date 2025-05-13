@@ -65,27 +65,32 @@ const SelectLLM = () => {
     } else {
       setSelectedLLM(dataName);
     }
+
   };
 
-  // 컴포넌트 외부 클릭 시 선택 해제 이벤트 처리
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setSelectedLLM(null);
-      }
-    };
+//   // 컴포넌트 외부 클릭 시 선택 해제 이벤트 처리
+//  useEffect(() => {
+//   const handleClickOutside = (event: MouseEvent) => {
+//     const target = event.target as HTMLElement;
+    
+//     // 완료 버튼 클릭인지 확인
+//     if (target.closest('button')?.textContent === '완료') {
+//       return; // 완료 버튼 클릭 시는 선택 해제하지 않음
+//     }
+    
+//     if (
+//       containerRef.current &&
+//       !containerRef.current.contains(target)
+//     ) {
+//       setSelectedLLM(null);
+//     }
+//   };
 
-    // 이벤트 리스너 추가
-    document.addEventListener("mousedown", handleClickOutside);
-
-    // 컴포넌트 언마운트 시 이벤트 리스너 제거
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [setSelectedLLM]);
+//   document.addEventListener("mousedown", handleClickOutside);
+//   return () => {
+//     document.removeEventListener("mousedown", handleClickOutside);
+//   };
+// }, [setSelectedLLM]);
 
   return (
     <div className="py-2" ref={containerRef}>

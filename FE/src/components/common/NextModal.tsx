@@ -1,7 +1,8 @@
+// NextModal.tsx
 import React from "react";
 import Button from "./Button";
 
-interface ConfirmationModalProps {
+interface NextModalProps {
   /** 모달 표시 여부 */
   isOpen: boolean;
   /** 모달 제목 */
@@ -16,7 +17,7 @@ interface ConfirmationModalProps {
   isLoading?: boolean;
 }
 
-const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+const NextModal: React.FC<NextModalProps> = ({
   isOpen,
   title,
   description,
@@ -27,14 +28,17 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-[9999]"> 
       {/* 배경 오버레이 */}
       <div
-        className="absolute inset-0 bg-gray-900 bg-opacity-50"
+        className="absolute inset-0 bg-gray-900 bg-opacity-50 z-[9998]" 
         onClick={onCancel}></div>
 
       {/* 모달 내용 */}
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 z-10">
+      <div 
+        className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 z-[9999]" 
+        aria-modal="true"
+      >
         {/* 모달 헤더 */}
         <div className="px-6 pt-4 mt-4">
           <h3 className="text-xl font-pretendard font-semibold text-black">
@@ -72,4 +76,4 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   );
 };
 
-export default ConfirmationModal;
+export default NextModal;
