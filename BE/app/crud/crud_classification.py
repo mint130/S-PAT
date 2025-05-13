@@ -224,8 +224,7 @@ async def calculate_vector_based_score(
     patent_evaluations: List[Dict[str, Any]]
 ) -> Dict[str, Any]:
     """
-    벡터 기반 유사도 평가와 Reasoning LLM 평가의 최종 점수만 계산합니다.
-    간소화된 결과를 반환합니다.
+    벡터 기반 유사도 평가와 Reasoning LLM 평가의 최종 점수를 계산합니다.
     """
     total_patents = len(patent_evaluations)
     
@@ -243,11 +242,16 @@ async def calculate_vector_based_score(
     ]
     reasoning_average_score = sum(reasoning_scores) / total_patents * 100
     
-    # 간소화된 평가 점수만 반환
     return {
         "total_patents": total_patents,
-        "vector_accuracy": vector_accuracy,
-        "reasoning_score": reasoning_average_score
+        "vector_based": {
+            "correct_classifications": vector_correct_classifications,
+            "accuracy": vector_accuracy
+        },
+        "reasoning": {
+            "average_score": reasoning_average_score
+        },
+        "details": patent_evaluations
     }
 
 async def process_patent_classification(
@@ -339,19 +343,14 @@ async def process_patent_classification(
     # 최종 평가 점수 계산
     evaluation_score = await calculate_vector_based_score(evaluations)
     
-    # Redis에 평가 점수만 저장
+    # Redis에 최종 평가 점수 저장
     evaluation_key = f"{session_id}:{llm_type}:evaluation"
-    simplified_evaluation = {
-        "vector_accuracy": evaluation_score["vector_accuracy"],
-        "reasoning_score": evaluation_score["reasoning_score"]
-    }
-    
-    redis.set(evaluation_key, json.dumps(simplified_evaluation, ensure_ascii=False))
+    evaluation = json.dumps(evaluation_score, ensure_ascii=False)
+    redis.set(evaluation_key, evaluation)
 
     # 만료 시간 설정
     redis.expire(evaluation_key, 86400)
     
-    # API 응답에는 전체 evaluation_score 반환
     return patents, evaluation_score
 
 async def evaluate_classification_by_reasoning(
