@@ -62,9 +62,10 @@ const ChatContent: React.FC = () => {
   const navigate = useNavigate(); // navigate 훅 사용
 
   // 메시지가 추가될 때마다 스크롤 아래로 이동
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  // 이건 좀 더 건들여보는걸로
+  // useEffect(() => {
+  //   messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // }, [messages]);
 
   // 컴포넌트 마운트 시 대화 기록 불러오기
   useEffect(() => {
@@ -233,17 +234,20 @@ const ChatContent: React.FC = () => {
   };
 
   // 테이블 선택 토글 함수 (단순화)
-  const toggleTableSelection = (messageIndex: number) => {
-    setSelectedMessageIndex((prev) =>
-      prev === messageIndex ? null : messageIndex
-    );
-  };
+const toggleTableSelection = (messageIndex: number) => {
+  if (selectedMessageIndex === messageIndex) {
+    setSelectedMessageIndex(null);
+  } else {
+    setSelectedMessageIndex(messageIndex);
+    setShowModal(true); // 이 줄 추가
+  }
+};
 
-  // 진행하기 버튼 클릭 핸들러
-  const handleProceed = () => {
-    // 모달 표시
-    setShowModal(true);
-  };
+  // // 진행하기 버튼 클릭 핸들러
+  // const handleProceed = () => {
+  //   // 모달 표시
+  //   setShowModal(true);
+  // };
 
   // 파일 처리 함수 추가
   const handleFileProcessed = (file: File, buffer: ArrayBuffer) => {
@@ -263,7 +267,7 @@ const ChatContent: React.FC = () => {
   // 파일 처리 옵션 선택 함수
   const handleFileOption = (option: string) => {
     // 선택된 옵션에 따른 처리
-    console.log("이거 뭐야? 살려줘", uploadedFile!.originalFile);
+    // console.log("이거 뭐야? 살려줘", uploadedFile!.originalFile);
 
     if (option === "direct") {
       // 파일 그대로 분류 체계 적용 로직
@@ -316,9 +320,10 @@ const ChatContent: React.FC = () => {
   };
 
   // 모달 취소 버튼 핸들러
-  const handleModalCancel = () => {
-    setShowModal(false);
-  };
+const handleModalCancel = () => {
+  setShowModal(false);
+  setSelectedMessageIndex(null); // 이 줄 추가
+};
 
   // 표준 테이블 렌더링 함수
   const renderStandardsTable = (
@@ -343,10 +348,10 @@ const ChatContent: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 border-t border-gray-200">
-              {displayedStandards.map((standard, index) => (
+              {displayedStandards.map((standard) => (
                 <tr
                   key={standard.code}
-                  className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                  >
                   <td className="px-4 py-3">{standard.code}</td>
                   <td className="px-4 py-3">{standard.level}</td>
                   <td className="px-4 py-3">{standard.name}</td>
@@ -411,7 +416,7 @@ const ChatContent: React.FC = () => {
     // absolute 위치 지정을 위한 relative 컨테이너
     <div className="relative h-full">
       {/* 메시지 영역 - 입력 영역 높이보다 큰 여백을 주어 내용이 짤리지 않도록 함 */}
-      <div className="absolute top-0 left-0 right-0 bottom-[180px] overflow-y-auto p-6">
+      <div className="absolute top-0 left-0 right-0 bottom-[130px] overflow-y-auto p-6">
         {!chatStarted ? (
           // 대화가 시작되지 않았으면 IntroContent 표시
           <div className="flex justify-center items-center h-full pt-12">
@@ -527,7 +532,7 @@ const ChatContent: React.FC = () => {
         )}
       </div>
 
-      {/* 진행하기 버튼 영역 - 메시지 영역과 입력 영역 사이 */}
+      {/* 진행하기 버튼 영역 - 메시지 영역과 입력 영역 사이
       {selectedMessageIndex !== null && (
         <div className="absolute bottom-[120px] right-4 flex justify-center items-center py-4">
           <Button
@@ -538,7 +543,7 @@ const ChatContent: React.FC = () => {
             진행하기
           </Button>
         </div>
-      )}
+      )} */}
 
       {/* 파일명 나오게 하기 */}
       {uploadedFile !== null && (
@@ -707,6 +712,7 @@ const ChatContent: React.FC = () => {
           onSubmit={handleSubmit}
           isLoading={isLoading}
           onFileProcessed={handleFileProcessed}
+          showFileUpload={!chatStarted} // 대화가 시작되지 않았을 때만 파일 업로드 버튼 표시
         />
       </div>
     </div>
