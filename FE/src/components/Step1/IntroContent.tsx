@@ -10,23 +10,23 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ title, items }) => {
     <div className="flex flex-col items-center p-2">
       <div className="mb-1">
         {title === "Applications" && (
-          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-primary-gray">
+          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-primary-gray dark:text-[#D2D4D8]">
             <MessageSquare size={24} strokeWidth={1.5} />
           </div>
         )}
         {title === "Capabilities" && (
-          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-primary-gray">
+          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-primary-gray dark:text-[#D2D4D8]">
             <Sparkles size={24} strokeWidth={1.5} />
           </div>
         )}
         {title === "Limitations" && (
-          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-primary-gray">
+          <div className="w-12 h-12 flex items-center justify-center rounded-lg text-primary-gray dark:text-[#D2D4D8]">
             <ShieldAlert size={24} strokeWidth={1.5} />
           </div>
         )}
       </div>
 
-      <h3 className="font-samsungSharp text-primary-gray mb-4 text-base">
+      <h3 className="font-samsungSharp text-primary-gray dark:text-[#D2D4D8] mb-4 text-base">
         {title}
       </h3>
 
@@ -34,7 +34,7 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ title, items }) => {
         {items.map((item, index) => (
           <li
             key={index}
-            className="p-2 text-[10px] max-w-[250px] text-[#3F3F3F] border border-[#F0F2F5] rounded-md text-center font-samsung400 mx-auto bg-white">
+            className="p-2 text-[12px] text-[#3F3F3F] dark:text-[#ACB4C0] border border-[#F0F2F5] dark:border-[#323A51] rounded-md text-center font-samsung400 mx-auto bg-white dark:bg-[#23283D]">
             {item}
           </li>
         ))}
@@ -63,13 +63,14 @@ const IntroContent: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-screen-xl mx-auto px-4 sm:px-32 flex flex-col justify-center grow">
+    <div className="max-w-screen-xl mx-auto px-4 sm:px-19 flex flex-col justify-center grow">
       <div className="text-center ">
-        <h1 className="text-3xl font-samsungSharp font-bold text-primary-black mb-6">
+        <h1 className="text-3xl font-samsungSharp font-bold text-primary-black dark:text-[#D1D1D1] mb-6">
           <span className="text-primary-blue">S</span>amsung{" "}
           <span className="text-primary-blue">P</span>atent{" "}
           <span className="text-primary-blue">A</span>I{" "}
-          <span className="text-primary-blue">T</span>echnology
+          <span className="text-primary-blue">T</span>
+          echnology
         </h1>
       </div>
 
