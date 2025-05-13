@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+from app.schemas.classification import Patent
 
 class LLMClassificationSample(BaseModel):
     applicationNumber: str
@@ -18,6 +19,8 @@ class LLMClassificationResult(BaseModel):
     similarity: Optional[float] = None  # 유사도(0~1)
     llmEval: Optional[float] = None  # LLM 자체 평가(0~1)
     sample: List[LLMClassificationSample]
+    patents: List[Patent]
+    evaluation_score: Dict[str, Any]
 
 class MultiLLMClassificationResponse(BaseModel):
     results: List[LLMClassificationResult] 

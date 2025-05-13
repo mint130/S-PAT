@@ -4,7 +4,7 @@ from sqlalchemy.sql import func
 from app.db.database import Base
 
 class Conversation(Base):
-    __tablename__ = "conversation" 
+    __tablename__ = "Conversation" 
 
     conversation_id = Column(Integer, primary_key=True, index=True, name="conversation_id")
     session_id = Column(String(50), name="session_id")
