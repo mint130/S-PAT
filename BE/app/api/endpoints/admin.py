@@ -2,22 +2,16 @@ import logging
 import asyncio
 import io
 from typing import List, Dict, Any
-from fastapi import APIRouter, UploadFile, File, HTTPException, Query
+from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 import pandas as pd
 from app.crud.crud_classification import process_patent_classification
 from app.schemas.classification import (
     ClassificationResponse, 
     MultiLLMClassificationResponse,
-    LLMClassificationResult,
-    SampledClassificationResponse
+    LLMClassificationResult
 )
 from app.api.endpoints.user import user_vector_stores
-from app.core.redis import get_redis_client
-from app.utils.sampling import calculate_sample_size
-import json
-import random
-
 
 logger = logging.getLogger(__name__)
 
@@ -154,93 +148,4 @@ async def classify_patent_grok(session_id: str, file: UploadFile = File(...)) ->
         )
     except Exception as e:
         logger.error(f"Grok 분류 처리 중 오류 발생: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-    
-@admin_router.get(
-    "/{session_id}/classification/sampling",
-    response_model=SampledClassificationResponse,
-    summary="샘플링된 특허 분류 결과 및 평가 점수 조회",
-    description="신뢰도와 오차범위를 기반으로 샘플링된 특허 분류 결과와 평가 점수를 반환합니다."
-)
-async def get_sampled_classification(
-    session_id: str,
-    confidence_level: float = Query(0.95, ge=0.8, le=0.99, description="신뢰도 (범위: 0.8~0.99)"),
-    margin_error: float = Query(0.05, ge=0.01, le=0.1, description="오차 범위 (범위: 0.01~0.1)")
-) -> SampledClassificationResponse:
-    try:
-        redis = get_redis_client()
-        
-        # 해당 세션에 대한 분류 결과가 있는지 확인
-        llm_types = ["gpt", "claude", "gemini", "grok"]
-        all_patents = {}
-        for llm_type in llm_types:
-            patents_key = f"{session_id}:{llm_type}:patents"
-            if not redis.exists(patents_key):
-                continue
-                
-            # 특허 데이터 가져오기
-            patent_jsons = redis.lrange(patents_key, 0, -1)
-            patents = [json.loads(patent_json) for patent_json in patent_jsons]
-            all_patents[llm_type] = patents
-        
-        if not all_patents:
-            raise HTTPException(
-                status_code=404,
-                detail="해당 세션에 대한 분류 결과가 존재하지 않습니다."
-            )
-        
-        # 대표 LLM으로 전체 특허 수 확인 (모든 LLM은 동일한 수의 특허를 처리함)
-        representative_llm = next(iter(all_patents))
-        total_patents = len(all_patents[representative_llm])
-        
-        # 샘플 크기 계산
-        sample_size = calculate_sample_size(total_patents, confidence_level, margin_error)
-        sample_size = min(sample_size, total_patents)
-        
-        # 랜덤 샘플링 인덱스 생성
-        random.seed(session_id)  # 세션 ID를 시드로 사용하여 결과 재현성 보장
-        sampled_indices = sorted(random.sample(range(total_patents), sample_size))
-        
-        # 샘플링 정보 구성
-        sampling_info = {
-            "total_patents": total_patents,
-            "sample_size": sample_size,
-            "confidence_level": confidence_level,
-            "margin_error": margin_error,
-            "indices": sampled_indices
-        }
-        
-        # 각 LLM의 샘플링된 결과 및 평가 점수 구성
-        results = []
-        for llm_type in llm_types:
-            if llm_type not in all_patents:
-                continue
-                
-            # 평가 점수 가져오기
-            evaluation_key = f"{session_id}:{llm_type}:evaluation"
-            evaluation_json = redis.get(evaluation_key)
-            evaluation_data = json.loads(evaluation_json) if evaluation_json else {"vector_accuracy": 0.0, "reasoning_score": 0.0}
-            
-            # 샘플링된 특허만 선택
-            sampled_patents = [all_patents[llm_type][idx] for idx in sampled_indices if idx < len(all_patents[llm_type])]
-            
-            # 결과 구성
-            result = {
-                "name": llm_type.upper(),
-                "vector_accuracy": evaluation_data.get("vector_accuracy", 0.0),
-                "reasoning_score": evaluation_data.get("reasoning_score", 0.0),
-                "patents": sampled_patents
-            }
-            
-            results.append(result)
-        
-        return {
-            "sampling_info": sampling_info,
-            "results": results
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"샘플링된 분류 결과 조회 중 오류 발생: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
