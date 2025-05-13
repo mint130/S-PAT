@@ -42,6 +42,7 @@ function Step2ClassificationEdit() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const { selectedStandards } = location.state || [];
+  const [standards, setStandards] = useState<any[]>([]);
   const [colDefs] = useState<ColDef[]>(CLASSIFICATION_COLUMNS);
   const gridRef = useRef<AgGridReact>(null);
 
@@ -50,6 +51,9 @@ function Step2ClassificationEdit() {
       navigate("/user/step1");
       return;
     }
+
+    // 선택된 표준이 있으면 상태 업데이트
+    setStandards(selectedStandards);
   }, [selectedStandards, navigate]);
 
   const handlePrevious = () => {
@@ -79,7 +83,7 @@ function Step2ClassificationEdit() {
       const response = await axios.post(
         `https://s-pat.site/api/test/${session_id}/standard/save`,
         {
-          standards: updatedStandards,
+          standards: standards,
         }
       );
 
@@ -107,10 +111,12 @@ function Step2ClassificationEdit() {
 
       <div className="flex-1 h-full w-full mt-2 ">
         <DataTable
-          rowData={selectedStandards}
+          rowData={standards}
           colDefs={colDefs}
           edit={true}
           gridRef={gridRef}
+          selectable={true}
+          setRowData={setStandards}
         />
       </div>
 

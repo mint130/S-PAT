@@ -47,15 +47,16 @@ function Step3PatentClassification() {
 
     try {
       const session_id = localStorage.getItem("sessionId");
+      const llm = localStorage.getItem("LLM");
 
       if (!session_id) {
         throw new Error("세션 ID를 찾을 수 없습니다.");
       }
 
+      console.log("LLM:", llm);
+
       // 세션 ID 설정
       setSessionId(session_id);
-
-      const TEMP_BEST_LLM = "GPT"; // GPT, GEMINI, GROK3, CLAUDE
 
       // FormData 객체 생성
       const formData = new FormData();
@@ -64,7 +65,7 @@ function Step3PatentClassification() {
       // 분류 작업 시작 API 호출
       const response = await axios.post(
         // Todo! : /api/test/{session_id}/upload?LLM={LLM}
-        `https://s-pat.site/api/test/${session_id}/upload?LLM=${TEMP_BEST_LLM}`,
+        `https://s-pat.site/api/test/${session_id}/upload?LLM=${llm}`,
         formData,
         {
           headers: {

@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { BadgeCheck, ChartNoAxesCombined, Check, FileText } from "lucide-react";
+import axios from "axios";
 import useThemeStore from "../stores/useThemeStore";
 
 // 세션 ID 생성 및 저장 함수
@@ -8,6 +9,21 @@ const createSessionId = () => {
   const sessionId = Math.random().toString(36).substring(2, 10);
   localStorage.setItem("sessionId", sessionId);
   return sessionId;
+};
+
+const saveBestLLM = async () => {
+  try {
+    const response = await axios.get("https://s-pat.site/api/user/LLM");
+    localStorage.setItem("LLM", response.data.LLM);
+    console.log("Best LLM saved successfully:", response.data.LLM);
+  } catch (error) {
+    console.error("Error saving best LLM:", error);
+  }
+};
+
+const handleModeSelect = async () => {
+  createSessionId();
+  await saveBestLLM();
 };
 
 const Step0ModeSelect: React.FC = () => {
@@ -110,7 +126,7 @@ const Step0ModeSelect: React.FC = () => {
             {/* 사용자 모드 */}
             <Link
               to="/user/step1"
-              onClick={() => createSessionId()}
+              onClick={() => handleModeSelect()}
               className={`flex-1 p-6 rounded-lg ${
                 isDarkMode
                   ? "bg-[#23283D]/90 border-[#414864] hover:border-[#5C6890] hover:bg-[#2A3048]/90"

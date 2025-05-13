@@ -13,44 +13,78 @@ const ResponseTime = () => {
     return `${minutes}m ${seconds}s`;
   };
 
+  // LLM별 색상 클래스 매핑
+  const getLLMColorClass = (name: string): string => {
+    switch (name) {
+      case "GPT":
+        return "text-GPT"; // #000000
+      case "Claude":
+        return "text-Claude"; // #D77757
+      case "Gemini":
+        return "text-Gemini"; // #3693DA
+      case "Grok":
+        return "text-Grok2"; // #999999 (Grok2 사용 - 회색)
+      default:
+        return "text-black";
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center mb-2">
         <Clock4 size={18} className="mr-2" />
-        <span className="font-semibold font-pretendard">응답 시간</span>
+        <span className="font-semibold font-pretendard text-sm">응답 시간</span>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm p-4 h-full flex items-center">
-        <div className="grid grid-cols-4 gap-4 w-full">
+        {/* 2x2 그리드로 변경 - 너비 제한 제거/확대 */}
+        <div className="grid grid-cols-2 gap-3 w-full">
           {llmData.map((item) => {
-            // 선택된 LLM인지 확인
-            const isSelected = !selectedLLM || selectedLLM === item.name;
+            // LLM별 고유 색상 클래스
+            const llmColorClass = getLLMColorClass(item.name);
+
+            // 스타일을 결정하는 로직
+            let containerStyle, titleStyle, timeStyle;
+
+            if (selectedLLM === null) {
+              // 경우 1: 아무것도 선택되지 않은 상태
+              containerStyle = "bg-white shadow-sm";
+              titleStyle = llmColorClass; // 각 LLM별 고유 색상 사용
+              timeStyle = "text-black";
+            } else if (selectedLLM === item.name) {
+              // 경우 2: 현재 아이템이 선택된 상태
+              containerStyle = "border-2 border-blue-500 bg-blue-50 shadow-sm";
+              titleStyle = llmColorClass; // 선택되어도 고유 색상 유지
+              timeStyle = "text-blue-600";
+            } else {
+              // 경우 3: 다른 아이템이 선택된 상태
+              containerStyle = "opacity-60 shadow-sm";
+              titleStyle = "text-gray-500"; // 선택되지 않은 것은 회색 처리
+              timeStyle = "text-gray-500";
+            }
 
             return (
               <div
                 key={item.name}
                 className={`
-                  bg-gray-50 rounded-lg p-4 flex flex-col justify-center shadow-sm
-                  ${
-                    isSelected
-                      ? "border-2 border-blue-500 bg-blue-50" // 선택된 LLM 강조
-                      : "opacity-60"
-                  } // 선택되지 않은 LLM 흐리게
+                  rounded-lg px-6 py-4 flex flex-row justify-between items-center
                   transition-all duration-300
+                  ${containerStyle}
                 `}>
-                <div
-                  className={`font-pretendard text-sm ${
-                    isSelected ? "text-gray-800" : "text-gray-500"
-                  }`}>
-                  {item.name}
+                {/* 왼쪽: LLM 정보 */}
+                <div className="flex flex-col">
+                  <div
+                    className={`font-pretendard text-lg font-medium ${titleStyle}`}>
+                    {item.name}
+                  </div>
+                  <div className="font-pretendard text-xs text-gray-400">
+                    응답 시간
+                  </div>
                 </div>
-                <div className="font-pretendard text-xs text-gray-400 mt-1">
-                  응답 시간
-                </div>
+
+                {/* 오른쪽: 시간 */}
                 <div
-                  className={`text-xl font-semibold font-pretendard mt-2 ${
-                    isSelected ? "text-blue-600" : "text-gray-500"
-                  }`}>
+                  className={`text-lg font-semibold font-pretendard ${timeStyle}`}>
                   {formatTime(item.time)}
                 </div>
               </div>
