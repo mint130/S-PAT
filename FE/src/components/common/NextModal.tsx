@@ -1,5 +1,6 @@
 import React from "react";
 import Button from "./Button";
+import useThemeStore from "../../stores/useThemeStore";
 
 interface ConfirmationModalProps {
   /** 모달 표시 여부 */
@@ -24,6 +25,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onConfirm,
   isLoading = false,
 }) => {
+  const { isDarkMode } = useThemeStore();
+
   if (!isOpen) return null;
 
   return (
@@ -34,17 +37,17 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         onClick={onCancel}></div>
 
       {/* 모달 내용 */}
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 z-10">
+      <div className="bg-white dark:bg-[#23283D] rounded-lg shadow-lg w-full max-w-md mx-4 z-10">
         {/* 모달 헤더 */}
         <div className="px-6 pt-4 mt-4">
-          <h3 className="text-xl font-pretendard font-semibold text-black">
+          <h3 className="text-xl font-pretendard font-semibold text-black dark:text-[#EBEEF3]">
             {title}
           </h3>
         </div>
 
         {/* 모달 본문 */}
         {description && (
-          <div className="text-base px-6 pb-6 mt-2 font-pretendard text-primary-gray">
+          <div className="text-base px-6 pb-6 mt-2 font-pretendard text-primary-gray dark:text-[#ACB4C0]">
             <p>{description}</p>
           </div>
         )}
@@ -52,7 +55,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         {/* 모달 푸터 (버튼 영역) */}
         <div className="px-6 pt-4 rounded-b-lg flex justify-end space-x-2 mb-4">
           <Button
-            variant="outline"
+            variant={isDarkMode ? "dark-outline" : "outline"}
             size="md"
             onClick={onCancel}
             className="w-auto min-w-fit px-4">
