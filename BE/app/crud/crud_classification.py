@@ -3,7 +3,7 @@ import json
 import re
 from typing import List, Dict, Any, Optional, Tuple
 import pandas as pd
-from fastapi import HTTPException
+from fastapi import Depends, HTTPException
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -12,6 +12,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
 from langchain.output_parsers import PydanticOutputParser
+from app.core.redis import get_redis_client
 from app.schemas.classification import ClassificationResponse, ClassificationSchema, Patent
 from app.core.config import settings
 
@@ -254,13 +255,15 @@ async def calculate_vector_based_score(
     }
 
 async def process_patent_classification(
+    session_id: str,
     df: pd.DataFrame,
     retriever: Any,
-    llm_type: str
+    llm_type: str,
 ) -> Tuple[List[Patent], Dict[str, Any]]:
     """
     특허 데이터를 처리하고 분류합니다.
     """
+    redis = get_redis_client()
     # LLM 선택
     llm_map: Dict[str, Any] = {
         "gpt": gpt,
@@ -305,6 +308,10 @@ async def process_patent_classification(
             smallTitle=classifications["smallTitle"]
         )
         
+        # redis에 저장
+        patents_key=f"{session_id}:{llm_type}:patents"
+        redis.rpush(patents_key, patent_data.model_dump_json())
+        
         patents.append(patent_data)
         
         # 벡터 기반 평가 수행
@@ -330,8 +337,19 @@ async def process_patent_classification(
         
         evaluations.append(evaluation)
     
+    # 만료 시간 설정
+    redis.expire(patents_key, 86400)
+
     # 최종 평가 점수 계산
     evaluation_score = await calculate_vector_based_score(evaluations)
+    
+    # Redis에 최종 평가 점수 저장
+    evaluation_key = f"{session_id}:{llm_type}:evaluation"
+    evaluation = json.dumps(evaluation_score, ensure_ascii=False)
+    redis.set(evaluation_key, evaluation)
+
+    # 만료 시간 설정
+    redis.expire(evaluation_key, 86400)
     
     return patents, evaluation_score
 

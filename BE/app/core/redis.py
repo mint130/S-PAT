@@ -18,8 +18,13 @@ redis_client = redis.Redis(
     decode_responses=True  # 문자열 반환
 )
 
+# 라우터 내에서 사용
 def get_redis():
     try:
         yield redis_client
     finally:
         pass
+
+# 일반 함수에서 사용
+def get_redis_client():
+    return redis_client
