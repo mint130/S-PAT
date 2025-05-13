@@ -15,14 +15,9 @@ from langchain.output_parsers import PydanticOutputParser
 from app.core.redis import get_redis_client
 from app.schemas.classification import ClassificationResponse, ClassificationSchema, Patent
 from app.core.config import settings
+from app.core.llm import gpt, claude, gemini, grok
 
 logger = logging.getLogger(__name__)
-
-# LLM 초기화
-gpt = ChatOpenAI(api_key=settings.OPENAI_API_KEY, model_name="gpt-4o", temperature=0)
-claude = ChatAnthropic(model="claude-3-7-sonnet-20250219", temperature=0, api_key=settings.CLAUDE_API_KEY)
-gemini = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0, google_api_key=settings.GEMINI_API_KEY)
-grok = ChatXAI(model="grok-3-beta", temperature=0, xai_api_key=settings.GROK3_API_KEY)
 
 # 유사도 평가 기준점 설정
 THRESHOLD = 0.5  # 단일 임계값으로 변경
