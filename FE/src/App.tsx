@@ -7,6 +7,7 @@ import Step2ClassificationEdit from "./pages/Step2ClassificationEdit";
 import Step3PatentClassification from "./pages/Step3PatentClassification";
 import Step4PatentResult from "./pages/Step4PatentResult";
 
+import Step4AdminPatentResult from "./pages/Step4AdminPatentResult";
 import Step5AdminModelComparison from "./pages/Step5AdminModelComparison";
 
 function App() {
@@ -27,6 +28,9 @@ function App() {
         {/* 관리자 모드 */}
         <Route path="/admin" element={<Layout />}>
           <Route path="step1" element={<Step1ClassificationSetup />} />
+          <Route path="step2" element={<Step2ClassificationEdit />} />
+          <Route path="step3" element={<Step3PatentClassification />} />
+          <Route path="step4" element={<Step4AdminPatentResult />} />
           <Route path="step5" element={<Step5AdminModelComparison />} />
           <Route index element={<Step1ClassificationSetup />} />
         </Route>
