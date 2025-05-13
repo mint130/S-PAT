@@ -41,10 +41,10 @@ async def classify_patent_by_multi_llm(session_id: str, file: UploadFile = File(
         
         # 4. 각 LLM별 분류 작업을 비동기로 실행
         tasks = [
-            process_patent_classification(df, retriever, "gpt"),
-            process_patent_classification(df, retriever, "claude"),
-            process_patent_classification(df, retriever, "gemini"),
-            process_patent_classification(df, retriever, "grok")
+            process_patent_classification(session_id, df, retriever, "gpt"),
+            process_patent_classification(session_id, df, retriever, "claude"),
+            process_patent_classification(session_id, df, retriever, "gemini"),
+            process_patent_classification(session_id, df, retriever, "grok")
         ]
         
         # 모든 LLM의 분류 결과를 동시에 수집
@@ -77,7 +77,7 @@ async def classify_patent_gpt(session_id: str, file: UploadFile = File(...)) -> 
         if session_id not in user_vector_stores:
             raise HTTPException(status_code=404, detail="해당 세션에 대한 분류 체계가 존재하지 않습니다.")
         retriever = user_vector_stores[session_id].as_retriever(search_kwargs={"k": 3})
-        patents, evaluation_score = await process_patent_classification(df, retriever, "gpt")
+        patents, evaluation_score = await process_patent_classification(session_id, df, retriever, "gpt")
         return LLMClassificationResult(
             name="GPT",
             patents=patents,
@@ -98,7 +98,7 @@ async def classify_patent_claude(session_id: str, file: UploadFile = File(...)) 
         if session_id not in user_vector_stores:
             raise HTTPException(status_code=404, detail="해당 세션에 대한 분류 체계가 존재하지 않습니다.")
         retriever = user_vector_stores[session_id].as_retriever(search_kwargs={"k": 3})
-        patents, evaluation_score = await process_patent_classification(df, retriever, "claude")
+        patents, evaluation_score = await process_patent_classification(session_id, df, retriever, "claude")
         return LLMClassificationResult(
             name="CLAUDE",
             patents=patents,
@@ -119,7 +119,7 @@ async def classify_patent_gemini(session_id: str, file: UploadFile = File(...)) 
         if session_id not in user_vector_stores:
             raise HTTPException(status_code=404, detail="해당 세션에 대한 분류 체계가 존재하지 않습니다.")
         retriever = user_vector_stores[session_id].as_retriever(search_kwargs={"k": 3})
-        patents, evaluation_score = await process_patent_classification(df, retriever, "gemini")
+        patents, evaluation_score = await process_patent_classification(session_id, df, retriever, "gemini")
         return LLMClassificationResult(
             name="GEMINI",
             patents=patents,
@@ -140,7 +140,7 @@ async def classify_patent_grok(session_id: str, file: UploadFile = File(...)) ->
         if session_id not in user_vector_stores:
             raise HTTPException(status_code=404, detail="해당 세션에 대한 분류 체계가 존재하지 않습니다.")
         retriever = user_vector_stores[session_id].as_retriever(search_kwargs={"k": 3})
-        patents, evaluation_score = await process_patent_classification(df, retriever, "grok")
+        patents, evaluation_score = await process_patent_classification(session_id, df, retriever, "grok")
         return LLMClassificationResult(
             name="GROK",
             patents=patents,
