@@ -402,7 +402,7 @@ const ChatContent: React.FC = () => {
           aria-label="로딩 중"
         />
         <div className="flex flex-col">
-          <p className="text-blue-500 dark:text-blue-400 font-samsung700 text-sm">
+          <p className="text-blue-500 dark:text-blue-400 font-pretendard text-sm">
             AI가 분류체계를 생성 중입니다. 잠시만 기다려주세요...
           </p>
         </div>
@@ -427,7 +427,7 @@ const ChatContent: React.FC = () => {
                     size={40}
                     aria-label="대화 기록 로딩 중"
                   />
-                  <p className="ml-4 text-blue-500 dark:text-blue-400 font-samsung700">
+                  <p className="ml-4 text-blue-500 dark:text-blue-400 font-pretendard">
                     이전 대화 기록을 불러오는 중입니다...
                   </p>
                 </div>
@@ -456,7 +456,7 @@ const ChatContent: React.FC = () => {
                       {/* 사용자 프로필 및 시간 */}
                       <div className="flex items-center mb-2">
                         <div className="w-6 h-6 bg-indigo-900 text-white rounded-full flex items-center justify-center mr-2">
-                          <span className="text-sm font-samsung700">S</span>
+                          <span className="text-sm font-pretendard">S</span>
                         </div>
                         <span className="font-medium text-sm dark:text-gray-200">
                           User

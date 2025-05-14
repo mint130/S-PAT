@@ -14,7 +14,7 @@ const PatentFileUpload: React.FC<PatentFileUploadProps> = ({
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { isDarkMode } = useThemeStore();
-  const supportedFormats = ["CSV", "XLSX"];
+  const supportedFormats = ["XLSX"];
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatString = supportedFormats.join(", ");
@@ -109,7 +109,7 @@ const PatentFileUpload: React.FC<PatentFileUploadProps> = ({
               size={50}
               aria-label="Loading"
             />
-            <p className="mt-4 text-primary-gray dark:text-[#EDF0F4] font-samsung400">
+            <p className="mt-4 text-primary-gray dark:text-[#EDF0F4] font-pretendard">
               Loading
             </p>
           </div>
@@ -137,16 +137,16 @@ const PatentFileUpload: React.FC<PatentFileUploadProps> = ({
                 <CloudUpload className="relative w-8 h-8 text-primary-blue dark:text-blue-300" />
               </div>
 
-              <h3 className="text-base text-primary-black dark:text-[#EDF0F4] font-samsung400 mt-4">
+              <h3 className="text-lg text-primary-black dark:text-[#EDF0F4] font-pretendard mt-4">
                 특허 문서 파일을 여기에 업로드 해 주세요.
               </h3>
 
-              <p className="text-xs text-primary-gray dark:text-[#8E95A0] text-center font-samsung400">
+              <p className="text-xs text-primary-gray dark:text-[#8E95A0] text-center font-pretendard">
                 파일을 이 영역에 끌어다 놓거나 '파일 선택' 버튼을 클릭하여
                 업로드할 수 있습니다.
               </p>
 
-              <p className="text-xs text-primary-gray dark:text-[#8E95A0] font-samsung400">
+              <p className="text-xs text-primary-gray dark:text-[#8E95A0] font-pretendard">
                 지원 형식: {formatString}
               </p>
 
@@ -154,7 +154,7 @@ const PatentFileUpload: React.FC<PatentFileUploadProps> = ({
                 ref={fileInputRef}
                 type="file"
                 className="hidden"
-                accept=".csv,.xlsx"
+                accept=".xlsx"
                 onChange={handleChange}
               />
 

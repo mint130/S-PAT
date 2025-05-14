@@ -140,10 +140,10 @@ const Prompt: React.FC<PromptProps> = ({
         onDragOver={handleDrag}
         onDrop={handleDrop}>
         <textarea
-          className={`w-full min-h-[60px] rounded-lg focus:outline-none resize-none text-gray-700 dark:text-[#ACB4C0] dark:bg-[#23283D] font-samsung400 text-sm break-words bg-white disabled:bg-white disabled:text-gray-700 ${
+          className={`w-full min-h-[60px] rounded-lg focus:outline-none resize-none text-gray-700 dark:text-[#A7ACB4] dark:bg-[#23283D] font-pretendard text-sm break-words bg-white disabled:bg-white disabled:text-gray-700 ${
             isLoading || fileLoading ? "cursor-not-allowed" : ""
           }`}
-          placeholder="특허 분류 체계를 생성하기 위한 프롬프트를 입력해주세요"
+          placeholder="ex) 휴머노이드 특허데이터에 대한 분류 체계를 생성해줘"
           value={promptText}
           onChange={handlePromptChange}
           onKeyDown={handleKeyDown}
