@@ -530,23 +530,55 @@ async def evaluate_classification_by_reasoning(
     Claude를 사용하여 분류 결과를 평가합니다.
     0.0~1.0 사이의 점수로 평가합니다.
     """
+    # 유사도 기반 분류 체계 검색
+    similar_docs = await retriever.ainvoke(patent_info)
+    
+    # 유사도 기반 분류 체계 포맷팅
+    similar_classifications = []
+    for doc in similar_docs:
+        metadata = doc.metadata
+        classification = f"""
+분류 체계:
+- 대분류: {metadata.get('grand_parent_code', '')} ({metadata.get('grand_parent_name', '')})
+- 중분류: {metadata.get('parent_code', '')} ({metadata.get('parent_name', '')})
+- 소분류: {metadata.get('code', '')} ({metadata.get('name', '')})
+- 설명: {metadata.get('description', '')}
+"""
+        similar_classifications.append(classification)
+    
+    similar_classifications_text = "\n---\n".join(similar_classifications)
+
     # 프롬프트 템플릿 정의
     template = """
-    다음은 특허 분류 결과입니다:
-
-    특허 정보:
+    당신은 특허 분류 전문가입니다. 다음 특허의 분류 결과를 평가해주세요.
+    특허 정보는 대상 특허 데이터의 특허명과 요약을 포함합니다.
+    현재 분류 결과는 저장된 분류 체계를 기반으로 분류한 결과입니다.
+    유사도 기반 추천 분류 체계는 분류 체계 중 특허 정보와 가장 유사한 3개의 분류입니다.
+    당신의 목표는 이것들을 기준으로 이 특허 분류가 정확한지 평가하는 것입니다.
+    평가 요구사항과 주의사항에 맞게 잘 평가해 주세요.
+    
+    [특허 정보]
     {patent_info}
 
-    분류 결과:
-    - 대분류: {major_code} ({major_title})
-    - 중분류: {middle_code} ({middle_title})
-    - 소분류: {small_code} ({small_title})
+    [현재 분류 결과]
+    대분류: {major_code} ({major_title})
+    중분류: {middle_code} ({middle_title})
+    소분류: {small_code} ({small_title})
 
-    이 분류가 적절한지 평가해주세요.
-    0.0부터 1.0 사이의 점수로 평가해주세요.
-    0.0은 완전히 부적절한 분류, 1.0은 완벽하게 적절한 분류를 의미합니다.
+    [유사도 기반 추천 분류 체계]
+    {similar_classifications}
 
-    점수와 함께 평가 근거를 간단히 설명해주세요.
+    [평가 요구사항]
+    1. 유사도 기반 추천 분류 체계와 현재 분류 결과를 비교하여 평가해주세요.
+    2. 0.0부터 1.0 사이의 점수로 평가해주세요.
+       - 0.0: 완전히 부적절한 분류
+       - 0.5: 부분적으로 적절한 분류
+       - 1.0: 완벽하게 적절한 분류
+
+    [주의사항]
+    1. 반드시 분류 체계를 기반으로 평가해야 합니다.
+    2. 분류 체계에 없는 분류는 '미분류'로 간주합니다.
+    - 미분류의 예시: 특허 정보가 제시된 분류 체계만으로 분류할 수 없다고 판단될 경우, 미분류로 판단합니다.
     """
 
     prompt = ChatPromptTemplate.from_template(template)
@@ -559,7 +591,8 @@ async def evaluate_classification_by_reasoning(
         middle_code=classification_result["middleCode"],
         middle_title=classification_result["middleTitle"],
         small_code=classification_result["smallCode"],
-        small_title=classification_result["smallTitle"]
+        small_title=classification_result["smallTitle"],
+        similar_classifications=similar_classifications_text
     )
     
     # Claude 호출

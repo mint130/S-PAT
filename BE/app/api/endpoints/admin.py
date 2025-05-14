@@ -58,7 +58,10 @@ def calculate_sample_size(total_population: int, confidence_level: float, margin
     if total_population > 0:
         sample_size = sample_size / (1 + (sample_size - 1) / total_population)
     
-    return math.ceil(sample_size)
+    # 표본 크기가 모집단 크기보다 크지 않도록 보정
+    sample_size = min(math.floor(sample_size), total_population)
+    
+    return sample_size
 
 admin_router = APIRouter(prefix="/admin")
 
@@ -370,7 +373,10 @@ async def get_sampled_classification(
                     evaluation_data = json.loads(evaluation_json)
                 
                 # 샘플링된 특허만 선택
-                sampled_patents = [all_patents[llm_type][idx] for idx in sampled_indices if idx < len(all_patents[llm_type])]
+                sampled_patents = []
+                for idx in sampled_indices:
+                    if idx < len(all_patents[llm_type]):
+                        sampled_patents.append(all_patents[llm_type][idx])
                 
                 # 결과 구성
                 result = {
@@ -378,7 +384,7 @@ async def get_sampled_classification(
                     "time": time,
                     "vector_accuracy": evaluation_data.get("vector_accuracy", 0.0),
                     "reasoning_score": evaluation_data.get("reasoning_score", 0.0),
-                    "patents": sampled_patents
+                    "patents": sampled_patents  # 샘플링된 특허만 포함
                 }
                 
                 results.append(result)
