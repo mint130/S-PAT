@@ -41,7 +41,7 @@ function UserLoading({ sessionId }: UserLoadingProps) {
 
         // 새 이벤트 소스 생성
         eventSource = new EventSource(
-          `https://s-pat.site/api/test/${sessionId}/progress`
+          `https://s-pat.site/api/user/${sessionId}/progress`
         );
 
         // 연결 열림 이벤트

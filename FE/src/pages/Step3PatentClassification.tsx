@@ -65,7 +65,7 @@ function Step3PatentClassification() {
       // 분류 작업 시작 API 호출
       const response = await axios.post(
         // Todo! : /api/test/{session_id}/upload?LLM={LLM}
-        `https://s-pat.site/api/test/${session_id}/upload?LLM=${llm}`,
+        `https://s-pat.site/api/user/${session_id}/upload?LLM=${llm}`,
         formData,
         {
           headers: {
