@@ -2,9 +2,13 @@ import logging
 import asyncio
 import io
 from typing import List, Dict, Any
-from fastapi import status, APIRouter, UploadFile, File, HTTPException, Query
+from fastapi import Depends, status, APIRouter, UploadFile, File, HTTPException, Query
 from fastapi.responses import JSONResponse, StreamingResponse
+from requests import Session
 from app.core.sse import progress_event_generator
+from app.crud.crud_best_llm import update_best_llm
+from app.db.database import get_db
+from app.schemas.best_llm import LLMCreate, LLMResponse
 from app.schemas.message import Message
 import pandas as pd
 from app.crud.crud_classification import process_patent_classification, process_patent_classification_sse
@@ -409,3 +413,9 @@ async def get_sampled_classification(
         logger.error(f"샘플링된 분류 결과 조회 중 오류 발생: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     
+# 최적의 LLM 설정
+@admin_router.post("/LLM", response_model=LLMResponse, summary="최적의 LLM 설정")
+def set_best_llm(llm_data: LLMCreate, db: Session = Depends(get_db)):
+    llm_record = update_best_llm(db, llm_data.LLM)
+
+    return {"LLM": llm_record.llm}
