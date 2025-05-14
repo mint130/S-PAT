@@ -29,7 +29,7 @@ const SideBar: React.FC = () => {
 
   // 다크모드 상태와 토글 함수 가져오기
   const { isDarkMode, toggleDarkMode } = useThemeStore();
-  
+
   // 모달 상태 관리
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
@@ -53,6 +53,7 @@ const SideBar: React.FC = () => {
   // 모달 확인 핸들러
   const handleModalConfirm = () => {
     setIsModalOpen(false);
+    localStorage.clear();
     navigate(`/`);
   };
 
@@ -215,6 +216,7 @@ const SideBar: React.FC = () => {
         description="현재 진행 중인 모든 작업이 초기화됩니다."
         onCancel={handleModalCancel}
         onConfirm={handleModalConfirm}
+        confirmText="확인"
       />
     </>
   );
