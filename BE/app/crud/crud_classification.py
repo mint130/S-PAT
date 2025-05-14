@@ -1,3 +1,5 @@
+import asyncio
+from datetime import datetime
 import logging
 import json
 import re
@@ -16,6 +18,7 @@ from app.core.redis import get_redis_client
 from app.schemas.classification import ClassificationResponse, ClassificationSchema, Patent
 from app.core.config import settings
 from app.core.llm import gpt, claude, gemini, grok
+from app.schemas.message import Message, Progress
 
 logger = logging.getLogger(__name__)
 
@@ -245,6 +248,7 @@ async def calculate_vector_based_score(
         "reasoning_score": reasoning_average_score
     }
 
+# 기존 분류 함수
 async def process_patent_classification(
     session_id: str,
     df: pd.DataFrame,
@@ -268,6 +272,10 @@ async def process_patent_classification(
 
     patents: List[Patent] = []
     evaluations: List[Dict[str, Any]] = []
+    
+    # 로그 추가
+    start_time = datetime.now()
+    logger.info(f"[{session_id}] 분류 및 평가 시작 시간: {start_time}")
     
     # 각 행에 대해 RAG 처리 및 분류
     for index, row in df.iterrows():
@@ -330,6 +338,17 @@ async def process_patent_classification(
     # 만료 시간 설정
     redis.expire(patents_key, 86400)
 
+    # 종료 시간 기록
+    end_time = datetime.now()
+    elapsed = end_time - start_time
+    logger.info(f"[{session_id}] 분류 및 평가 종료 시간: {end_time}")
+    logger.info(f"[{session_id}] 분류 및 평가 소요 시간: {elapsed} (총 {elapsed.total_seconds():.2f}초)")
+        
+    # 걸린 시간 redis에 저장
+    time_key = f"{session_id}:{llm_type}:time"
+    redis.set(time_key, elapsed.total_seconds())
+    redis.expire(time_key, 86400)
+
     # 최종 평가 점수 계산 (간소화된 버전)
     evaluation_score = await calculate_vector_based_score(evaluations)
     
@@ -347,6 +366,160 @@ async def process_patent_classification(
     
     # API 응답에는 전체 evaluation_score 반환 (일관성 유지)
     return patents, evaluation_score
+
+# SSE 포함 분류 함수
+async def process_patent_classification_sse(
+    session_id: str,
+    df: pd.DataFrame,
+    retriever: Any,
+    llm_type: str,
+    progress_queue: asyncio.Queue
+):
+    """
+    특허 데이터를 처리하고 분류합니다.
+    """
+    try:    
+        redis = get_redis_client()
+        # LLM 선택
+        llm_map: Dict[str, Any] = {
+            "gpt": gpt,
+            "claude": claude,
+            "gemini": gemini,
+            "grok": grok
+        }
+        llm = llm_map.get(llm_type.lower())
+        if not llm:
+            raise HTTPException(status_code=400, detail=f"지원하지 않는 LLM 타입입니다: {llm_type}")
+
+        patents: List[Patent] = []
+        evaluations: List[Dict[str, Any]] = []
+
+        total_patents = len(df)
+        
+        # 로그 추가
+        start_time = datetime.now()
+        logger.info(f"[{session_id}] 분류 및 평가 시작 시간: {start_time}")
+
+        # 각 행에 대해 RAG 처리 및 분류
+        for index, row in df.iterrows():
+            # 출원번호와 특허 정보 확인
+            application_number = str(row.get('출원번호', f"KR10-XXXX-{index:07d}"))
+            title = str(row.get('특허명', row.get('발명의 명칭', '')))
+            abstract = str(row.get('요약', ''))
+            
+            # 특허 정보가 없으면 다음 행으로
+            if not title and not abstract:
+                continue
+                
+            # 특허 정보 구성
+            patent_info = f"특허명: {title} 요약: {abstract}"
+            
+            # RAG를 통한 분류
+            classifications = await classify_with_llm(llm, retriever, patent_info)
+            
+            # 특허 정보 구성
+            patent_data = Patent(
+                applicationNumber=application_number,
+                title=title,
+                abstract=abstract,
+                majorCode=classifications["majorCode"],
+                middleCode=classifications["middleCode"],
+                smallCode=classifications["smallCode"],
+                majorTitle=classifications["majorTitle"],
+                middleTitle=classifications["middleTitle"],
+                smallTitle=classifications["smallTitle"]
+            )
+            logger.info(f"[{session_id}_{llm_type}] 분류된 특허: {patent_data.model_dump()}")
+
+            # redis에 저장
+            patents_key=f"{session_id}:{llm_type}:patents"
+            redis.rpush(patents_key, patent_data.model_dump_json())
+            
+            patents.append(patent_data)
+
+            # 벡터 기반 평가 수행
+            vector_evaluation = await evaluate_classification_by_vector(
+                patent_info,
+                classifications,
+                retriever
+            )
+            
+            # Reasoning LLM 평가 수행 (Claude 사용)
+            reasoning_evaluation = await evaluate_classification_by_reasoning(
+                patent_info,
+                classifications,
+                retriever
+            )
+            
+            # 통합 평가 결과
+            evaluation = {
+                "vector_based": vector_evaluation,
+                "reasoning": reasoning_evaluation
+            }
+            logger.info(f"[{session_id}_{llm_type}] 특허 분류 평가: {json.dumps(evaluation, ensure_ascii=False)}")
+
+            evaluations.append(evaluation)
+
+            # 진행률 업데이트
+            progress_data = Progress(
+                    current=index + 1,
+                    total=total_patents,
+                    percentage=round(((index + 1) / total_patents) * 100, 2),
+            )
+            await progress_queue.put(progress_data.model_dump())
+        
+            # time.sleep(0.5)
+            await asyncio.sleep(0.5)
+        
+        # 분류 결과 만료 시간 설정
+        redis.expire(patents_key, 86400)
+        
+        # 종료 시간 기록
+        end_time = datetime.now()
+        elapsed = end_time - start_time
+        logger.info(f"[{session_id}] 분류 및 평가 종료 시간: {end_time}")
+        logger.info(f"[{session_id}] 분류 및 평가 소요 시간: {elapsed} (총 {elapsed.total_seconds():.2f}초)")
+        
+        # 걸린 시간 redis에 저장
+        time_key = f"{session_id}:{llm_type}:time"
+        redis.set(time_key, elapsed.total_seconds())
+        redis.expire(time_key, 86400)
+
+        # 최종 평가 점수 계산 (간소화된 버전)
+        evaluation_score = await calculate_vector_based_score(evaluations)
+        
+        # Redis에 간소화된 평가 점수만 저장
+        evaluation_key = f"{session_id}:{llm_type}:evaluation"
+        simplified_evaluation = {
+            "vector_accuracy": evaluation_score["vector_accuracy"],
+            "reasoning_score": evaluation_score["reasoning_score"]
+        }
+        
+        redis.set(evaluation_key, json.dumps(simplified_evaluation, ensure_ascii=False))
+
+        # 평과 결과 만료 시간 설정
+        redis.expire(evaluation_key, 86400)
+        
+        # 작업 완료 메시지
+        completion_data = Message(
+            status="completed",
+            message="분류 및 평가 작업이 완료되었습니다.",
+        )
+
+        await progress_queue.put(completion_data.model_dump())  
+
+        # API 응답에는 전체 evaluation_score 반환 (일관성 유지)
+        # return patents, evaluation_score
+    
+    except  Exception as e:
+        # 오류가 발생한 경우 메시지 전송
+        
+        error_message = Message(
+            status="error",
+            message=f"오류가 발생했습니다: {str(e)}"
+        )
+       
+        await progress_queue.put(error_message.model_dump())
 
 async def evaluate_classification_by_reasoning(
     patent_info: str,

@@ -4,8 +4,8 @@ import json
 import logging
 import os
 import re
-from typing import Any, Dict, List
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
+from typing import Any, Dict
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse, StreamingResponse
 import pandas as pd
 from sqlalchemy.orm import Session
@@ -67,7 +67,6 @@ async def save_standard(session_id: str, standard: ConversationResponse, db:Sess
 # 1. 파일 업로드 엔드포인트 (작업 시작만 담당), 202 반환
 @user_router.post("/{session_id}/upload", status_code=status.HTTP_202_ACCEPTED, response_model = Message, summary="특허 데이터 파일 업로드", description="분류 하고 싶은 특허 데이터 파일을 업로드합니다.")
 async def upload_and_start_classification(
-    background_tasks: BackgroundTasks,
     session_id: str, 
     LLM: str, 
     file: UploadFile = File(...),
