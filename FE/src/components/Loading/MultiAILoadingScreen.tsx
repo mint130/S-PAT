@@ -56,7 +56,6 @@ function MultiAILoadingScreen({ sessionId }: MultiAILoadingScreenProps) {
   ]);
 
   const [allComplete, setAllComplete] = useState(false);
-  const [eventSources, setEventSources] = useState<EventSource[]>([]);
 
   useEffect(() => {
     const sources: EventSource[] = [];
@@ -149,8 +148,6 @@ function MultiAILoadingScreen({ sessionId }: MultiAILoadingScreenProps) {
 
       sources.push(eventSource);
     });
-
-    setEventSources(sources);
 
     // 클린업
     return () => {
