@@ -2,10 +2,12 @@ import logging
 import asyncio
 import io
 from typing import List, Dict, Any
-from fastapi import APIRouter, UploadFile, File, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi import status, APIRouter, UploadFile, File, HTTPException, Query
+from fastapi.responses import JSONResponse, StreamingResponse
+from app.core.sse import progress_event_generator
+from app.schemas.message import Message
 import pandas as pd
-from app.crud.crud_classification import process_patent_classification
+from app.crud.crud_classification import process_patent_classification, process_patent_classification_sse
 from app.schemas.classification import (
     ClassificationResponse, 
     MultiLLMClassificationResponse,
@@ -19,6 +21,9 @@ import random
 import math
 
 logger = logging.getLogger(__name__)
+
+# 세션별 작업 진행 큐를 저장할 딕셔너리
+session_progress_queues: Dict[str, asyncio.Queue] = {}
 
 def calculate_sample_size(total_population: int, confidence_level: float, margin_error: float) -> int:
     """
@@ -193,6 +198,83 @@ async def classify_patent_grok(session_id: str, file: UploadFile = File(...)) ->
         logger.error(f"Grok 분류 처리 중 오류 발생: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     
+@admin_router.post("/{session_id}/upload", status_code=status.HTTP_202_ACCEPTED, response_model = Message, summary="특허 데이터 파일 업로드", description="분류 하고 싶은 특허 데이터 파일을 업로드합니다.")
+async def upload_and_start_classification_and_evaluation(
+    session_id: str,
+    file: UploadFile = File(...)
+):
+    # 업로드된 파일이 엑셀 파일인지 확인
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail="업로드된 파일은 Excel (.xlsx 또는 .xls) 형식이어야 합니다")
+    
+    # session_id에 대한 벡터 스토어가 존재하는지 확인
+    if session_id not in user_vector_stores:
+        raise HTTPException(
+            status_code=404, 
+            detail="해당 세션에 대한 분류 체계가 존재하지 않습니다. 먼저 분류 체계를 저장해주세요."
+        )
+    
+    if len(user_vector_stores[session_id].docstore._dict) == 0:
+        raise HTTPException(status_code=400, detail="벡터 DB에 분류 체계 데이터가 없습니다. 먼저 분류 체계를 저장해주세요.")
+
+    try:
+        # 파일 내용을 메모리에서 읽기
+        contents = await file.read()
+        
+        # 바이트 스트림을 IO 객체로 변환
+        file_object = io.BytesIO(contents)
+        
+        # 엑셀 파일을 데이터프레임으로 읽기
+        df = pd.read_excel(file_object)
+
+         # retriever 생성
+        retriever = user_vector_stores[session_id].as_retriever(search_kwargs={"k": 3})
+
+        for LLM in ["gpt", "claude", "gemini", "grok"]:
+            # 새 큐 생성
+            queue_key = f"{session_id}_{LLM}"
+            progress_queue = asyncio.Queue()
+            session_progress_queues[queue_key] = progress_queue
+
+            # 백그라운드 태스트 4개에서 분류 작업 실행
+            asyncio.create_task(
+                process_patent_classification_sse(session_id, df, retriever, LLM, progress_queue)
+            )
+
+        message = Message(
+            status="processing",
+            message="분류 작업이 시작되었습니다."
+        )
+        
+        # 작업 시작 성공 응답 반환
+        return message
+    
+    except Exception as e:
+        # 예외 처리
+        logger.error(f"분류 작업 시작 중 오류 발생: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"분류 작업 시작 중 오류가 발생했습니다: {str(e)}")
+
+@admin_router.get("/{session_id}/progress", summary="특허 분류 진행도 반환", description="특허 분류 진행도를 퍼센테이지로 반환합니다.")
+async def stream_classification_progress(session_id: str, LLM: str):
+    # 세션과 LLM에 대한 진행 큐가 존재하는지 확인
+    # gpt, claude, gemini, grok
+    queue_key = f"{session_id}_{LLM.lower()}"
+    if queue_key not in session_progress_queues:
+                raise HTTPException(
+            status_code=404,
+            detail="해당 세션, LLM에 대한 진행 중인 분류 작업을 찾을 수 없습니다."
+        )
+    
+    # 해당 세션의 진행 큐 가져오기
+    progress_queue = session_progress_queues[queue_key]
+
+    # SSE 스트림 응답 반환
+    return StreamingResponse(
+        progress_event_generator(progress_queue),
+        media_type="text/event-stream",
+        headers={"Content-Type": "text/event-stream; charset=utf-8"}
+    )
+
 @admin_router.get(
     "/{session_id}/classification/sampling",
     response_model=SampledClassificationResponse,
@@ -277,6 +359,10 @@ async def get_sampled_classification(
                 continue
                 
             try:
+                # 걸리는 시간 가져오기
+                time_key = f"{session_id}:{llm_type}:time"
+                time = redis.get(time_key)
+
                 # 평가 점수 가져오기
                 evaluation_key = f"{session_id}:{llm_type}:evaluation"
                 evaluation_json = redis.get(evaluation_key)
@@ -295,6 +381,7 @@ async def get_sampled_classification(
                 # 결과 구성
                 result = {
                     "name": llm_type.upper(),
+                    "time": time,
                     "vector_accuracy": evaluation_data.get("vector_accuracy", 0.0),
                     "reasoning_score": evaluation_data.get("reasoning_score", 0.0),
                     "patents": sampled_patents  # 샘플링된 특허만 포함
@@ -321,3 +408,4 @@ async def get_sampled_classification(
     except Exception as e:
         logger.error(f"샘플링된 분류 결과 조회 중 오류 발생: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+    
