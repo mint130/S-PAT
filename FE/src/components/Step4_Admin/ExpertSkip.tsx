@@ -5,7 +5,7 @@ interface ExpertSkipProps {
 function ExpertSkip({ onSkipClick }: ExpertSkipProps) {
   return (
     <button 
-      className="font-pretendard underline text-primary-blue"
+      className="font-pretendard text-primary-blue"
       onClick={onSkipClick}
     >
       건너뛰기

@@ -4,9 +4,11 @@ import useThemeStore from "../../stores/useThemeStore";
 
 interface UserLoadingProps {
   sessionId: string;
+  llmName?: string; // admin 모드에서 사용
+  onComplete?: () => void; // admin 모드에서 완료 콜백
 }
 
-function UserLoading({ sessionId }: UserLoadingProps) {
+function UserLoading({ sessionId, llmName, onComplete }: UserLoadingProps) {
   const navigate = useNavigate();
   const { isDarkMode } = useThemeStore();
 
@@ -26,6 +28,10 @@ function UserLoading({ sessionId }: UserLoadingProps) {
   });
   const [isComplete, setIsComplete] = useState(false);
 
+  // 역할 확인
+  const role = localStorage.getItem("role");
+  const isAdmin = role === "Admin";
+
   useEffect(() => {
     let eventSource: EventSource | null = null;
     // 시작 시간 기록 (남은 시간 계산용)
@@ -39,10 +45,14 @@ function UserLoading({ sessionId }: UserLoadingProps) {
           eventSource.close();
         }
 
+        // URL 설정 - admin인 경우 LLM 파라미터 추가
+        let url = `https://s-pat.site/api/user/${sessionId}/progress`;
+        if (isAdmin && llmName) {
+          url = `https://s-pat.site/api/admin/${sessionId}/progress?LLM=${llmName}`;
+        }
+
         // 새 이벤트 소스 생성
-        eventSource = new EventSource(
-          `https://s-pat.site/api/user/${sessionId}/progress`
-        );
+        eventSource = new EventSource(url);
 
         // 연결 열림 이벤트
         eventSource.onopen = () => {
@@ -74,17 +84,25 @@ function UserLoading({ sessionId }: UserLoadingProps) {
               eventSource.close();
             }
 
-            // 타이머 설정 후 직접 라우팅 처리
-            setTimeout(() => {
-              try {
-                console.log("navigate 함수로 이동 시도");
-                navigate("/user/step4");
-              } catch (error) {
-                console.error("라우팅 오류, window.location 사용:", error);
-                // 라우터에 문제가 있으면 직접 URL 변경
-                window.location.href = "/user/step4";
-              }
-            }, 2000);
+            // admin 모드인 경우
+            if (isAdmin && onComplete) {
+              // 타이머 설정 후 완료 콜백 호출
+              setTimeout(() => {
+                onComplete();
+              }, 2000);
+            } else {
+              // user 모드인 경우 기존 동작
+              setTimeout(() => {
+                try {
+                  console.log("navigate 함수로 이동 시도");
+                  navigate("/user/step4");
+                } catch (error) {
+                  console.error("라우팅 오류, window.location 사용:", error);
+                  // 라우터에 문제가 있으면 직접 URL 변경
+                  window.location.href = "/user/step4";
+                }
+              }, 2000);
+            }
 
             return;
           }
@@ -143,7 +161,12 @@ function UserLoading({ sessionId }: UserLoadingProps) {
         eventSource.close();
       }
     };
-  }, [sessionId, navigate]);
+  }, [sessionId, llmName, navigate, isAdmin, onComplete]);
+
+  // 표시할 텍스트 설정
+  const displayText = llmName
+    ? `${llmName}이(가) 특허데이터를 분류하고 있습니다...`
+    : "AI가 특허데이터를 분류하고 있습니다...";
 
   return (
     <div className="h-full flex flex-col items-center justify-center p-4">
@@ -200,7 +223,7 @@ function UserLoading({ sessionId }: UserLoadingProps) {
           {!isComplete ? (
             <>
               <h3 className="text-2xl font-semibold text-gray-800 dark:text-[#EDF0F4] font-pretendard mt-12">
-                {progress.currentPhase}
+                {displayText}
               </h3>
               <div className="flex flex-col items-center space-y-2">
                 <p className="text-gray-600 dark:text-gray-300 font-pretendard">
@@ -216,10 +239,12 @@ function UserLoading({ sessionId }: UserLoadingProps) {
           ) : (
             <>
               <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 font-pretendard">
-                AI 분류 완료
+                {llmName ? `${llmName} 분류 완료` : "AI 분류 완료"}
               </h3>
               <p className="text-gray-600 dark:text-gray-300 font-pretendard mt-2">
-                분류 결과 페이지로 이동합니다...
+                {isAdmin
+                  ? "분류가 완료되었습니다."
+                  : "분류 결과 페이지로 이동합니다..."}
               </p>
             </>
           )}

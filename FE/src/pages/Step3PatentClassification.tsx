@@ -7,6 +7,7 @@ import PatentTable from "../components/Step3/PatentTable";
 import Button from "../components/common/Button";
 import NextModal from "../components/common/NextModal";
 import UserLoading from "../components/Loading/UserLoading";
+import MultiAILoadingScreen from "../components/Loading/MultiAILoadingScreen";
 
 function Step3PatentClassification() {
   const navigate = useNavigate();
@@ -39,6 +40,16 @@ function Step3PatentClassification() {
     setModalOpen(false);
   };
 
+  const saveBestLLM = async () => {
+    try {
+      const response = await axios.get("https://s-pat.site/api/user/LLM");
+      localStorage.setItem("LLM", response.data.LLM);
+      console.log("Best LLM saved successfully:", response.data.LLM);
+    } catch (error) {
+      console.error("Error saving best LLM:", error);
+    }
+  };
+
   // 모달 확인 버튼 클릭 시 API 호출 및 로딩 화면으로 전환
   const onConfirm = async () => {
     if (!uploadedFile) return;
@@ -46,8 +57,11 @@ function Step3PatentClassification() {
     setModalOpen(false);
 
     try {
+      saveBestLLM();
       const session_id = localStorage.getItem("sessionId");
       const llm = localStorage.getItem("LLM");
+
+      // const llm = saveBestLLM();
 
       if (!session_id) {
         throw new Error("세션 ID를 찾을 수 없습니다.");
@@ -62,20 +76,40 @@ function Step3PatentClassification() {
       const formData = new FormData();
       formData.append("file", uploadedFile);
 
-      // 분류 작업 시작 API 호출
-      const response = await axios.post(
-        // Todo! : /api/test/{session_id}/upload?LLM={LLM}
-        `https://s-pat.site/api/user/${session_id}/upload?LLM=${llm}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      // 성공응답
-      console.log("분류 작업 시작 API 응답:", response.data);
-      setIsClassifying(true);
+      const Role = localStorage.getItem("role");
+
+      if (Role == "User") {
+        // 분류 작업 시작 API 호출
+        const response = await axios.post(
+          // Todo! : /api/test/{session_id}/upload?LLM={LLM}
+          `https://s-pat.site/api/user/${session_id}/upload?LLM=${llm}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        // 성공응답
+        console.log("분류 작업 시작 API 응답:", response.data);
+        setIsClassifying(true);
+      } else {
+        // 분류 작업 시작 API 호출
+        const response = await axios.post(
+          `https://s-pat.site/api/admin/${session_id}/upload`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        // 성공응답
+        console.log("분류 작업 시작 API 응답:", response.data);
+
+        // Admin인 경우 MultiAILoadingScreen 표시
+        setIsClassifying(true);
+      }
       // 실패응답
     } catch (err) {
       console.error("API 오류:", err);
@@ -90,7 +124,11 @@ function Step3PatentClassification() {
   return (
     <div className="p-8 pb-6 h-full flex flex-col justify-stretch grow">
       {isClassifying ? (
-        <UserLoading sessionId={sessionId} />
+        localStorage.getItem("role") === "Admin" ? (
+          <MultiAILoadingScreen sessionId={sessionId} />
+        ) : (
+          <UserLoading sessionId={sessionId} />
+        )
       ) : (
         <>
           <Title
