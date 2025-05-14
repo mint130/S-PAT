@@ -40,4 +40,4 @@ class MultiLLMClassificationResponse(BaseModel):
 class SampledClassificationResponse(BaseModel):
     """샘플링된 분류 결과 및 평가 점수 응답 모델"""
     sampling_info: Dict[str, Any] = Field(..., description="샘플링 정보 (총 특허 수, 샘플 크기, 신뢰도, 오차 범위, 인덱스)")
-    results: List[Dict[str, Any]] = Field(..., description="각 LLM의 샘플링된 분류 결과 및 평가 점수")
+    results: List[Dict[str, Any]] = Field(..., description="각 LLM의 샘플링된 분류 결과 및 평가 점수, 걸리는 시간")
