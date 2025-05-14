@@ -30,9 +30,9 @@ function Step4AdminPatentResult() {
     llmData.forEach((llm) => {
       updateLLM(llm.name, { expert: 1 });
     });
-    
+
     setIsModalOpen(false);
-    
+
     // 성공 메시지나 다음 단계로 이동 로직 추가
     console.log("모든 LLM의 전문가 평가가 100점으로 설정되었습니다.");
     navigate("/admin/step5");
@@ -55,7 +55,7 @@ function Step4AdminPatentResult() {
           size="md"
           className="w-24"
           onClick={() => {
-            alert("이전 단계로 이동합니다.");
+            navigate("/admin/step3");
           }}>
           이전
         </Button>

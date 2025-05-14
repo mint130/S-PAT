@@ -12,7 +12,7 @@ import useLLMStore from "../stores/useLLMStore";
 
 function Step5AdminModelComparison() {
   const selectedLLM = useLLMStore((state) => state.selectedLLM);
-  
+
   // 모달 상태 관리
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -21,16 +21,14 @@ function Step5AdminModelComparison() {
   const fetchBestLLM = async (llm: string | null) => {
     try {
       setIsLoading(true);
-      const response = await axios.post("https://s-pat.site/api/user/LLM", 
-        {
-          LLM: llm
-        }
-      );
-      
+      const response = await axios.post("https://s-pat.site/api/admin/LLM", {
+        LLM: llm,
+      });
+
       setIsLoading(false);
       setShowConfirmModal(false);
       setShowSuccessModal(true);
-      
+
       return response.data;
     } catch (error) {
       console.error("LLM 저장 실패:", error);
@@ -38,7 +36,7 @@ function Step5AdminModelComparison() {
       alert("LLM 선택 저장에 실패했습니다.");
       throw error;
     }
-  }
+  };
 
   // 완료 버튼 클릭 핸들러
   const handleComplete = () => {

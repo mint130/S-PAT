@@ -11,6 +11,16 @@ const createSessionId = () => {
   return sessionId;
 };
 
+const roleUser = () => {
+  const Role = "User";
+  localStorage.setItem("role", Role);
+};
+
+const roleAdmin = () => {
+  const Role = "Admin";
+  localStorage.setItem("role", Role);
+};
+
 const saveBestLLM = async () => {
   try {
     const response = await axios.get("https://s-pat.site/api/user/LLM");
@@ -21,9 +31,15 @@ const saveBestLLM = async () => {
   }
 };
 
-const handleModeSelect = async () => {
+const handleModeSelectUser = async () => {
   createSessionId();
+  roleUser();
   await saveBestLLM();
+};
+
+const handleModeSelectAdmin = async () => {
+  createSessionId();
+  roleAdmin();
 };
 
 const Step0ModeSelect: React.FC = () => {
@@ -126,7 +142,7 @@ const Step0ModeSelect: React.FC = () => {
             {/* 사용자 모드 */}
             <Link
               to="/user/step1"
-              onClick={() => handleModeSelect()}
+              onClick={() => handleModeSelectUser()}
               className={`flex-1 p-6 rounded-lg ${
                 isDarkMode
                   ? "bg-[#23283D]/90 border-[#414864] hover:border-[#5C6890] hover:bg-[#2A3048]/90"
@@ -180,7 +196,7 @@ const Step0ModeSelect: React.FC = () => {
             {/* 관리자 모드 */}
             <Link
               to="/admin/step1"
-              onClick={() => createSessionId()}
+              onClick={() => handleModeSelectAdmin()}
               className={`flex-1 p-6 rounded-lg ${
                 isDarkMode
                   ? "bg-[#23283D]/90 border-[#414864] hover:border-[#5C6890] hover:bg-[#2A3048]/90"

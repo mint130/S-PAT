@@ -269,10 +269,20 @@ const ChatContent: React.FC = () => {
       fetchToJson(uploadedFile!.originalFile).then((response) => {
         console.log("LLM 처리 결과:", response);
         const selectedStandards = response.standards; // LLM 처리 결과에서 표준 배열 가져오기
-        // state와 함께 Step2로 네비게이션
-        navigate("/user/step2", {
-          state: { selectedStandards },
-        });
+
+        const Role = localStorage.getItem("role");
+
+        if (Role == "User") {
+          // state와 함께 Step2로 네비게이션
+
+          navigate("/user/step2", {
+            state: { selectedStandards },
+          });
+        } else {
+          navigate("/admin/step2", {
+            state: { selectedStandards },
+          });
+        }
       });
       // 여기엔 그냥 넘어가면 됨
     } else if (option === "llm") {
@@ -301,9 +311,18 @@ const ChatContent: React.FC = () => {
         console.log("선택된 분류체계:", selectedStandards);
 
         // state와 함께 Step2로 네비게이션
-        navigate("/user/step2", {
-          state: { selectedStandards },
-        });
+        const Role = localStorage.getItem("role");
+
+        if (Role == "User") {
+          // state와 함께 Step2로 네비게이션
+          navigate("/user/step2", {
+            state: { selectedStandards },
+          });
+        } else {
+          navigate("/admin/step2", {
+            state: { selectedStandards },
+          });
+        }
       }
     } catch (error) {
       console.error("진행 중 오류가 발생했습니다:", error);
