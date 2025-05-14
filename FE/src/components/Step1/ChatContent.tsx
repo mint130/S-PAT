@@ -234,20 +234,14 @@ const ChatContent: React.FC = () => {
   };
 
   // 테이블 선택 토글 함수 (단순화)
-const toggleTableSelection = (messageIndex: number) => {
-  if (selectedMessageIndex === messageIndex) {
-    setSelectedMessageIndex(null);
-  } else {
-    setSelectedMessageIndex(messageIndex);
-    setShowModal(true); // 이 줄 추가
-  }
-};
-
-  // // 진행하기 버튼 클릭 핸들러
-  // const handleProceed = () => {
-  //   // 모달 표시
-  //   setShowModal(true);
-  // };
+  const toggleTableSelection = (messageIndex: number) => {
+    if (selectedMessageIndex === messageIndex) {
+      setSelectedMessageIndex(null);
+    } else {
+      setSelectedMessageIndex(messageIndex);
+      setShowModal(true); // 이 줄 추가
+    }
+  };
 
   // 파일 처리 함수 추가
   const handleFileProcessed = (file: File, buffer: ArrayBuffer) => {
@@ -320,10 +314,10 @@ const toggleTableSelection = (messageIndex: number) => {
   };
 
   // 모달 취소 버튼 핸들러
-const handleModalCancel = () => {
-  setShowModal(false);
-  setSelectedMessageIndex(null); // 이 줄 추가
-};
+  const handleModalCancel = () => {
+    setShowModal(false);
+    setSelectedMessageIndex(null); // 이 줄 추가
+  };
 
   // 표준 테이블 렌더링 함수
   const renderStandardsTable = (
@@ -335,45 +329,49 @@ const handleModalCancel = () => {
     const showMoreButton = standards.length > 5;
 
     return (
-      <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+      <div className="overflow-hidden rounded-lg shadow-sm font-pretendard">
         {/* 테이블 */}
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse bg-white text-left text-sm text-gray-800">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-4 py-3 font-medium text-gray-900">코드</th>
-                <th className="px-4 py-3 font-medium text-gray-900">분류</th>
-                <th className="px-4 py-3 font-medium text-gray-900">이름</th>
-                <th className="px-4 py-3 font-medium text-gray-900">설명</th>
+        <table className="w-full border-collapse bg-white dark:bg-[#1E243A] text-left text-sm text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">
+          <thead className="bg-gray-100 dark:bg-[#2A304A]">
+            <tr>
+              <th className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
+                코드
+              </th>
+              <th className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
+                분류
+              </th>
+              <th className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
+                이름
+              </th>
+              <th className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
+                설명
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700 border-t border-gray-200 dark:border-gray-700">
+            {displayedStandards.map((standard) => (
+              <tr key={standard.code} className="dark:hover:bg-[#2A304A]">
+                <td className="px-4 py-3">{standard.code}</td>
+                <td className="px-4 py-3">{standard.level}</td>
+                <td className="px-4 py-3">{standard.name}</td>
+                <td className="px-4 py-3 max-w-md">
+                  <div className="line-clamp-2">{standard.description}</div>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 border-t border-gray-200">
-              {displayedStandards.map((standard) => (
-                <tr
-                  key={standard.code}
-                  >
-                  <td className="px-4 py-3">{standard.code}</td>
-                  <td className="px-4 py-3">{standard.level}</td>
-                  <td className="px-4 py-3">{standard.name}</td>
-                  <td className="px-4 py-3 max-w-md">
-                    <div className="line-clamp-2">{standard.description}</div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
 
         {/* 더 보기/접기 버튼 */}
         {showMoreButton && (
           <div
-            className="flex justify-center items-center p-2 bg-gray-50 border-t border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+            className="flex justify-center items-center p-2 bg-gray-50 dark:bg-[#2A304A] border-t border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#353E5C] transition-colors duration-200"
             onClick={() => toggleTableExpansion(messageIndex)}>
-            <span className="text-blue-600 font-medium text-sm">
+            <span className="text-blue-600 dark:text-blue-400 font-medium text-sm">
               {isExpanded ? "접기" : "더 보기"}
             </span>
             <svg
-              className={`ml-1 w-5 h-5 text-blue-600 transform transition-transform duration-200 ${
+              className={`ml-1 w-5 h-5 text-blue-600 dark:text-blue-400 transform transition-transform duration-200 ${
                 isExpanded ? "rotate-180" : ""
               }`}
               fill="none"
@@ -398,13 +396,13 @@ const handleModalCancel = () => {
     <div className="flex justify-start mb-6">
       <div className="flex items-center gap-4">
         <ClipLoader
-          color="#3b82f6"
+          color={isDarkMode ? "#60A5FA" : "#3b82f6"}
           loading={true}
           size={25}
           aria-label="로딩 중"
         />
         <div className="flex flex-col">
-          <p className="text-blue-500 font-samsung700 text-sm">
+          <p className="text-blue-500 dark:text-blue-400 font-samsung700 text-sm">
             AI가 분류체계를 생성 중입니다. 잠시만 기다려주세요...
           </p>
         </div>
@@ -424,12 +422,12 @@ const handleModalCancel = () => {
               {isHistoryLoading ? (
                 <div className="flex justify-center">
                   <ClipLoader
-                    color="#3b82f6"
+                    color={isDarkMode ? "#60A5FA" : "#3b82f6"}
                     loading={true}
                     size={40}
                     aria-label="대화 기록 로딩 중"
                   />
-                  <p className="ml-4 text-blue-500 font-samsung700">
+                  <p className="ml-4 text-blue-500 dark:text-blue-400 font-samsung700">
                     이전 대화 기록을 불러오는 중입니다...
                   </p>
                 </div>
@@ -460,14 +458,16 @@ const handleModalCancel = () => {
                         <div className="w-6 h-6 bg-indigo-900 text-white rounded-full flex items-center justify-center mr-2">
                           <span className="text-sm font-samsung700">S</span>
                         </div>
-                        <span className="font-medium text-sm">User</span>
-                        <span className="ml-2 text-xs text-gray-500">
+                        <span className="font-medium text-sm dark:text-gray-200">
+                          User
+                        </span>
+                        <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
                           {formattedTime}
                         </span>
                       </div>
                       {/* 사용자 메시지 */}
                       <div className="pl-10">
-                        <div className="text-primary-gray font-pretendard font-normal rounded-lg">
+                        <div className="text-primary-gray dark:text-gray-300 font-pretendard font-normal rounded-lg">
                           {message.content as string}
                         </div>
                       </div>
@@ -479,8 +479,10 @@ const handleModalCancel = () => {
                         <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center mr-2">
                           <span className="text-sm">S</span>
                         </div>
-                        <span className="font-medium text-sm">S-PAT</span>
-                        <span className="ml-2 text-xs text-gray-500">
+                        <span className="font-medium text-sm dark:text-gray-200">
+                          S-PAT
+                        </span>
+                        <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
                           {formattedTime}
                         </span>
 
@@ -488,7 +490,13 @@ const handleModalCancel = () => {
                         {isStandardArray && (
                           <div className="ml-auto">
                             <Button
-                              variant={isSelected ? "primary" : "outline"}
+                              variant={
+                                isSelected
+                                  ? "primary"
+                                  : isDarkMode
+                                  ? "dark-outline"
+                                  : "outline"
+                              }
                               size="sm"
                               onClick={() => toggleTableSelection(index)}>
                               {isSelected ? "선택완료" : "선택하기"}
@@ -499,24 +507,27 @@ const handleModalCancel = () => {
 
                       {/* AI 메시지 - 타입에 따라 렌더링 */}
                       <div className="pl-10">
-                        <div
-                          className={`bg-white font-pretendard font-medium text-gray-800 rounded-lg px-4 py-2 shadow-sm 
-                            transition-all duration-200 
-                            ${
-                              isSelected
-                                ? "border-2 border-blue-500"
-                                : "border border-transparent"
+                        {typeof message.content === "string" ? (
+                          // 일반 텍스트인 경우 - 컨테이너 유지
+                          <div
+                            className={`bg-white dark:bg-[#23283D] font-pretendard font-medium text-gray-800 dark:text-gray-200 rounded-lg px-4 py-2 shadow-sm transition-all duration-200 border border-transparent dark:border-[#414864] ${
+                              isSelected ? "border-2 !border-blue-500" : ""
                             }`}>
-                          {typeof message.content === "string" ? (
-                            // 일반 텍스트인 경우
                             <div className="whitespace-pre-wrap">
                               {message.content}
                             </div>
-                          ) : (
-                            // 표준 배열인 경우
-                            renderStandardsTable(message.content, index)
-                          )}
-                        </div>
+                          </div>
+                        ) : (
+                          // 표준 배열인 경우 - 테이블 자체만 표시
+                          <div
+                            className={`${
+                              isSelected
+                                ? "border-2 border-blue-500 rounded-lg"
+                                : ""
+                            }`}>
+                            {renderStandardsTable(message.content, index)}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -531,19 +542,6 @@ const handleModalCancel = () => {
           </>
         )}
       </div>
-
-      {/* 진행하기 버튼 영역 - 메시지 영역과 입력 영역 사이
-      {selectedMessageIndex !== null && (
-        <div className="absolute bottom-[120px] right-4 flex justify-center items-center py-4">
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handleProceed}
-            isLoading={isProcessing}>
-            진행하기
-          </Button>
-        </div>
-      )} */}
 
       {/* 파일명 나오게 하기 */}
       {uploadedFile !== null && (
