@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Paperclip, Send } from "lucide-react";
 import Button from "../common/Button";
+import useThemeStore from "../../stores/useThemeStore";
 
 interface PromptProps {
   onSubmit?: (promptText: string) => void;
@@ -16,6 +17,7 @@ const Prompt: React.FC<PromptProps> = ({
   showFileUpload = true, // 기본값은 true
 }) => {
   const [promptText, setPromptText] = useState<string>("");
+  const { isDarkMode } = useThemeStore();
 
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [fileLoading, setFileLoading] = useState<boolean>(false);
@@ -131,17 +133,17 @@ const Prompt: React.FC<PromptProps> = ({
   return (
     <div className="flex flex-col">
       <div
-        className={`bg-white rounded-xl shadow-sm p-4 sm:py-4 sm:px-5 overflow-hidden
+        className={`bg-white dark:bg-[#23283D] rounded-xl shadow-sm p-4 sm:py-4 sm:px-5 overflow-hidden
           ${dragActive ? "border-2 border-blue-500 bg-blue-50" : ""}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}>
         <textarea
-          className={`w-full min-h-[60px] rounded-lg focus:outline-none resize-none text-gray-700 font-samsung400 text-sm break-words bg-white disabled:bg-white disabled:text-gray-700 ${
+          className={`w-full min-h-[60px] rounded-lg focus:outline-none resize-none text-gray-700 dark:text-[#A7ACB4] dark:bg-[#23283D] font-pretendard text-sm break-words bg-white disabled:bg-white disabled:text-gray-700 ${
             isLoading || fileLoading ? "cursor-not-allowed" : ""
           }`}
-          placeholder="특허 분류 체계를 생성하기 위한 프롬프트를 입력해주세요"
+          placeholder="ex) 휴머노이드 특허데이터에 대한 분류 체계를 생성해줘"
           value={promptText}
           onChange={handlePromptChange}
           onKeyDown={handleKeyDown}
@@ -159,7 +161,7 @@ const Prompt: React.FC<PromptProps> = ({
         <div className="flex flex-col sm:flex-row gap-2">
           {showFileUpload && (
             <Button
-              variant="outline"
+              variant={isDarkMode ? "dark-outline" : "outline"}
               icon={<Paperclip className="h-4 w-4" />}
               size="sm"
               textSize="xs"

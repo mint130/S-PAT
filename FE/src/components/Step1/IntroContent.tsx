@@ -26,7 +26,7 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ title, items }) => {
         )}
       </div>
 
-      <h3 className="font-samsungSharp text-primary-gray dark:text-[#D2D4D8] mb-4 text-base">
+      <h3 className="font-pretendard font-semi text-primary-gray dark:text-[#D2D4D8] mb-4 text-base">
         {title}
       </h3>
 
@@ -34,7 +34,7 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ title, items }) => {
         {items.map((item, index) => (
           <li
             key={index}
-            className="p-2 text-[12px] text-[#3F3F3F] dark:text-[#ACB4C0] border border-[#F0F2F5] dark:border-[#323A51] rounded-md text-center font-samsung400 mx-auto bg-white dark:bg-[#23283D]">
+            className="p-2 text-[12px] text-[#3F3F3F] dark:text-[#ACB4C0] border border-[#F0F2F5] dark:border-[#323A51] dark:border-opacity-60 rounded-md text-center font-pretendard mx-auto bg-white dark:bg-[#23283D] dark:bg-opacity-60">
             {item}
           </li>
         ))}
@@ -63,9 +63,9 @@ const IntroContent: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-screen-xl mx-auto px-4 sm:px-19 flex flex-col justify-center grow">
+    <div className="max-w-screen-xl mx-auto px-4 sm:px-20 flex flex-col justify-center grow">
       <div className="text-center ">
-        <h1 className="text-3xl font-samsungSharp font-bold text-primary-black dark:text-[#D1D1D1] mb-6">
+        <h1 className="text-[32px] font-pretendard font-semibold text-primary-black dark:text-[#D1D1D1] mb-2">
           <span className="text-primary-blue">S</span>amsung{" "}
           <span className="text-primary-blue">P</span>atent{" "}
           <span className="text-primary-blue">A</span>I{" "}

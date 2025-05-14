@@ -68,14 +68,14 @@ const Step0ModeSelect: React.FC = () => {
             </h1>
 
             <p
-              className={`font-samsung400 ${
+              className={`font-pretendard ${
                 isDarkMode ? "text-gray-300" : "text-primary-gray"
               } text-lg max-w-2xl mx-auto`}>
               SPAT은 AI 기반 특허 분류 시스템으로, 효율적인 특허 관리와 분석을
               지원합니다.
             </p>
             <p
-              className={`font-samsung400 ${
+              className={`font-pretendard ${
                 isDarkMode ? "text-gray-300" : "text-primary-gray"
               } text-lg max-w-2xl mx-auto mb-6`}>
               특허 문서를 빠르고 정확하게 분류하여 업무 효율성을 높이세요.
@@ -86,7 +86,7 @@ const Step0ModeSelect: React.FC = () => {
                   isDarkMode
                     ? "bg-[#23283D]/90 text-gray-200"
                     : "bg-white/80 text-gray-700"
-                } backdrop-blur-sm shadow-sm font-samsung400 px-4 py-2 rounded-full text-sm font-medium flex items-center`}>
+                } backdrop-blur-sm shadow-sm font-pretendard px-4 py-2 rounded-full text-sm font-medium flex items-center`}>
                 <BadgeCheck
                   className="h-4 w-4 mr-1 text-blue-500 dark:text-blue-400"
                   fill="currentColor"
@@ -100,7 +100,7 @@ const Step0ModeSelect: React.FC = () => {
                   isDarkMode
                     ? "bg-[#23283D]/90 text-gray-200"
                     : "bg-white/80 text-gray-700"
-                } backdrop-blur-sm shadow-sm font-samsung400 px-4 py-2 rounded-full text-sm font-medium flex items-center`}>
+                } backdrop-blur-sm shadow-sm font-pretendard px-4 py-2 rounded-full text-sm font-medium flex items-center`}>
                 <FileText
                   className="h-4 w-4 mr-1 text-blue-500 dark:text-blue-400"
                   fill="currentColor"
@@ -114,7 +114,7 @@ const Step0ModeSelect: React.FC = () => {
                   isDarkMode
                     ? "bg-[#23283D]/90 text-gray-200"
                     : "bg-white/80 text-gray-700"
-                } backdrop-blur-sm shadow-sm font-samsung400 px-4 py-2 rounded-full text-sm font-medium flex items-center`}>
+                } backdrop-blur-sm shadow-sm font-pretendard px-4 py-2 rounded-full text-sm font-medium flex items-center`}>
                 <ChartNoAxesCombined className="h-4 w-4 mr-1 text-blue-500 dark:text-blue-400" />
                 데이터 분석
               </div>
@@ -136,7 +136,7 @@ const Step0ModeSelect: React.FC = () => {
                 <h2
                   className={`text-xl font-bold ${
                     isDarkMode ? "text-white" : "text-gray-800"
-                  } font-samsung700`}>
+                  } font-pretendard`}>
                   사용자 모드
                 </h2>
               </div>
@@ -144,7 +144,7 @@ const Step0ModeSelect: React.FC = () => {
               <p
                 className={`text-sm ${
                   isDarkMode ? "text-gray-300" : "text-primary-gray"
-                } mb-4 font-samsung400`}>
+                } mb-4 font-pretendard`}>
                 자신만의 기술 분류 체계로 특허를 스마트하게 정리하세요. 최적화된
                 AI가 복잡한 특허 문서를 정확히 분류합니다.
               </p>
@@ -152,7 +152,7 @@ const Step0ModeSelect: React.FC = () => {
               <ul
                 className={`text-sm ${
                   isDarkMode ? "text-gray-300" : "text-gray-600"
-                } space-y-2 ml-1 font-samsung400`}>
+                } space-y-2 ml-1 font-pretendard`}>
                 <li className="flex items-center ">
                   <Check
                     strokeWidth={3}
@@ -190,7 +190,7 @@ const Step0ModeSelect: React.FC = () => {
                 <h2
                   className={`text-xl font-bold ${
                     isDarkMode ? "text-white" : "text-gray-800"
-                  } font-samsung700`}>
+                  } font-pretendard`}>
                   관리자 모드
                 </h2>
               </div>
@@ -198,7 +198,7 @@ const Step0ModeSelect: React.FC = () => {
               <p
                 className={`text-sm ${
                   isDarkMode ? "text-gray-300" : "text-primary-gray"
-                } mb-4 font-samsung400`}>
+                } mb-4 font-pretendard`}>
                 최신 LLM들의 특허 분류 성능을 객관적으로 비교하고 평가하세요.
                 정밀한 분석을 통해 가장 효과적인 AI 모델을 선별합니다.
               </p>
@@ -206,7 +206,7 @@ const Step0ModeSelect: React.FC = () => {
               <ul
                 className={`text-sm ${
                   isDarkMode ? "text-gray-300" : "text-gray-600"
-                } space-y-2 ml-1 font-samsung400`}>
+                } space-y-2 ml-1 font-pretendard`}>
                 <li className="flex items-center">
                   <Check
                     strokeWidth={3}
