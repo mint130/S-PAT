@@ -47,13 +47,25 @@ function Step2ClassificationEdit() {
 
   useEffect(() => {
     if (!selectedStandards) {
-      navigate("/user/step1");
+      const Role = localStorage.getItem("role");
+
+      if (Role == "User") {
+        navigate("/user/step2");
+      } else {
+        navigate("/admin/step2");
+      }
       return;
     }
   }, [selectedStandards, navigate]);
 
   const handlePrevious = () => {
-    navigate("/user/step1");
+    const Role = localStorage.getItem("role");
+
+    if (Role == "User") {
+      navigate("/user/step1");
+    } else {
+      navigate("/admin/step1");
+    }
   };
 
   const handleNext = async () => {
@@ -87,7 +99,14 @@ function Step2ClassificationEdit() {
       console.log("step2 응답 데이터:", response.data);
 
       // 성공적으로 처리된 후 다음 단계로 이동
-      navigate("/user/step3");
+      const Role = localStorage.getItem("role");
+
+      if (Role == "User") {
+        // state와 함께 Step2로 네비게이션
+        navigate("/user/step3");
+      } else {
+        navigate("/admin/step3");
+      }
     } catch (err) {
       console.error("step2 API 오류:", err);
     } finally {
