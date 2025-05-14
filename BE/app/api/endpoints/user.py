@@ -197,10 +197,3 @@ def read_best_llm(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="LLM setting not found")
     return {"LLM": llm}
 
-# 최적의 LLM 설정
-@user_router.post("/LLM", response_model=LLMResponse, summary="최적의 LLM 설정")
-def set_best_llm(llm_data: LLMCreate, db: Session = Depends(get_db)):
-    llm_record = update_best_llm(db, llm_data.LLM)
-
-    return {"LLM": llm_record.llm}
-
