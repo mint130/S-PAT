@@ -197,6 +197,14 @@ const ChatContent: React.FC = () => {
         response = await fetchAssistantResponse(promptText);
       }
 
+      // 응답 검증 - standards가 빈 배열인지 확인
+      if (
+        !response.standards ||
+        (Array.isArray(response.standards) && response.standards.length === 0)
+      ) {
+        throw new Error("Empty response from API");
+      }
+
       // 응답 메시지 추가
       const assistantMessage: Message = {
         type: "assistant",
@@ -212,7 +220,7 @@ const ChatContent: React.FC = () => {
       // 에러 메시지 추가
       const errorMessage: Message = {
         type: "assistant",
-        content: "아직 통신이 원활하지 않습니다. 잠시 후 다시 시도해주세요.",
+        content: "응답을 불러오지 못했습니다. 다시 입력해주세요.",
         timestamp: new Date(),
       };
 
@@ -563,7 +571,7 @@ const ChatContent: React.FC = () => {
       </div>
 
       {/* 파일명 나오게 하기 */}
-      {uploadedFile !== null && (
+      {uploadedFile !== null && !chatStarted && (
         <div className="absolute bottom-[120px] left-0 flex items-center py-4">
           <div className="bg-white border border-[#F0F2F5] dark:bg-[#23283D] dark:border-[#4B5268] shadow-sm font-pretendard rounded-md p-3 flex items-center">
             <div className="w-10 h-10 bg-[#EBF5FF] dark:bg-[#353E5C] border border-[#D0E3FF] dark:border-[#414864] rounded-full flex items-center justify-center mr-3 flex-shrink-0">
@@ -601,7 +609,6 @@ const ChatContent: React.FC = () => {
         </div>
       )}
 
-      {/* 기존 모달 대신 ConfirmationModal 컴포넌트 사용 */}
       <NextModal
         isOpen={showModal}
         title="해당 분류체계를 진행하시겠습니까?"
