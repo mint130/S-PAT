@@ -1,7 +1,7 @@
 import Title from "../components/common/Title";
 import Button from "../components/common/Button";
 import SelectLLM from "../components/common/SelectLLM";
-import DataTable from "../components/common/DataTable";
+import DataTable from "../components/common/dataTable/DataTable";
 
 import { useNavigate } from "react-router-dom";
 

@@ -4,7 +4,7 @@ import type { ColDef, RowSelectionOptions } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 import { AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
-import DataTableToolbar from "./dataTable/DataTableToolbar";
+import DataTableToolbar from "./DataTableToolbar";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
