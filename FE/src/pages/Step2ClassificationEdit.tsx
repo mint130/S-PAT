@@ -9,11 +9,11 @@ import { AgGridReact } from "ag-grid-react";
 
 const CLASSIFICATION_COLUMNS: ColDef[] = [
   {
-    headerName: "코드",
+    headerName: "분류코드",
     field: "code",
   },
   {
-    headerName: "분류",
+    headerName: "분류단계",
     field: "level",
     cellEditor: "agSelectCellEditor",
     cellEditorParams: {
@@ -21,11 +21,11 @@ const CLASSIFICATION_COLUMNS: ColDef[] = [
     },
   },
   {
-    headerName: "이름",
+    headerName: "명칭",
     field: "name",
   },
   {
-    headerName: "설명",
+    headerName: "상세 설명",
     field: "description",
     cellEditor: "agLargeTextCellEditor",
     cellEditorPopup: true,
@@ -114,9 +114,10 @@ function Step2ClassificationEdit() {
           rowData={standards}
           colDefs={colDefs}
           edit={true}
-          gridRef={gridRef}
-          selectable={true}
-          setRowData={setStandards}
+          download={true}
+          // gridRef={gridRef}
+          // selectable={true}
+          // setRowData={setStandards}
         />
       </div>
 

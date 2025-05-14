@@ -1,157 +1,44 @@
-import React, {
-  useRef,
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-} from "react";
+import React, { useRef, useMemo, useCallback } from "react";
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef, RowSelectionOptions } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
-import {
-  Search,
-  ListFilter,
-  Check,
-  AlertCircle,
-  Trash2,
-  Plus,
-  FileDown,
-} from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
+import DataTableToolbar from "./dataTable/DataTableToolbar";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
+// 데이터 테이블 Props 인터페이스 정의
 interface DataTableProps {
-  rowData: any[];
-  colDefs: ColDef[];
-  edit?: boolean;
-  gridRef?: React.RefObject<AgGridReact | null>;
-  selectable?: boolean;
-  setRowData?: React.Dispatch<React.SetStateAction<any[]>>;
+  rowData: any[]; // 표시할 행 데이터 배열
+  colDefs: ColDef[]; // 열 정의 배열
+  edit?: boolean; // 편집 가능 여부 (기본값: false)
+  // gridRef?: React.RefObject<AgGridReact | null>; // 외부에서 그리드 참조 가능하도록 ref 제공
+  fileName?: String;
+  download?: boolean; // 다운로드 가능 여부 (기본값: false)
 }
 
-// 컬럼 메뉴 컴포넌트 분리
-interface ColumnMenuProps {
-  colDefs: ColDef[];
-  columnVisibility: Record<string, boolean>;
-  setColumnVisibility: React.Dispatch<
-    React.SetStateAction<Record<string, boolean>>
-  >;
-  onColumnChange: (field: string) => void;
-}
-
-const ColumnMenu: React.FC<ColumnMenuProps> = ({
-  colDefs,
-  columnVisibility,
-  setColumnVisibility,
-  onColumnChange,
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const columnMenuRef = useRef<HTMLDivElement>(null);
-
-  // 초기 컬럼 상태 설정
-  useEffect(() => {
-    const initialVisibility: Record<string, boolean> = {};
-    colDefs.forEach((col) => {
-      if (col.field) {
-        initialVisibility[col.field] = true;
-      }
-    });
-    setColumnVisibility(initialVisibility);
-  }, [colDefs]);
-
-  // 외부 클릭 감지
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        columnMenuRef.current &&
-        !columnMenuRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  return (
-    <div className="relative" ref={columnMenuRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
-        <ListFilter size={16} />
-        <span>Columns</span>
-      </button>
-
-      {isOpen && (
-        <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-          <div className="py-1">
-            <div className="max-h-64 overflow-y-auto">
-              {colDefs.map((column) => {
-                return (
-                  <div
-                    key={column.field}
-                    className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => onColumnChange(column.field!)}>
-                    <div className="flex items-center justify-center w-4 h-4">
-                      {columnVisibility[column.field!] && (
-                        <Check size={14} className="text-blue-600" />
-                      )}
-                    </div>
-                    <span className="text-sm font-medium text-gray-700">
-                      {column.headerName || column.field}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
+// DataTable 컴포넌트 정의
 const DataTable: React.FC<DataTableProps> = ({
   rowData,
   colDefs,
   edit = false,
-  gridRef: externalGridRef,
-  selectable = false,
-  setRowData,
+  fileName = "",
+  download = false,
 }) => {
-  const internalGridRef = useRef<AgGridReact>(null);
-  const gridRef = externalGridRef || internalGridRef;
-  const [quickFilterText, setQuickFilterText] = useState("");
-  const [columnVisibility, setColumnVisibility] = useState<
-    Record<string, boolean>
-  >({});
+  const gridRef = useRef<AgGridReact>(null); // 그리드 참조를 위한 ref 생성
 
   const defaultColDef: ColDef = {
-    flex: 1,
-    sortable: true,
-    resizable: true,
-    editable: edit,
+    sortable: true, // 모든 열에 정렬 기능 활성화
+    unSortIcon: true, // 정렬되지 않은 열에도 a아이콘 표시
+    resizable: true, // 열 크기 조절 가능
+    editable: edit, // props로 전달된 edit 값따라 편집 가능 여부 설정
   };
 
+  // 행 선택 설정
   const rowSelection = useMemo<RowSelectionOptions | undefined>(() => {
-    return selectable ? { mode: "multiRow" } : undefined;
-  }, [selectable]);
-
-  const toggleColumnVisibility = (field: string) => {
-    // ag-grid API 업데이트
-    gridRef.current!.api.setColumnsVisible([field], !columnVisibility[field]);
-    // React 상태 업데이트
-    setColumnVisibility((prev) => ({
-      ...prev,
-      [field]: !columnVisibility[field],
-    }));
-  };
-
-  const onRemoveSelected = useCallback(() => {
-    const selectedRowData = gridRef.current!.api.getSelectedRows();
-    gridRef.current!.api.applyTransaction({ remove: selectedRowData });
-  }, []);
+    return edit ? { mode: "multiRow" } : undefined; // edit이 true일 때만 다중 행 선택 활성화
+  }, [edit]);
 
   // 행 추가 함수
   const addNewRow = useCallback(() => {
@@ -164,124 +51,119 @@ const DataTable: React.FC<DataTableProps> = ({
         newRow[col.field] = "";
       }
     });
+    gridRef.current?.api.applyTransaction({
+      add: [newRow],
+    });
+  }, [colDefs]);
 
-    // AG Grid API를 사용하여 새 행 추가
-    if (gridRef.current?.api) {
-      gridRef.current.api.applyTransaction({
-        add: [newRow],
-      });
+  // 행 삭제 함수
+  const onRemoveSelected = useCallback(() => {
+    const selectedRowData = gridRef.current?.api.getSelectedRows();
+    gridRef.current?.api.applyTransaction({ remove: selectedRowData });
+  }, []);
+
+  // 열 상태 가져오는 함수
+  const getColumnsState = useCallback(() => {
+    if (!gridRef.current?.api) return {};
+
+    const columnsState = gridRef?.current.api.getColumnState();
+    let columnsObj: Record<string, { headerName: string; hide: boolean }> = {};
+
+    // 각 컬럼 상태를 객체로 변환
+    columnsState.forEach((state) => {
+      // 해당 colId에 맞는 colDef 찾기
+      const originalColDef = colDefs.find((def) => def.field === state.colId);
+      // 객체에 추가
+      columnsObj[state.colId] = {
+        headerName: originalColDef?.headerName || state.colId,
+        hide: state.hide ?? false,
+      };
+    });
+
+    // edit 모드인 경우 0번째 인덱스 제외
+    if (edit && columnsState.length > 0) {
+      const firstColId = columnsState[0].colId;
+      if (firstColId in columnsObj) {
+        // 첫 번째 컬럼 제거
+        const { [firstColId]: removed, ...rest } = columnsObj;
+        columnsObj = rest;
+      }
     }
+    return columnsObj;
+  }, [colDefs]);
 
-    // 상위 컴포넌트의 상태도 업데이트 (제공된 경우)
-    if (setRowData) {
-      setRowData((currentRowData) => [...currentRowData, newRow]);
-    }
-  }, [colDefs, gridRef, setRowData]);
+  const onColumnVisibility = (field: string, hide: boolean) => {
+    gridRef.current?.api.setColumnsVisible([field], !hide);
+  };
 
-  // 엑셀 다운로드 함수 추가
+  // 검색 함수
+  const onFilterTextChanged = useCallback((text: string) => {
+    gridRef.current?.api.setGridOption("quickFilterText", text);
+  }, []);
+
+  // 엑셀 다운로드 함수
   const handleExcelDownload = useCallback(() => {
-    if (!gridRef.current?.api) return;
+    try {
+      if (!gridRef.current?.api) return;
 
-    // 모든 행 데이터 가져오기
-    const exportData: any[] = [];
-    gridRef.current.api.forEachNode((node) => {
-      if (node.data) {
-        exportData.push(node.data);
-      }
-    });
+      // 모든 행 데이터 가져오기
+      const data: any[] = [];
+      gridRef.current.api.forEachNode((node) => {
+        if (node.data) {
+          data.push(node.data);
+        }
+      });
 
-    // 엑셀 워크시트 생성
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
+      // 엑셀 워크시트 생성
+      const worksheet = XLSX.utils.json_to_sheet(data);
 
-    // 컬럼 헤더 이름 설정 (기본 필드명 대신 headerName 사용)
-    const headerNames: any = {};
-    const headers: string[] = [];
+      // 컬럼 헤더 이름 설정
+      const headers: string[] = [];
+      colDefs.forEach((col) => {
+        if (col.field) {
+          headers.push(col.headerName || col.field);
+        }
+      });
 
-    colDefs.forEach((col, index) => {
-      if (col.field) {
-        const headerName = col.headerName || col.field;
-        headers.push(headerName);
-        const cellRef = XLSX.utils.encode_cell({ r: 0, c: index });
-        headerNames[cellRef] = { v: headerName, t: "s" };
-      }
-    });
+      // 워크시트에 헤더 정보 추가
+      XLSX.utils.sheet_add_aoa(worksheet, [headers], { origin: "A1" });
 
-    // 워크시트에 헤더 정보 추가
-    XLSX.utils.sheet_add_aoa(worksheet, [headers], { origin: "A1" });
+      // 모든 열을 특정 고정 너비로 설정
+      const columnWidths = colDefs.map(() => ({ wch: 20 }));
+      worksheet["!cols"] = columnWidths;
+      // 엑셀 워크북 생성
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "데이터");
 
-    // 열 너비 설정 (자동으로 조정)
-    const columnWidths = colDefs.map(() => ({ wch: 15 })); // 기본값 15
-    worksheet["!cols"] = columnWidths;
+      // 현재 날짜와 시간 포맷팅
+      const now = new Date();
+      const dateStr = now.toISOString().split("T")[0];
 
-    // 엑셀 워크북 생성
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "데이터");
+      // 엑셀 파일 다운로드
+      const fileName = `데이터_${dateStr}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
 
-    // 현재 날짜와 시간 포맷팅
-    const now = new Date();
-    const dateStr = now.toISOString().split("T")[0];
-    const timeStr = now.toTimeString().split(" ")[0].replace(/:/g, "-");
-
-    // 엑셀 파일 다운로드
-    const fileName = `데이터_${dateStr}_${timeStr}.xlsx`;
-    XLSX.writeFile(workbook, fileName);
-  }, [colDefs, gridRef]);
+      console.log("엑셀 파일이 성공적으로 다운로드되었습니다.");
+    } catch (error) {
+      console.error("엑셀 다운로드 중 오류 발생:", error);
+      alert("엑셀 다운로드 중 오류가 발생했습니다.");
+    }
+  }, [rowData, colDefs]);
 
   return (
-    <div className="flex flex-col h-full">
-      {/* 상단 컨트롤 영역 */}
-      <div className="mb-2 flex justify-end items-center gap-4">
-        {/* 행 추가 버튼 */}
-        {setRowData && (
-          <button
-            onClick={addNewRow}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-blue-600">
-            <Plus size={16} />
-            <span>행 추가</span>
-          </button>
-        )}
-
-        {/* 컬럼 필터 버튼 */}
-        <ColumnMenu
-          colDefs={colDefs}
-          columnVisibility={columnVisibility}
-          setColumnVisibility={setColumnVisibility}
-          onColumnChange={toggleColumnVisibility}
-        />
-
-        {/* 삭제 버튼 */}
-        {selectable && (
-          <button
-            onClick={onRemoveSelected}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
-            <Trash2 size={16} />
-            <span>삭제</span>
-          </button>
-        )}
-
-        {/* 검색 영역 */}
-        <div className="relative w-96">
-          <input
-            type="text"
-            value={quickFilterText}
-            onChange={(e) => setQuickFilterText(e.target.value)}
-            placeholder="검색어를 입력하세요"
-            className="w-full h-9 pl-10 pr-4 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-          <Search
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-            size={16}
-          />
-        </div>
-
-        {/* 엑셀 다운로드 버튼 추가 */}
-        <button
-          onClick={handleExcelDownload}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-green-600">
-          <FileDown size={16} />
-          <span>엑셀 다운로드</span>
-        </button>
-      </div>
+    <div className="flex flex-col h-full font-pretendard w-full">
+      {/* 툴바 영역 */}
+      <DataTableToolbar
+        fileName={fileName}
+        edit={edit}
+        download={download}
+        onAddNewRow={addNewRow}
+        onRemoveSelected={onRemoveSelected}
+        onColumnVisibility={onColumnVisibility}
+        onFilterTextChanged={onFilterTextChanged}
+        onExcelDownload={handleExcelDownload}
+        getColumnsState={getColumnsState}
+      />
 
       {/* 테이블 영역 */}
       <div className="flex-1 relative">
@@ -299,12 +181,14 @@ const DataTable: React.FC<DataTableProps> = ({
           </div>
         ) : (
           <AgGridReact
-            ref={gridRef}
-            rowData={rowData}
-            columnDefs={colDefs}
-            defaultColDef={defaultColDef}
-            quickFilterText={quickFilterText}
-            rowSelection={rowSelection}
+            ref={gridRef} // 그리드 참조 설정
+            rowData={rowData} // 행 데이터
+            columnDefs={colDefs} // 열 정의
+            defaultColDef={defaultColDef} // 기본 열 속성
+            rowSelection={rowSelection} // 행 선택 옵션
+            alwaysMultiSort={true} // 항상 다중 정렬 허용 (여러 컬럼으로 동시에 정렬 가능)
+            // suppressDragLeaveHidesColumns={true} // 열을 드래그하여 그리드 밖으로 이동시켜도 열이 숨겨지지 않도록 방지
+            // loading={loading} // 로딩 상태 표시
           />
         )}
       </div>
