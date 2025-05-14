@@ -42,7 +42,6 @@ function Step2ClassificationEdit() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const { selectedStandards } = location.state || [];
-  const [standards, setStandards] = useState<any[]>([]);
   const [colDefs] = useState<ColDef[]>(CLASSIFICATION_COLUMNS);
   const gridRef = useRef<AgGridReact>(null);
 
@@ -51,9 +50,6 @@ function Step2ClassificationEdit() {
       navigate("/user/step1");
       return;
     }
-
-    // 선택된 표준이 있으면 상태 업데이트
-    setStandards(selectedStandards);
   }, [selectedStandards, navigate]);
 
   const handlePrevious = () => {
@@ -64,9 +60,9 @@ function Step2ClassificationEdit() {
     setLoading(true);
 
     try {
-      const session_id = localStorage.getItem("sessionId"); // 로컬스토리지에서 세션 ID 가져오기
+      const sessionId = localStorage.getItem("sessionId");
 
-      if (!session_id) {
+      if (!sessionId) {
         throw new Error("세션 ID를 찾을 수 없습니다.");
       }
 
@@ -81,12 +77,13 @@ function Step2ClassificationEdit() {
       console.log(updatedStandards);
 
       const response = await axios.post(
-        `https://s-pat.site/api/user/${session_id}/standard/save`,
+        `https://s-pat.site/api/user/${sessionId}/standard/save`,
         {
-          standards: standards,
+          standards: updatedStandards,
         }
       );
 
+      console.log("step2 데이터:", updatedStandards);
       console.log("step2 응답 데이터:", response.data);
 
       // 성공적으로 처리된 후 다음 단계로 이동
@@ -111,13 +108,11 @@ function Step2ClassificationEdit() {
 
       <div className="flex-1 h-full w-full mt-2 ">
         <DataTable
-          rowData={standards}
+          rowData={selectedStandards}
           colDefs={colDefs}
           edit={true}
           download={true}
-          // gridRef={gridRef}
-          // selectable={true}
-          // setRowData={setStandards}
+          ref={gridRef}
         />
       </div>
 
