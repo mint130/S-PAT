@@ -16,6 +16,10 @@ interface NextModalProps {
   onConfirm: () => void;
   /** 로딩 상태 여부 */
   isLoading?: boolean;
+
+  cancleText?: string;
+
+  confirmText?: string;
 }
 
 const NextModal: React.FC<NextModalProps> = ({
@@ -25,23 +29,24 @@ const NextModal: React.FC<NextModalProps> = ({
   onCancel,
   onConfirm,
   isLoading = false,
+  cancleText = "취소",
+  confirmText = "진행하기",
 }) => {
   const { isDarkMode } = useThemeStore();
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-[9999]"> 
+    <div className="fixed inset-0 flex items-center justify-center z-[9999]">
       {/* 배경 오버레이 */}
       <div
-        className="absolute inset-0 bg-gray-900 bg-opacity-50 z-[9998]" 
+        className="absolute inset-0 bg-gray-900 bg-opacity-50 z-[9998]"
         onClick={onCancel}></div>
 
       {/* 모달 내용 */}
-      <div 
-        className="bg-white dark:bg-[#23283D] rounded-lg shadow-lg w-full max-w-md mx-4 z-[9999]" 
-        aria-modal="true"
-      >
+      <div
+        className="bg-white dark:bg-[#23283D] rounded-lg shadow-lg w-full max-w-md mx-4 z-[9999]"
+        aria-modal="true">
         {/* 모달 헤더 */}
         <div className="px-6 pt-4 mt-4">
           <h3 className="text-xl font-pretendard font-semibold text-black dark:text-[#EBEEF3]">
@@ -63,7 +68,7 @@ const NextModal: React.FC<NextModalProps> = ({
             size="md"
             onClick={onCancel}
             className="w-auto min-w-fit px-4">
-            취소
+            {cancleText}
           </Button>
           <Button
             variant="primary"
@@ -71,7 +76,7 @@ const NextModal: React.FC<NextModalProps> = ({
             onClick={onConfirm}
             className="w-auto min-w-fit px-4"
             isLoading={isLoading}>
-            진행하기
+            {confirmText}
           </Button>
         </div>
       </div>
