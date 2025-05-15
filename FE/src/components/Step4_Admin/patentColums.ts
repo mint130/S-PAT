@@ -42,5 +42,11 @@ export const patentColumns: ColDef[] = [
     headerName: "전문가평가",
     field: "evaluation",
     cellRenderer: EvaluationRenderer,
+    pinned: "right",
+    lockPinned: true,
+    lockPosition: "right",
+    resizable: false,
+    width: 130,
+    suppressMovable: true,
   },
 ];
