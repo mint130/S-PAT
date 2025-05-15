@@ -20,4 +20,4 @@ class StandardRequest(BaseModel):
 
 class StandardLLMResponse(BaseModel):
     standards: List[StandardItem]
-    query: str 
+    query: Optional[str] = None 
