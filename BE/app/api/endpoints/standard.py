@@ -18,7 +18,7 @@ from app.models.conversation import Conversation
 from app.crud.crud_conversation import create_conversation_record, get_conversation_history_by_session
 from app.crud.crud_excel import process_excel_file
 from app.schemas.excel import StandardResponse, StandardLLMResponse
-from app.crud.crud_llm import llm_processor
+from app.crud.crud_llm import process_with_llm
 
 load_dotenv()
 
@@ -173,33 +173,27 @@ async def upload_excel(session_id: str, file: UploadFile = File(...)):
 
 
 @standard_router.post("/{session_id}/upload/prompt", response_model=StandardLLMResponse, summary="엑셀 파일 업로드와 프롬프트로 분류 체계 생성", description="엑셀 파일을 업로드하고 GPT를 사용하여 분류 체계를 처리합니다.")
-async def process_with_llm(
+async def upload_excel_with_prompt(
     session_id: str,
     file: UploadFile = File(...),
-    query: str = Form(...),
+    prompt: str = Form(...),
     db: Session = Depends(get_db)
 ):
     try:
-        logger.info(f"세션 {session_id}에 대한 요청 처리 시작")
-        
-        # 1. 엑셀 파일 처리
-        logger.info("엑셀 파일 처리 중...")
+        # 엑셀 파일 처리
         standards = await process_excel_file(file)
         
-        # 2. LLM 처리
-        logger.info("LLM 처리 중...")
-        processed_standards = await llm_processor.process_with_llm(standards, query, session_id)
+        # LLM 처리
+        response = await process_with_llm(session_id, standards, prompt)
         
-        # 3. 대화 기록 저장
-        logger.info("대화 기록 저장 중...")
-        create_conversation_record(db, session_id, query, processed_standards)
+        # db에 대화 저장
+        create_conversation_record(db, session_id, prompt, response)
         
-        logger.info("요청 처리 완료")
-        return {
-            "standards": processed_standards,
-            "query": query
-        }
+        # JSON 응답 반환
+        return {"standards": response}
         
     except Exception as e:
-        logger.error(f"요청 처리 중 오류 발생: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        error_detail = str(e) + "\n" + traceback.format_exc()
+        logger.error(f"Error occurred: {error_detail}")
+        raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")

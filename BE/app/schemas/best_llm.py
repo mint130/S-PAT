@@ -13,4 +13,4 @@ class LLMResponse(LLMBase):
     # LLM 응답 스키마
 
     class Config:
-        orm_mode = True
+        from_attributes = True
