@@ -105,7 +105,6 @@ function Step4AdminPatentResult() {
   const { llmData, updateLLM, selectedLLM } = useLLMStore();
   const [columnDefs] = useState(patentColumns);
   const [evaluatedCount, setEvaluatedCount] = useState(0);
-  const [isAllEvaluated, setIsAllEvaluated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -179,7 +178,6 @@ function Step4AdminPatentResult() {
         (item) => item.evaluation !== null && item.evaluation !== undefined
       ).length;
       setEvaluatedCount(count);
-      setIsAllEvaluated(count === currentPatents.length);
     }
   }, [currentPatents]);
 
