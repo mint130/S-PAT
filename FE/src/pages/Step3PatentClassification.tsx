@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Title from "../components/common/Title";
 import PatentFileUpload from "../components/Step3/PatentFileUpload";
@@ -10,23 +9,18 @@ import UserLoading from "../components/Loading/UserLoading";
 import MultiAILoadingScreen from "../components/Loading/MultiAILoadingScreen";
 
 function Step3PatentClassification() {
-  const navigate = useNavigate();
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [isClassifying, setIsClassifying] = useState<boolean>(false);
   const [sessionId, setSessionId] = useState<string>("");
+  const [fileLength, setFileLength] = useState<number>(0);
 
   // 파일 처리 완료 핸들러
   const handleFileProcessed = (file: File, buffer: ArrayBuffer) => {
     setUploadedFile(file);
     setFileBuffer(buffer);
-  };
-
-  // 이전 단계로 이동
-  const handlePrevious = () => {
-    navigate("/user/step2");
   };
 
   // 다음 버튼 클릭 시 모달 열기
@@ -38,6 +32,13 @@ function Step3PatentClassification() {
   // 모달 취소 버튼 클릭 시 모달 닫기
   const onCancel = () => {
     setModalOpen(false);
+  };
+
+  // 파일 다시 선택하기 핸들러 추가
+  const handleReselect = () => {
+    setUploadedFile(null);
+    setFileBuffer(null);
+    setFileLength(0);
   };
 
   const saveBestLLM = async () => {
@@ -57,11 +58,11 @@ function Step3PatentClassification() {
     setModalOpen(false);
 
     try {
-      saveBestLLM();
+      // LLM 정보 먼저 저장
+      await saveBestLLM();
+
       const session_id = localStorage.getItem("sessionId");
       const llm = localStorage.getItem("LLM");
-
-      // const llm = saveBestLLM();
 
       if (!session_id) {
         throw new Error("세션 ID를 찾을 수 없습니다.");
@@ -78,10 +79,9 @@ function Step3PatentClassification() {
 
       const Role = localStorage.getItem("role");
 
-      if (Role == "User") {
+      if (Role === "User") {
         // 분류 작업 시작 API 호출
         const response = await axios.post(
-          // Todo! : /api/test/{session_id}/upload?LLM={LLM}
           `https://s-pat.site/api/user/${session_id}/upload?LLM=${llm}`,
           formData,
           {
@@ -127,7 +127,7 @@ function Step3PatentClassification() {
         localStorage.getItem("role") === "Admin" ? (
           <MultiAILoadingScreen sessionId={sessionId} />
         ) : (
-          <UserLoading sessionId={sessionId} />
+          <UserLoading sessionId={sessionId} fileLength={fileLength} />
         )
       ) : (
         <>
@@ -139,19 +139,21 @@ function Step3PatentClassification() {
           {!uploadedFile || !fileBuffer ? (
             <PatentFileUpload onFileProcessed={handleFileProcessed} />
           ) : (
-            <PatentTable fileBuffer={fileBuffer} />
+            <PatentTable
+              fileBuffer={fileBuffer}
+              setfileLength={setFileLength}
+            />
           )}
 
           {/* 이전/다음 버튼 영역 */}
-          <div className="flex justify-between w-full mt-10">
-            <Button
-              variant="outline"
-              size="md"
-              className="w-24"
-              onClick={handlePrevious}
-              disabled={loading}>
-              이전
-            </Button>
+          <div className="flex justify-end w-full mt-10 space-x-6">
+            {uploadedFile && (
+              <button
+                className="font-pretendard text-primary-blue hover:text-blue-800"
+                onClick={handleReselect}>
+                다시 선택하기
+              </button>
+            )}
             <Button
               variant="primary"
               size="md"
@@ -177,4 +179,5 @@ function Step3PatentClassification() {
     </div>
   );
 }
+
 export default Step3PatentClassification;
