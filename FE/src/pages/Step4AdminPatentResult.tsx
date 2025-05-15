@@ -126,11 +126,6 @@ function Step4AdminPatentResult() {
       />
       {/* <SelectLLM /> */}
 
-      {/* 평가 카운트 표시 */}
-      {/* <div className="text-right text-sm text-gray-500 mb-2">
-        {evaluatedCount}/{mockPatentData.length} 평가
-      </div> */}
-
       <div className="flex-1 h-full w-full mt-2">
         <DataTable
           rowData={rowData}
@@ -139,6 +134,11 @@ function Step4AdminPatentResult() {
           onDataChanged={handleDataChanged}
           fileName={<SelectLLM />}
         />
+      </div>
+
+      {/* 평가 카운트 표시 */}
+      <div className="text-right text-sm text-gray-500 mt-1">
+        총 {rowData.length}건 중 {evaluatedCount}건 평가 완료
       </div>
 
       <div className="flex justify-between w-full mt-4">
