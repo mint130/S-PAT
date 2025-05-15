@@ -75,7 +75,7 @@ const SelectLLM = () => {
   };
 
   return (
-    <div className="py-2" ref={containerRef}>
+    <div ref={containerRef}>
       <div className="flex space-x-2">
         {llmOptions.map((llm) => {
           const isSelected = selectedLLM === displayToDataNameMap[llm.id];

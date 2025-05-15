@@ -19,7 +19,7 @@ interface ColumnStateObject {
 
 // Toolbar 컴포넌트 Props 인터페이스 정의
 interface DataTableToolbarProps {
-  fileName?: String;
+  fileName: React.ReactNode;
   edit?: boolean;
   download?: boolean;
   onAddNewRow: () => void;
@@ -100,10 +100,10 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
   };
 
   return (
-    <div className="mb-2 flex justify-between items-center h-8 w-full">
+    <div className="mb-2 flex justify-between items-end  w-full">
       {/* 파일 이름 */}
-      <div className="h-full">{fileName}</div>
-      <div className="h-full w-full flex items-center justify-end gap-2 text-gray-500">
+      <div className="">{fileName}</div>
+      <div className="h-8 w-full flex items-center justify-end gap-2 text-gray-500">
         {edit && (
           <>
             {/* 행 추가 버튼 */}
@@ -133,27 +133,30 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
           </button>
           {isOpen && (
             <div className="absolute right-2 w-32 max-h-64 overflow-y-auto bg-white rounded-md shadow-md z-10">
-              {Object.entries(columnVisibility).map(([colId, columnInfo]) => (
-                <div
-                  key={colId}
-                  className="flex items-center gap-2 px-3 py-2 m-1 rounded-md hover:bg-gray-100 cursor-pointer"
-                  onClick={() => handleColumnVisibility(colId)}>
-                  <div className="flex items-center justify-center w-4 h-4">
-                    {!columnInfo.hide && (
-                      <Check size={14} className="text-blue-600" />
-                    )}
+              {Object.entries(columnVisibility)
+                // 전문가평가 항목 필터링
+                .filter(([colId]) => !(colId === "evaluation"))
+                .map(([colId, columnInfo]) => (
+                  <div
+                    key={colId}
+                    className="flex items-center gap-2 px-3 py-2 m-1 rounded-md hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleColumnVisibility(colId)}>
+                    <div className="flex items-center justify-center w-4 h-4">
+                      {!columnInfo.hide && (
+                        <Check size={14} className="text-blue-600" />
+                      )}
+                    </div>
+                    <span className="text-sm font-pretendard font-medium text-gray-700">
+                      {columnInfo.headerName}
+                    </span>
                   </div>
-                  <span className="text-sm font-pretendard font-medium text-gray-700">
-                    {columnInfo.headerName}
-                  </span>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </div>
 
         {/* 검색 영역 */}
-        <div className="relative h-full w-1/4 min-w-60">
+        <div className="relative h-full w-1/4 min-w-40">
           <input
             type="text"
             value={quickFilterText}
