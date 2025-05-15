@@ -1,4 +1,3 @@
-# 특허 분류 작업을 백그라운드에서 실행하는 함수
 import asyncio
 from datetime import datetime
 import io
@@ -26,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 embeddings_openai = OpenAIEmbeddings(model="text-embedding-3-large", dimensions=3072)
 
+# 특허 분류 작업을 백그라운드에서 실행하는 함수
 async def process_patent_classification(
     session_id: str,
     llm,
