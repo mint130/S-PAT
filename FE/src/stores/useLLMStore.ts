@@ -5,8 +5,8 @@ import { persist } from "zustand/middleware";
 interface LLMItem {
   name: string;
   time: number;
-  similarity: number;
-  llmEval: number;
+  vector_accuracy: number;
+  reasoning_score: number;
   expert: number;
 }
 
@@ -14,8 +14,8 @@ interface LLMItem {
 interface ResponseDataItem {
   name: string;
   time?: number;
-  similarity?: number;
-  llmEval?: number;
+  vector_accuracy?: number;
+  reasoning_score?: number;
   expert?: number;
 }
 
@@ -36,29 +36,29 @@ const initialLLMData: LLMItem[] = [
   {
     name: "GPT",
     time: 720, // 속도 (초)
-    similarity: 0.85, // 유사도 (0-1)
-    llmEval: 0.92, // LLM 평가 (0-1)
+    vector_accuracy: 0.85, // 유사도 (0-1)
+    reasoning_score: 0.92, // LLM 평가 (0-1)
     expert: 0.9, // 전문가 평가 (0-1)
   },
   {
-    name: "Claude",
+    name: "CLAUDE",
     time: 654,
-    similarity: 0.85,
-    llmEval: 0.85,
+    vector_accuracy: 0.85,
+    reasoning_score: 0.85,
     expert: 0.8, // 전문가 평가 (0-1)
   },
   {
-    name: "Gemini",
+    name: "GEMINI",
     time: 684,
-    similarity: 0.75,
-    llmEval: 0.9,
+    vector_accuracy: 0.75,
+    reasoning_score: 0.9,
     expert: 0.6, // 전문가 평가 (0-1)
   },
   {
-    name: "Grok",
+    name: "GROK",
     time: 986,
-    similarity: 0.8,
-    llmEval: 0.92,
+    vector_accuracy: 0.8,
+    reasoning_score: 0.92,
     expert: 0.8, // 전문가 평가 (0-1)
   },
 ];
@@ -94,8 +94,8 @@ const useLLMStore = create<LLMStoreState>()(
         const updatedData = responseData.map((item) => ({
           name: item.name,
           time: item.time || 0,
-          similarity: item.similarity || 0,
-          llmEval: item.llmEval || 0,
+          vector_accuracy: item.vector_accuracy || 0,
+          reasoning_score: item.reasoning_score || 0,
           expert: item.expert || 0,
         }));
 

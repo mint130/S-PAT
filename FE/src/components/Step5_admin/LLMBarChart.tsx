@@ -14,7 +14,7 @@ import { ChartColumn } from "lucide-react";
 // Props 타입 정의
 interface LLMBarChartProps {
   title: string;
-  dataKey: "similarity" | "llmEval" | "expert";
+  dataKey: "vector_accuracy" | "reasoning_score" | "expert";
   unit?: string;
   color?: string;
   barSize?: number;
@@ -38,7 +38,7 @@ function LLMBarChart({
   const chartData = llmData.map((item) => ({
     name: item.name,
     [dataKey]: item[dataKey] * 100,
-    // 선택된 LLM이 없거나 현재 항목이 선택된 경우 원래 색상, 아니면 흐린 색상
+    // selectedLLM과 item.name 모두 이미 대문자이므로 직접 비교
     color:
       !selectedLLM || selectedLLM === item.name
         ? color
@@ -50,6 +50,7 @@ function LLMBarChart({
   // X축 커스텀 틱 컴포넌트
   const CustomXAxisTick = (props: any) => {
     const { x, y, payload } = props;
+    // selectedLLM과 payload.value 모두 이미 대문자이므로 직접 비교
     const isActive = !selectedLLM || selectedLLM === payload.value;
 
     return (
@@ -117,7 +118,7 @@ function LLMBarChart({
               borderRadius: "4px",
               border: isDarkMode ? "1px solid #4B5563" : "1px solid #e2e8f0",
               backgroundColor: isDarkMode ? "#2A2F45" : "#ffffff",
-              color: isDarkMode ? "#FFFFFF" : "#000000", 
+              color: isDarkMode ? "#FFFFFF" : "#000000",
               fontFamily: "Pretendard",
               fontSize: "12px",
               padding: "8px",

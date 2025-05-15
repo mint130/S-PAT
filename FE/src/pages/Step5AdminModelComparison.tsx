@@ -65,10 +65,12 @@ function Step5AdminModelComparison() {
   return (
     <div className="flex flex-col min-h-screen p-4 sm:p-6 md:p-8">
       {/* 제목과 LLM 선택 영역 */}
-      <Title
-        text="LLM 성능 비교 및 최적 모델 선정"
-        subText="LLM 별 평가점수를 확인하고 최적의 LLM 모델을 선정하세요."
-      />
+      <div className="pb-2">
+        <Title
+          text="LLM 성능 비교 및 최적 모델 선정"
+          subText="LLM 별 평가점수를 확인하고 최적의 LLM 모델을 선정하세요."
+        />
+      </div>
       <SelectLLM />
 
       {/* 컨텐츠 영역 - flex 컨테이너로 변경 */}
@@ -81,7 +83,7 @@ function Step5AdminModelComparison() {
           {/* 유사도 차트 */}
           <LLMBarChart
             title="벡터 유사도"
-            dataKey="similarity"
+            dataKey="vector_accuracy"
             color="#5A6ACF"
             barSize={16}
           />
@@ -89,7 +91,7 @@ function Step5AdminModelComparison() {
           {/* LLM 평가 차트 */}
           <LLMBarChart
             title="LLM 평가"
-            dataKey="llmEval"
+            dataKey="reasoning_score"
             color="#5A6ACF"
             barSize={16}
           />
