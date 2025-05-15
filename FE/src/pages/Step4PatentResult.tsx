@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Title from "../components/common/Title";
 import patentColumnsStep4 from "../components/Step4/patentColumsStep4";
 import DataTable from "../components/common/dataTable/DataTable";
-import { fetchPatentClassifications, Patent } from "../apis/userapi";
+import { fetchPatentClassifications, Patent } from "../apis/userApi";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import Button from "../components/common/Button";
 
@@ -46,7 +46,7 @@ function Step4PatentResult() {
           <Button
             variant="outline"
             size="sm"
-            loading={loading}
+            isLoading={loading}
             icon={<RefreshCw size={17} />}
             onClick={fetchData}>
             다시 시도하기
