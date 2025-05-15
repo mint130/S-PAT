@@ -21,12 +21,20 @@ interface DataTableProps {
   edit?: boolean; // 편집 가능 여부 (기본값: false)
   fileName?: String;
   download?: boolean; // 다운로드 가능 여부 (기본값: false)
+  onDataChanged?: (data: any[]) => void; // 전문가 점수에 필요
 }
 
 // DataTable 컴포넌트 정의 - forwardRef로 감싸서 외부 ref를 받음
 const DataTable = forwardRef<AgGridReact, DataTableProps>(
   (
-    { rowData, colDefs, edit = false, fileName = "", download = false },
+    {
+      rowData,
+      colDefs,
+      edit = false,
+      fileName = "",
+      download = false,
+      onDataChanged,
+    },
     ref
   ) => {
     const gridRef = useRef<AgGridReact>(null); // 그리드 참조를 위한 내부 ref 생성
@@ -157,6 +165,19 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       }
     }, [rowData, colDefs]);
 
+    // 데이터 변경 감지 이벤트 처리
+    const onCellValueChanged = useCallback(() => {
+      if (onDataChanged && gridRef.current?.api) {
+        const updatedData: any[] = [];
+        gridRef.current.api.forEachNode((node) => {
+          if (node.data) {
+            updatedData.push(node.data);
+          }
+        });
+        onDataChanged(updatedData);
+      }
+    }, [onDataChanged]);
+
     return (
       <div className="flex flex-col h-full font-pretendard w-full">
         {/* 툴바 영역 */}
@@ -196,6 +217,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
               alwaysMultiSort={true} // 항상 다중 정렬 허용 (여러 컬럼으로 동시에 정렬 가능)
               // suppressDragLeaveHidesColumns={true} // 열을 드래그하여 그리드 밖으로 이동시켜도 열이 숨겨지지 않도록 방지
               // loading={loading} // 로딩 상태 표시
+              onCellValueChanged={onCellValueChanged}
             />
           )}
         </div>
