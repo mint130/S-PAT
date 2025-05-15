@@ -2,20 +2,17 @@ import asyncio
 from datetime import datetime
 import logging
 import json
+import math
 import re
 from typing import List, Dict, Any, Optional, Tuple
 import pandas as pd
 from fastapi import Depends, HTTPException
-from langchain_openai import ChatOpenAI
-from langchain_anthropic import ChatAnthropic
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_xai import ChatXAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
 from langchain.output_parsers import PydanticOutputParser
 from app.core.redis import get_redis_client
-from app.schemas.classification import ClassificationResponse, ClassificationSchema, Patent
+from app.schemas.classification import ClassificationSchema, Patent
 from app.core.config import settings
 from app.core.llm import gpt, claude, gemini, grok
 from app.schemas.message import Message, Progress
@@ -614,3 +611,41 @@ async def evaluate_classification_by_reasoning(
         "score": score,
         "reason": response.content
     } 
+
+def calculate_sample_size(total_population: int, confidence_level: float, margin_error: float) -> int:
+    """
+    Cochran의 공식을 사용하여 필요한 샘플 크기를 계산합니다.
+    
+    Args:
+        total_population (int): 전체 모집단 크기
+        confidence_level (float): 신뢰도 (0.8 ~ 0.99)
+        margin_error (float): 허용 오차 범위 (0.01 ~ 0.1)
+    
+    Returns:
+        int: 필요한 샘플 크기
+    """
+    # Z-score 계산 (신뢰도에 따른)
+    z_scores = {
+        0.80: 1.282,
+        0.85: 1.440,
+        0.90: 1.645,
+        0.95: 1.960,
+        0.99: 2.576
+    }
+    z_score = z_scores.get(confidence_level, 1.960)  # 기본값 95% 신뢰도
+    
+    # p = 0.5 (최대 표본 크기를 위한 보수적 추정)
+    p = 0.5
+    q = 1 - p
+    
+    # Cochran의 공식 적용
+    sample_size = (z_score ** 2 * p * q) / (margin_error ** 2)
+    
+    # 유한 모집단 보정 적용
+    if total_population > 0:
+        sample_size = sample_size / (1 + (sample_size - 1) / total_population)
+    
+    # 표본 크기가 모집단 크기보다 크지 않도록 보정
+    sample_size = min(math.floor(sample_size), total_population)
+    
+    return sample_size
