@@ -147,7 +147,7 @@ const Step0ModeSelect: React.FC = () => {
                 isDarkMode
                   ? "bg-[#23283D]/90 border-[#414864] hover:border-[#5C6890] hover:bg-[#2A3048]/90"
                   : "bg-white/90 border-blue-100 hover:border-blue-300 hover:bg-blue-50/90"
-              } backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-all`}>
+              } backdrop-blur-sm border-2 shadow-md hover:shadow-lg transition-all`}>
               <div className="flex items-center mb-4">
                 <h2
                   className={`text-xl font-bold ${
@@ -201,7 +201,7 @@ const Step0ModeSelect: React.FC = () => {
                 isDarkMode
                   ? "bg-[#23283D]/90 border-[#414864] hover:border-[#5C6890] hover:bg-[#2A3048]/90"
                   : "bg-white/90 border-blue-100 hover:border-blue-300 hover:bg-blue-50/90"
-              } backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-all`}>
+              } backdrop-blur-sm border-2 shadow-md hover:shadow-lg transition-all`}>
               <div className="flex items-center mb-4">
                 <h2
                   className={`text-xl font-bold ${

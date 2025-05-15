@@ -4,6 +4,7 @@ import ClaudeIcon from "../../assets/claude.png";
 import GeminiIcon from "../../assets/gemini.png";
 import GrokIcon from "../../assets/grok.png";
 import useLLMStore from "../../stores/useLLMStore";
+import useThemeStore from "../../stores/useThemeStore";
 
 // 디스플레이 이름과 데이터 이름 간의 매핑
 const displayToDataNameMap: Record<string, string> = {
@@ -19,84 +20,64 @@ interface LLMOption {
   name: string;
   icon: string;
   colorClass: string;
+  darkColorClass: string;
 }
 
 const SelectLLM = () => {
   // Zustand 스토어에서 선택된 LLM 상태와 설정 함수 가져오기
   const selectedLLM = useLLMStore((state) => state.selectedLLM);
   const setSelectedLLM = useLLMStore((state) => state.setSelectedLLM);
+  const { isDarkMode } = useThemeStore();
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // LLM 옵션 목록 - 각 LLM별 색상 클래스 추가
+  // LLM 옵션 목록
   const llmOptions: LLMOption[] = [
     {
       id: "GPT",
       name: "GPT",
       icon: ChatGPTIcon,
       colorClass: "text-GPT",
+      darkColorClass: "dark:text-GPT-dark",
     },
     {
       id: "Claude",
       name: "Claude",
       icon: ClaudeIcon,
       colorClass: "text-Claude",
+      darkColorClass: "dark:text-Claude-dark",
     },
     {
       id: "Gemini",
       name: "Gemini",
       icon: GeminiIcon,
       colorClass: "text-Gemini",
+      darkColorClass: "dark:text-Gemini-dark",
     },
     {
       id: "Grok",
       name: "Grok",
       icon: GrokIcon,
       colorClass: "text-Grok",
+      darkColorClass: "dark:text-Grok-dark",
     },
   ];
 
-  // LLM 선택 핸들러 - 같은 버튼을 다시 누르면 선택 해제
+  // LLM 선택 핸들러
   const handleSelectLLM = (displayName: string) => {
     const dataName = displayToDataNameMap[displayName];
 
     if (selectedLLM === dataName) {
-      setSelectedLLM(null); // 같은 버튼 클릭 시 선택 해제
+      setSelectedLLM(null);
     } else {
       setSelectedLLM(dataName);
     }
-
   };
-
-//   // 컴포넌트 외부 클릭 시 선택 해제 이벤트 처리
-//  useEffect(() => {
-//   const handleClickOutside = (event: MouseEvent) => {
-//     const target = event.target as HTMLElement;
-    
-//     // 완료 버튼 클릭인지 확인
-//     if (target.closest('button')?.textContent === '완료') {
-//       return; // 완료 버튼 클릭 시는 선택 해제하지 않음
-//     }
-    
-//     if (
-//       containerRef.current &&
-//       !containerRef.current.contains(target)
-//     ) {
-//       setSelectedLLM(null);
-//     }
-//   };
-
-//   document.addEventListener("mousedown", handleClickOutside);
-//   return () => {
-//     document.removeEventListener("mousedown", handleClickOutside);
-//   };
-// }, [setSelectedLLM]);
 
   return (
     <div ref={containerRef}>
       <div className="flex space-x-2">
         {llmOptions.map((llm) => {
-          // 현재 옵션이 선택되었는지 확인 (데이터 이름 기준)
           const isSelected = selectedLLM === displayToDataNameMap[llm.id];
 
           return (
@@ -105,17 +86,29 @@ const SelectLLM = () => {
               onClick={() => handleSelectLLM(llm.id)}
               className={`flex items-center justify-center w-28 px-3 py-2 rounded-md transition-all ${
                 llm.colorClass
-              } ${
+              } ${llm.darkColorClass} ${
                 isSelected
-                  ? `bg-select-box font-medium border border-select-box-border-soild`
-                  : "border border-gray-300"
+                  ? `bg-select-box dark:bg-[#1A3A6B] font-medium border border-select-box-border-soild dark:border-[#60A5FA]`
+                  : "border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-[#353E5C]"
               }`}>
-              <img
-                src={llm.icon}
-                alt={`${llm.name} 아이콘`}
-                className="w-5 h-5 mr-2"
-              />
-              <span>{llm.name}</span>
+              {llm.id === "Grok" ? (
+                <img
+                  src={llm.icon}
+                  alt={`${llm.name} 아이콘`}
+                  className={`w-5 h-5 mr-2 ${
+                    isDarkMode ? "filter invert brightness-100" : ""
+                  }`}
+                />
+              ) : (
+                <img
+                  src={llm.icon}
+                  alt={`${llm.name} 아이콘`}
+                  className={`w-5 h-5 mr-2 ${
+                    isDarkMode ? "filter brightness-110" : ""
+                  }`}
+                />
+              )}
+              <span className="dark:text-gray-200">{llm.name}</span>
             </button>
           );
         })}
