@@ -1,11 +1,13 @@
 import { Crown } from "lucide-react";
 import { useMemo, useEffect } from "react";
 import useLLMStore from "../../stores/useLLMStore";
+import useThemeStore from "../../stores/useThemeStore";
 
 const TotalScore = () => {
   // Zustand 스토어에서 LLM 데이터와 선택된 LLM 가져오기
   const llmData = useLLMStore((state) => state.llmData);
   const selectedLLM = useLLMStore((state) => state.selectedLLM);
+  const { isDarkMode } = useThemeStore();
 
   // 종합 점수 계산 (similarity 20%, llmEval 40%, expert 40%)
   const calculatedScores = useMemo(() => {
@@ -19,18 +21,24 @@ const TotalScore = () => {
       return {
         name: model.name,
         score: totalScore,
-        // 모델명에 따라 색상 지정
+        // 모델명에 따라 색상 지정 (라이트/다크 모드)
         color:
           model.name === "GPT"
-            ? "#000000"
+            ? "#10A37F" // 화이트모드에서도 동일한 색상 사용
             : model.name === "Claude"
-            ? "#D77757"
+            ? isDarkMode
+              ? "#EF8354"
+              : "#D77757"
             : model.name === "Gemini"
-            ? "#3693DA"
+            ? isDarkMode
+              ? "#64A7FF"
+              : "#3693DA"
+            : isDarkMode
+            ? "#A8B2D1"
             : "#999999", // Grok 색상
       };
     });
-  }, [llmData]);
+  }, [llmData, isDarkMode]);
 
   // 점수에 따른 크기 계산 함수 (선택된 LLM은 더 크게)
   const calculateSize = (score: number, isSelected: boolean) => {
@@ -67,13 +75,13 @@ const TotalScore = () => {
 
   return (
     <div className="h-full flex flex-col">
-      <h3 className="font-pretendard font-semibold mb-2 flex items-center text-sm">
+      <h3 className="font-pretendard font-semibold mb-2 flex items-center text-sm text-gray-900 dark:text-gray-100">
         <span className="mr-2">
-          <Crown size={16} />
+          <Crown size={16} className="text-gray-900 dark:text-gray-100" />
         </span>
         종합 점수
       </h3>
-      <div className="bg-white p-4 rounded-lg shadow-sm flex-1 flex items-center justify-center overflow-hidden">
+      <div className="bg-white dark:bg-[#23283D] p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex-1 flex items-center justify-center overflow-hidden">
         <div className="w-full h-full relative">
           {/* 애니메이션 스타일 추가 */}
           <style>
@@ -139,27 +147,36 @@ const TotalScore = () => {
                 posY = "50%";
             }
 
-            // 색상 적용 (배경색에 투명도 추가)
+            // 색상 적용 (다크모드 대응)
             let backgroundColor, progressColor;
 
             if (model.name === "GPT") {
-              backgroundColor = `rgba(0, 0, 0, ${isSelected ? 0.85 : 0.5})`; // 선택되지 않은 경우 더 투명하게
-              progressColor = `rgba(51, 51, 51, ${isSelected ? 0.9 : 0.6})`;
+              // GPT는 모든 모드에서 동일한 색상 사용
+              backgroundColor = `rgba(16, 163, 127, ${
+                isSelected ? 0.85 : 0.5
+              })`;
+              progressColor = `rgba(34, 197, 147, ${isSelected ? 0.9 : 0.6})`;
             } else if (model.name === "Claude") {
-              backgroundColor = `rgba(215, 119, 87, ${
-                isSelected ? 0.85 : 0.5
-              })`;
-              progressColor = `rgba(224, 138, 108, ${isSelected ? 0.9 : 0.6})`;
+              backgroundColor = isDarkMode
+                ? `rgba(239, 131, 84, ${isSelected ? 0.85 : 0.5})`
+                : `rgba(215, 119, 87, ${isSelected ? 0.85 : 0.5})`;
+              progressColor = isDarkMode
+                ? `rgba(255, 150, 103, ${isSelected ? 0.9 : 0.6})`
+                : `rgba(224, 138, 108, ${isSelected ? 0.9 : 0.6})`;
             } else if (model.name === "Gemini") {
-              backgroundColor = `rgba(54, 147, 218, ${
-                isSelected ? 0.85 : 0.5
-              })`;
-              progressColor = `rgba(74, 168, 240, ${isSelected ? 0.9 : 0.6})`;
+              backgroundColor = isDarkMode
+                ? `rgba(100, 167, 255, ${isSelected ? 0.85 : 0.5})`
+                : `rgba(54, 147, 218, ${isSelected ? 0.85 : 0.5})`;
+              progressColor = isDarkMode
+                ? `rgba(130, 190, 255, ${isSelected ? 0.9 : 0.6})`
+                : `rgba(74, 168, 240, ${isSelected ? 0.9 : 0.6})`;
             } else if (model.name === "Grok") {
-              backgroundColor = `rgba(153, 153, 153, ${
-                isSelected ? 0.85 : 0.5
-              })`;
-              progressColor = `rgba(187, 187, 187, ${isSelected ? 0.9 : 0.6})`;
+              backgroundColor = isDarkMode
+                ? `rgba(168, 178, 209, ${isSelected ? 0.85 : 0.5})`
+                : `rgba(153, 153, 153, ${isSelected ? 0.85 : 0.5})`;
+              progressColor = isDarkMode
+                ? `rgba(188, 198, 229, ${isSelected ? 0.9 : 0.6})`
+                : `rgba(187, 187, 187, ${isSelected ? 0.9 : 0.6})`;
             }
 
             // 점수가 높을수록 앞에 표시 (z-index 조정) + 선택된 LLM은 항상 가장 앞에
@@ -200,7 +217,11 @@ const TotalScore = () => {
                     cy={progressSize / 2}
                     r={(progressSize - strokeWidth) / 2}
                     fill="none"
-                    stroke="rgba(255, 255, 255, 0.15)"
+                    stroke={
+                      isDarkMode
+                        ? "rgba(255, 255, 255, 0.1)"
+                        : "rgba(255, 255, 255, 0.15)"
+                    }
                     strokeWidth={strokeWidth}
                   />
                   {/* 프로그레스 서클 (채워진 부분) - 애니메이션 조건 적용 */}
@@ -256,9 +277,10 @@ const TotalScore = () => {
                     backgroundColor,
                     boxShadow: isSelected
                       ? `0 0 15px ${model.color}70` // 선택된 LLM은 발광 효과
+                      : isDarkMode
+                      ? "0 0.125rem 0.625rem rgba(0, 0, 0, 0.4)"
                       : "0 0.125rem 0.625rem rgba(0, 0, 0, 0.15)",
                     backdropFilter: "blur(2px)", // 배경 블러 효과 (지원되는 브라우저에서만)
-                    transition: "all 0.5s ease-in-out",
                   }}>
                   {/* 점수 표시 */}
                   <div
