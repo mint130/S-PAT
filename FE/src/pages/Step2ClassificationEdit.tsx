@@ -125,7 +125,7 @@ function Step2ClassificationEdit() {
         subText="Step1에서 생성된 분류 체계를 수정하세요. 테이블을 직접 편집하거나 필요에 따라 항목을 추가/삭제할 수 있습니다."
       />
 
-      <div className="flex-1 h-full w-full mt-2 ">
+      <div className="flex-1 h-full w-full mt-2">
         <DataTable
           rowData={selectedStandards}
           colDefs={colDefs}

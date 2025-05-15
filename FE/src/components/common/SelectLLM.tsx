@@ -93,7 +93,7 @@ const SelectLLM = () => {
 // }, [setSelectedLLM]);
 
   return (
-    <div className="py-2" ref={containerRef}>
+    <div ref={containerRef}>
       <div className="flex space-x-2">
         {llmOptions.map((llm) => {
           // 현재 옵션이 선택되었는지 확인 (데이터 이름 기준)

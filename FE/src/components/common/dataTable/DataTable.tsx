@@ -19,7 +19,7 @@ interface DataTableProps {
   rowData: any[]; // 표시할 행 데이터 배열
   colDefs: ColDef[]; // 열 정의 배열
   edit?: boolean; // 편집 가능 여부 (기본값: false)
-  fileName?: String;
+  fileName?: React.ReactNode; // 문자열이나 컴포넌트 모두 가능하도록 변경
   download?: boolean; // 다운로드 가능 여부 (기본값: false)
   onDataChanged?: (data: any[]) => void; // 전문가 점수에 필요
 }

@@ -124,19 +124,20 @@ function Step4AdminPatentResult() {
         text="특허데이터 분류 결과 확인"
         subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 생략 시 성능 비교에 반영되지 않습니다."
       />
-      <SelectLLM />
+      {/* <SelectLLM /> */}
 
       {/* 평가 카운트 표시 */}
       {/* <div className="text-right text-sm text-gray-500 mb-2">
         {evaluatedCount}/{mockPatentData.length} 평가
       </div> */}
 
-      <div className="flex-1 h-full w-full">
+      <div className="flex-1 h-full w-full mt-2">
         <DataTable
           rowData={rowData}
           colDefs={columnDefs}
           download={true}
           onDataChanged={handleDataChanged}
+          fileName={<SelectLLM />}
         />
       </div>
 
