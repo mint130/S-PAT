@@ -9,12 +9,29 @@ const TotalScore = () => {
   const selectedLLM = useLLMStore((state) => state.selectedLLM);
   const { isDarkMode } = useThemeStore();
 
-  // 종합 점수 계산 (similarity 20%, llmEval 40%, expert 40%)
+  // 표시용 이름으로 변환하는 함수
+  const getDisplayName = (name: string): string => {
+    switch (name) {
+      case "GPT":
+        return "GPT";
+      case "CLAUDE":
+        return "Claude";
+      case "GEMINI":
+        return "Gemini";
+      case "GROK":
+        return "Grok";
+      default:
+        return name;
+    }
+  };
+
   const calculatedScores = useMemo(() => {
     return llmData.map((model) => {
       // 각 항목은 0-1 사이의 값이므로 100을 곱하여 100점 만점으로 변환
       const totalScore = Math.round(
-        (model.similarity * 0.2 + model.llmEval * 0.4 + model.expert * 0.4) *
+        (model.vector_accuracy * 0.2 +
+          model.reasoning_score * 0.4 +
+          model.expert * 0.4) *
           100
       );
 
@@ -25,11 +42,11 @@ const TotalScore = () => {
         color:
           model.name === "GPT"
             ? "#10A37F" // 화이트모드에서도 동일한 색상 사용
-            : model.name === "Claude"
+            : model.name === "CLAUDE"
             ? isDarkMode
               ? "#EF8354"
               : "#D77757"
-            : model.name === "Gemini"
+            : model.name === "GEMINI"
             ? isDarkMode
               ? "#64A7FF"
               : "#3693DA"
@@ -156,21 +173,21 @@ const TotalScore = () => {
                 isSelected ? 0.85 : 0.5
               })`;
               progressColor = `rgba(34, 197, 147, ${isSelected ? 0.9 : 0.6})`;
-            } else if (model.name === "Claude") {
+            } else if (model.name === "CLAUDE") {
               backgroundColor = isDarkMode
                 ? `rgba(239, 131, 84, ${isSelected ? 0.85 : 0.5})`
                 : `rgba(215, 119, 87, ${isSelected ? 0.85 : 0.5})`;
               progressColor = isDarkMode
                 ? `rgba(255, 150, 103, ${isSelected ? 0.9 : 0.6})`
                 : `rgba(224, 138, 108, ${isSelected ? 0.9 : 0.6})`;
-            } else if (model.name === "Gemini") {
+            } else if (model.name === "GEMINI") {
               backgroundColor = isDarkMode
                 ? `rgba(100, 167, 255, ${isSelected ? 0.85 : 0.5})`
                 : `rgba(54, 147, 218, ${isSelected ? 0.85 : 0.5})`;
               progressColor = isDarkMode
                 ? `rgba(130, 190, 255, ${isSelected ? 0.9 : 0.6})`
                 : `rgba(74, 168, 240, ${isSelected ? 0.9 : 0.6})`;
-            } else if (model.name === "Grok") {
+            } else if (model.name === "GROK") {
               backgroundColor = isDarkMode
                 ? `rgba(168, 178, 209, ${isSelected ? 0.85 : 0.5})`
                 : `rgba(153, 153, 153, ${isSelected ? 0.85 : 0.5})`;
@@ -292,7 +309,7 @@ const TotalScore = () => {
 
                   {/* 모델명 표시 */}
                   <div className="font-pretendard text-sm mt-1">
-                    {model.name}
+                    {getDisplayName(model.name)}
                   </div>
                 </div>
               </div>

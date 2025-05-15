@@ -6,12 +6,12 @@ import GrokIcon from "../../assets/grok.png";
 import useLLMStore from "../../stores/useLLMStore";
 import useThemeStore from "../../stores/useThemeStore";
 
-// 디스플레이 이름과 데이터 이름 간의 매핑
+// 디스플레이 이름과 데이터 이름 간의 매핑 (모두 대문자로 통일)
 const displayToDataNameMap: Record<string, string> = {
   GPT: "GPT",
-  Claude: "Claude",
-  Gemini: "Gemini",
-  Grok: "Grok",
+  CLAUDE: "CLAUDE",
+  GEMINI: "GEMINI",
+  GROK: "GROK",
 };
 
 // LLM 옵션 인터페이스 정의
@@ -31,7 +31,7 @@ const SelectLLM = () => {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // LLM 옵션 목록
+  // LLM 옵션 목록 (id는 대문자, name은 표시용으로 첫 글자만 대문자)
   const llmOptions: LLMOption[] = [
     {
       id: "GPT",
@@ -41,21 +41,21 @@ const SelectLLM = () => {
       darkColorClass: "dark:text-GPT-dark",
     },
     {
-      id: "Claude",
+      id: "CLAUDE",
       name: "Claude",
       icon: ClaudeIcon,
       colorClass: "text-Claude",
       darkColorClass: "dark:text-Claude-dark",
     },
     {
-      id: "Gemini",
+      id: "GEMINI",
       name: "Gemini",
       icon: GeminiIcon,
       colorClass: "text-Gemini",
       darkColorClass: "dark:text-Gemini-dark",
     },
     {
-      id: "Grok",
+      id: "GROK",
       name: "Grok",
       icon: GrokIcon,
       colorClass: "text-Grok",
@@ -91,7 +91,7 @@ const SelectLLM = () => {
                   ? `bg-select-box dark:bg-[#1A3A6B] font-medium border border-select-box-border-soild dark:border-[#60A5FA]`
                   : "border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-[#353E5C]"
               }`}>
-              {llm.id === "Grok" ? (
+              {llm.id === "GROK" ? (
                 <img
                   src={llm.icon}
                   alt={`${llm.name} 아이콘`}

@@ -15,16 +15,32 @@ const ResponseTime = () => {
     return `${minutes}m ${seconds}s`;
   };
 
+  // 표시용 이름으로 변환하는 함수
+  const getDisplayName = (name: string): string => {
+    switch (name) {
+      case "GPT":
+        return "GPT";
+      case "CLAUDE":
+        return "Claude";
+      case "GEMINI":
+        return "Gemini";
+      case "GROK":
+        return "Grok";
+      default:
+        return name;
+    }
+  };
+
   // LLM별 색상 클래스 매핑
   const getLLMColorClass = (name: string): string => {
     switch (name) {
       case "GPT":
         return "text-GPT dark:text-[#10A37F]"; // 다크모드에서는 OpenAI 그린
-      case "Claude":
+      case "CLAUDE":
         return "text-Claude dark:text-[#EF8354]"; // 다크모드에서는 밝은 오렌지
-      case "Gemini":
+      case "GEMINI":
         return "text-Gemini dark:text-[#64A7FF]"; // 다크모드에서는 밝은 블루
-      case "Grok":
+      case "GROK":
         return "text-Grok2 dark:text-[#A8B2D1]"; // 다크모드에서는 밝은 회색
       default:
         return "text-black dark:text-gray-200";
@@ -85,7 +101,7 @@ const ResponseTime = () => {
                 <div className="flex flex-col">
                   <div
                     className={`font-pretendard text-lg font-medium ${titleStyle}`}>
-                    {item.name}
+                    {getDisplayName(item.name)}
                   </div>
                   <div className="font-pretendard text-xs text-gray-400 dark:text-white">
                     응답 시간
