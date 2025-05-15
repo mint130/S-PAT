@@ -27,9 +27,7 @@ function Button({
 }: ButtonProps) {
   // 기본 클래스
   const baseClasses = `flex items-center justify-center border font-pretendard tracking-wider rounded-lg transition-colors whitespace-nowrap ${
-    isLoading
-      ? "cursor-wait"
-      : "disabled:opacity-50 disabled:cursor-not-allowed"
+    isLoading ? "cursor-wait" : "disabled:opacity-50 disabled:cursor-not-allowed"
   }`;
 
   // 버튼 색상 스타일
@@ -65,14 +63,23 @@ function Button({
       className={`${baseClasses} ${variantStyles[variant]} ${sizeStyles[size]} ${textSizeStyles[textSize]} ${className}`}
       disabled={disabled || isLoading}
       {...props}>
-      {isLoading ? (
-        <LoaderCircle className="w-4 h-4 animate-spin" strokeWidth={3} /> // 로딩 중 아이콘 표시
-      ) : (
-        <>
+      <div className="relative flex items-center justify-center w-full">
+        {/* 원래 콘텐츠 (항상 존재하지만 로딩 중일 때는 투명하게 처리) */}
+        <div
+          className={`flex items-center justify-center ${
+            isLoading ? "invisible" : "visible"
+          }`}>
           {icon && <span className={children ? "mr-2" : ""}>{icon}</span>}
           {children}
-        </>
-      )}
+        </div>
+
+        {/* 로딩 인디케이터 (로딩 중일 때만 표시) */}
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <LoaderCircle className="w-4 h-4 animate-spin" strokeWidth={3} />
+          </div>
+        )}
+      </div>
     </button>
   );
 }

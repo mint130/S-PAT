@@ -22,6 +22,7 @@ interface DataTableProps {
   fileName?: React.ReactNode; // 문자열이나 컴포넌트 모두 가능하도록 변경
   download?: boolean; // 다운로드 가능 여부 (기본값: false)
   onDataChanged?: (data: any[]) => void; // 전문가 점수에 필요
+  loading?: boolean;
 }
 
 // DataTable 컴포넌트 정의 - forwardRef로 감싸서 외부 ref를 받음
@@ -34,6 +35,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       fileName = "",
       download = false,
       onDataChanged,
+      loading = false,
     },
     ref
   ) => {
@@ -216,7 +218,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
               rowSelection={rowSelection} // 행 선택 옵션
               alwaysMultiSort={true} // 항상 다중 정렬 허용 (여러 컬럼으로 동시에 정렬 가능)
               // suppressDragLeaveHidesColumns={true} // 열을 드래그하여 그리드 밖으로 이동시켜도 열이 숨겨지지 않도록 방지
-              // loading={loading} // 로딩 상태 표시
+              loading={loading} // 로딩 상태 표시
               onCellValueChanged={onCellValueChanged}
             />
           )}
