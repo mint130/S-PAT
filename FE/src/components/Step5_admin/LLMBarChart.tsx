@@ -8,6 +8,7 @@ import {
   Cell,
 } from "recharts";
 import useLLMStore from "../../stores/useLLMStore";
+import useThemeStore from "../../stores/useThemeStore";
 import { ChartColumn } from "lucide-react";
 
 // Props 타입 정의
@@ -31,13 +32,19 @@ function LLMBarChart({
   // Zustand 스토어에서 데이터 가져오기
   const llmData = useLLMStore((state) => state.llmData);
   const selectedLLM = useLLMStore((state) => state.selectedLLM);
+  const { isDarkMode } = useThemeStore();
 
   // 차트 데이터 준비 (선택된 LLM에 따라 색상 조정)
   const chartData = llmData.map((item) => ({
     name: item.name,
     [dataKey]: item[dataKey] * 100,
     // 선택된 LLM이 없거나 현재 항목이 선택된 경우 원래 색상, 아니면 흐린 색상
-    color: !selectedLLM || selectedLLM === item.name ? color : "#E0E0E0",
+    color:
+      !selectedLLM || selectedLLM === item.name
+        ? color
+        : isDarkMode
+        ? "#4B5563"
+        : "#E0E0E0", // 다크모드에서는 더 진한 회색
   }));
 
   // X축 커스텀 틱 컴포넌트
@@ -52,7 +59,15 @@ function LLMBarChart({
           y={0}
           dy={16}
           textAnchor="middle"
-          fill={isActive ? "#000000" : "#9CA3AF"}
+          fill={
+            isActive
+              ? isDarkMode
+                ? "#E5E7EB"
+                : "#000000"
+              : isDarkMode
+              ? "#6B7280"
+              : "#9CA3AF"
+          }
           fontFamily="Pretendard"
           fontSize={12}>
           {payload.value}
@@ -65,30 +80,29 @@ function LLMBarChart({
     <div className="flex flex-col h-full">
       {/* 제목 */}
       <div className="flex space-x-2">
-        <ChartColumn size={20} />
-        <div className="font-pretendard font-semibold mb-2 text-sm">
+        <ChartColumn size={20} className="text-gray-900 dark:text-gray-100" />
+        <div className="font-pretendard font-semibold mb-2 text-sm text-gray-900 dark:text-gray-100">
           {title}
         </div>
       </div>
       {/* 차트 */}
-      <div className="border border-gray-200 rounded-lg bg-white shadow-sm flex-1 flex items-center justify-center py-2">
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#23283D] shadow-sm flex-1 flex items-center justify-center py-2">
         <BarChart
           width={360}
           height={height || 180}
           data={chartData}
           margin={{ top: 10, right: 10, left: -20, bottom: -5 }}>
-          <CartesianGrid strokeDasharray="1 3" stroke="#C9C9C9" />
-          <XAxis
-            dataKey="name"
-            tickLine={false} // X축 틱 마크 제거
-            tick={<CustomXAxisTick />} // 커스텀 틱 컴포넌트 사용
+          <CartesianGrid
+            strokeDasharray="1 3"
+            stroke={isDarkMode ? "#4B5563" : "#C9C9C9"}
           />
+          <XAxis dataKey="name" tickLine={false} tick={<CustomXAxisTick />} />
           <YAxis
-            tickCount={5} // 틱 개수 조정
+            tickCount={5}
             tick={{
-              fontSize: 12, // Y축 레이블은 항상 검은색
+              fontSize: 12,
               fontFamily: "Pretendard",
-              fill: "#000000",
+              fill: isDarkMode ? "#E5E7EB" : "#000000",
             }}
           />
           <Tooltip
@@ -101,20 +115,16 @@ function LLMBarChart({
             }}
             contentStyle={{
               borderRadius: "4px",
-              border: "1px solid #e2e8f0",
-              backgroundColor: "#ffffff", // 배경색을 명시적으로 흰색으로 설정
+              border: isDarkMode ? "1px solid #4B5563" : "1px solid #e2e8f0",
+              backgroundColor: isDarkMode ? "#2A2F45" : "#ffffff",
+              color: isDarkMode ? "#FFFFFF" : "#000000", 
               fontFamily: "Pretendard",
               fontSize: "12px",
               padding: "8px",
             }}
-            cursor={{ fill: "transparent" }} // 호버 시 회색 영역 제거
+            cursor={{ fill: "transparent" }}
           />
-          <Bar
-            dataKey={dataKey}
-            barSize={barSize}
-            fill={color}
-            // 바 색상 커스터마이징
-            fillOpacity={1}>
+          <Bar dataKey={dataKey} barSize={barSize} fill={color} fillOpacity={1}>
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}

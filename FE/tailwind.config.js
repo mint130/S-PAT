@@ -44,11 +44,16 @@ module.exports = {
         BarColor: "#5A6ACF",
 
         // LLM 모델 색
-        GPT: "#000000",
+        GPT: "#10a37f",
         Claude: "#D77757",
         Gemini: "#3693DA",
         Grok: "#000000",
-        Grok2: "#999999",
+        Grok2: "#000000",
+
+        "GPT-dark": "#10a37f",
+        "Claude-dark": "#9D6CD2",
+        "Gemini-dark": "#4285F4",
+        "Grok-dark": "#FF6B35",
 
         // 배경 요소 색상 추가
         mask: "#2388FF",

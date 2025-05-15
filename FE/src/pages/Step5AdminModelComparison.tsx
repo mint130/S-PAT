@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "../components/common/Button";
 import SelectLLM from "../components/common/SelectLLM";
 import Title from "../components/common/Title";
@@ -6,12 +7,15 @@ import LLMBarChart from "../components/Step5_admin/LLMBarChart";
 import ResponseTime from "../components/Step5_admin/ResponseTime";
 import TotalScore from "../components/Step5_admin/TotalScore";
 import NextModal from "../components/common/NextModal";
+import SuccessModal from "../components/common/SuccessModal"; // 새로 추가
 
 import axios from "axios";
 import useLLMStore from "../stores/useLLMStore";
 
 function Step5AdminModelComparison() {
   const selectedLLM = useLLMStore((state) => state.selectedLLM);
+
+  const navigate = useNavigate();
 
   // 모달 상태 관리
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -52,10 +56,10 @@ function Step5AdminModelComparison() {
     fetchBestLLM(selectedLLM);
   };
 
-  // 성공 모달 닫기 핸들러
+  // 성공 모달 닫기 핸들러 - 처음으로 이동
   const handleSuccessClose = () => {
     setShowSuccessModal(false);
-    // 필요시 다음 페이지로 이동 등의 추가 액션
+    navigate("/");
   };
 
   return (
@@ -108,16 +112,7 @@ function Step5AdminModelComparison() {
       </div>
 
       {/* 이전/다음 버튼 영역 */}
-      <div className="flex justify-between w-full mt-4">
-        <Button
-          variant="outline"
-          size="md"
-          className="w-24"
-          onClick={() => {
-            alert("이전 단계로 이동합니다.");
-          }}>
-          이전
-        </Button>
+      <div className="flex justify-end w-full mt-4">
         <Button
           variant="primary"
           size="md"
@@ -136,15 +131,16 @@ function Step5AdminModelComparison() {
         onCancel={() => setShowConfirmModal(false)}
         onConfirm={handleConfirm}
         isLoading={isLoading}
+        confirmText="적용하기"
       />
 
-      {/* 성공 모달 */}
-      <NextModal
+      {/* 성공 모달 - 새로운 디자인 */}
+      <SuccessModal
         isOpen={showSuccessModal}
-        title="LLM 모델 적용 완료"
-        description={`${selectedLLM} 모델이 성공적으로 적용되었습니다.`}
-        onCancel={handleSuccessClose}
-        onConfirm={handleSuccessClose}
+        title="LLM 적용이 완료되었습니다"
+        subTitle={`${selectedLLM} 모델이 성공적으로 적용되었습니다.`}
+        buttonText="처음으로"
+        onClose={handleSuccessClose}
       />
     </div>
   );
