@@ -6,9 +6,13 @@ import type { ColDef } from "ag-grid-community";
 interface PatentTableProps {
   // file: File;
   fileBuffer: ArrayBuffer;
+  setfileLength: (length: number) => void;
 }
 
-const PatentTable: React.FC<PatentTableProps> = ({ fileBuffer }) => {
+const PatentTable: React.FC<PatentTableProps> = ({
+  fileBuffer,
+  setfileLength,
+}) => {
   const [patentData, setPatentData] = useState<any[]>([]);
   const [colDefs, setColDefs] = useState<ColDef<any, any>[]>([]);
 
@@ -25,6 +29,8 @@ const PatentTable: React.FC<PatentTableProps> = ({ fileBuffer }) => {
 
         // 시트 데이터를 JSON으로 변환
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        setfileLength(jsonData.length);
 
         // JSON 데이터 상태에 저장
         setPatentData(jsonData);

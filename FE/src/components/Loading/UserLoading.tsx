@@ -4,11 +4,17 @@ import useThemeStore from "../../stores/useThemeStore";
 
 interface UserLoadingProps {
   sessionId: string;
+  fileLength: number;
   llmName?: string; // admin 모드에서 사용
   onComplete?: () => void; // admin 모드에서 완료 콜백
 }
 
-function UserLoading({ sessionId, llmName, onComplete }: UserLoadingProps) {
+function UserLoading({
+  sessionId,
+  fileLength,
+  llmName,
+  onComplete,
+}: UserLoadingProps) {
   const navigate = useNavigate();
   const { isDarkMode } = useThemeStore();
 
@@ -21,7 +27,7 @@ function UserLoading({ sessionId, llmName, onComplete }: UserLoadingProps) {
     estimatedTimeLeft: string;
   }>({
     current: 0,
-    total: 100,
+    total: fileLength,
     percentage: 0,
     currentPhase: "AI가 특허데이터를 분류하고 있습니다...",
     estimatedTimeLeft: "계산 중...",
