@@ -116,7 +116,7 @@ const PatentFileUpload: React.FC<PatentFileUploadProps> = ({
         ) : (
           // 파일 업로드
           <div
-            className={`relative flex flex-col items-center justify-center w-full p-16 border border-[#E3E6EA] dark:border-[#444B5F] rounded-lg transition-colors bg-white dark:bg-[#23283D] shadow-[0_2px_4px_rgba(25,33,61,0.08)] ${
+            className={`relative flex flex-col items-center justify-center w-full p-16 border border-[#E3E6EA] dark:border-[#444B5F] rounded-lg bg-white dark:bg-[#23283D] shadow-[0_2px_4px_rgba(25,33,61,0.08)] ${
               dragActive ? "border-primary-blue bg-gray-100" : ""
             }`}
             onDragEnter={handleDrag}
