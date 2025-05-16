@@ -58,16 +58,6 @@ function Step2ClassificationEdit() {
     }
   }, [selectedStandards, navigate]);
 
-  const handlePrevious = () => {
-    const Role = localStorage.getItem("role");
-
-    if (Role == "User") {
-      navigate("/user/step1");
-    } else {
-      navigate("/admin/step1");
-    }
-  };
-
   const handleNext = async () => {
     setLoading(true);
 
@@ -135,14 +125,7 @@ function Step2ClassificationEdit() {
         />
       </div>
 
-      <div className="flex justify-between w-full mt-7">
-        <Button
-          variant="outline"
-          size="md"
-          onClick={handlePrevious}
-          disabled={loading}>
-          이전
-        </Button>
+      <div className="flex justify-end w-full mt-7">
         <Button
           variant="primary"
           size="md"
