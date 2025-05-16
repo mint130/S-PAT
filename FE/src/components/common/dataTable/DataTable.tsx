@@ -198,7 +198,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
     }, [onDataChanged]);
 
     return (
-      <div className="flex flex-col h-full font-pretendard w-full">
+      <div className="flex flex-col h-full font-pretendard w-full mt-2">
         {/* 툴바 영역 */}
         <DataTableToolbar
           fileName={fileName}

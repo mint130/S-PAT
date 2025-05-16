@@ -146,7 +146,7 @@ function Step3PatentClassification() {
           )}
 
           {/* 이전/다음 버튼 영역 */}
-          <div className="flex justify-end w-full mt-10 space-x-6">
+          <div className="flex justify-end w-full mt-7 space-x-6">
             {uploadedFile && (
               <button
                 className="font-pretendard text-primary-blue hover:text-blue-800"
