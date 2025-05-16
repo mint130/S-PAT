@@ -171,10 +171,14 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
 
         // 현재 날짜와 시간 포맷팅
         const now = new Date();
-        const dateStr = now.toISOString().split("T")[0];
+        const dateStr = now
+          .toISOString()
+          .split("T")[0]
+          .replace(/-/g, "")
+          .substring(2);
 
         // 엑셀 파일 다운로드
-        const fileName = `데이터_${dateStr}.xlsx`;
+        const fileName = `특허 분류 체계_${dateStr}.xlsx`;
         XLSX.writeFile(workbook, fileName);
 
         console.log("엑셀 파일이 성공적으로 다운로드되었습니다.");

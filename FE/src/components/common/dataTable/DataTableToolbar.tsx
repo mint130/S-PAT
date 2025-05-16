@@ -134,7 +134,7 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
             <span>Columns</span>
           </button>
           {isOpen && (
-            <div className="absolute right-2 w-32 max-h-64 overflow-y-auto bg-white dark:bg-[#23283D] rounded-md shadow-md z-10">
+            <div className="absolute right-2 w-40 max-h-64 overflow-y-auto overflow-x-auto whitespace-nowrap bg-white dark:bg-[#23283D] rounded-md shadow-md z-10 no-scrollbar">
               {Object.entries(columnVisibility)
                 // 전문가평가 항목 필터링
                 .filter(([colId]) => !(colId === "evaluation"))
@@ -143,7 +143,7 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
                     key={colId}
                     className="flex items-center gap-2 px-3 py-2 m-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900/50 cursor-pointer"
                     onClick={() => handleColumnVisibility(colId)}>
-                    <div className="flex items-center justify-center w-4 h-4">
+                    <div className="flex-shrink-0 flex items-center justify-center w-4 h-4">
                       {!columnInfo.hide && (
                         <Check size={14} className="text-blue-600" />
                       )}
