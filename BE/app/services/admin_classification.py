@@ -328,14 +328,18 @@ async def process_patent_classification(
                 classifications,
                 retriever
             )
-            
+
+            # reason 값만 추출해서 redis에 저장
+            reasoning_key=f"{session_id}:{llm_type}:reasoning"
+            reason = reasoning_evaluation["reason"]
+            redis.rpush(reasoning_key, json.dumps(reason, ensure_ascii=False))
+
             # 통합 평가 결과
             evaluation = {
                 "vector_based": vector_evaluation,
                 "reasoning": reasoning_evaluation
             }
             logger.info(f"[{session_id}_{llm_type}] 특허 분류 평가: {json.dumps(evaluation, ensure_ascii=False)}")
-
             evaluations.append(evaluation)
 
             # 진행률 업데이트
@@ -447,16 +451,18 @@ async def evaluate_classification_by_reasoning(
     {similar_classifications}
 
     [평가 요구사항]
-    1. 유사도 기반 추천 분류 체계와 현재 분류 결과를 비교하여 평가해주세요.
-    2. 0.0부터 1.0 사이의 점수로 평가해주세요.
+    1. 분석: 유사도 기반 추천 분류 체계와 현재 분류 결과를 비교하여 평가해주세요.
+    2. 점수: 0.0부터 1.0 사이의 점수로 평가해주세요.
        - 0.0: 완전히 부적절한 분류
        - 0.5: 부분적으로 적절한 분류
        - 1.0: 완벽하게 적절한 분류
+    3. 이유: 분석을 1줄 요약하여 작성해주세요.
 
     [주의사항]
     1. 반드시 분류 체계를 기반으로 평가해야 합니다.
     2. 분류 체계에 없는 분류는 '미분류'로 간주합니다.
     - 미분류의 예시: 특허 정보가 제시된 분류 체계만으로 분류할 수 없다고 판단될 경우, 미분류로 판단합니다.
+    3. 평가 요구 사항의 포맷 [1. 분석 2. 점수 3. 이유]를 반드시 지킵니다.
     """
 
     prompt = ChatPromptTemplate.from_template(template)
@@ -487,10 +493,15 @@ async def evaluate_classification_by_reasoning(
     except Exception as e:
         logger.error(f"점수를 추출 중 오류 발생: {str(e)}")
         score = 0.0
-    
+
+    # 응답에서 평가 이유 추출
+    reason_match = re.search(r"이유.*?[:：\s]\s*(.+?)(?:\n##|$)", response.content, re.DOTALL)
+    reason = reason_match.group(1).strip() if reason_match else ""
+    logger.info(reason)
+
     return {
         "score": score,
-        "reason": response.content
+        "reason": reason
     } 
 
 def calculate_sample_size(total_population: int, confidence_level: float, margin_error: float) -> int:

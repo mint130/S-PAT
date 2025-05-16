@@ -164,7 +164,7 @@ async def stream_classification_progress(session_id: str):
         headers={"Content-Type": "text/event-stream; charset=utf-8"}
     )
 
-# 결과 json으로 반환환
+# 결과 json으로 반환
 @user_router.get("/{session_id}/classification", summary="특허 분류 결과 json 반환", response_model=ClassificationResponse, description="세션 아이디로 저장된 분류결과 JSON을 반환합니다.")
 async def get_classified_patents(session_id: str, redis = Depends(get_redis)):
     # redis에 저장된 세션이 없을 경우
