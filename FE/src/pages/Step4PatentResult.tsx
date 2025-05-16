@@ -5,12 +5,14 @@ import DataTable from "../components/common/dataTable/DataTable";
 import { fetchPatentClassifications, Patent } from "../apis/userApi";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import Button from "../components/common/Button";
+import useThemeStore from "../stores/useThemeStore";
 
 function Step4PatentResult() {
   const [colDefs] = useState(patentColumnsStep4);
   const [patentData, setPatentData] = useState<Patent[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { isDarkMode } = useThemeStore(); // 다크모드 상태 가져오기
 
   const fetchData = async () => {
     try {
@@ -44,7 +46,7 @@ function Step4PatentResult() {
             <span>{error}</span>
           </div>
           <Button
-            variant="outline"
+            variant={isDarkMode ? "dark-outline" : "outline"}
             size="sm"
             isLoading={loading}
             icon={<RefreshCw size={17} />}

@@ -7,10 +7,16 @@ import {
 } from "react";
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef, RowSelectionOptions } from "ag-grid-community";
-import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
+import {
+  AllCommunityModule,
+  ModuleRegistry,
+  themeQuartz,
+  colorSchemeDarkWarm,
+} from "ag-grid-community";
 import { AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
 import DataTableToolbar from "./DataTableToolbar";
+import useThemeStore from "../../../stores/useThemeStore";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -40,9 +46,20 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
     ref
   ) => {
     const gridRef = useRef<AgGridReact>(null); // 그리드 참조를 위한 내부 ref 생성
+    const { isDarkMode } = useThemeStore(); // 다크모드 상태 가져오기
 
     // 외부 ref가 내부 gridRef를 직접 참조하도록 설정
     useImperativeHandle(ref, () => gridRef.current!);
+
+    const theme = useMemo(() => {
+      return isDarkMode
+        ? themeQuartz.withPart(colorSchemeDarkWarm).withParams({
+            backgroundColor: "#141828",
+            cellTextColor: "#C9C9C9",
+            headerTextColor: "#C9C9C9",
+          })
+        : undefined;
+    }, [isDarkMode]);
 
     const defaultColDef: ColDef = {
       sortable: true, // 모든 열에 정렬 기능 활성화
@@ -154,10 +171,14 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
 
         // 현재 날짜와 시간 포맷팅
         const now = new Date();
-        const dateStr = now.toISOString().split("T")[0];
+        const dateStr = now
+          .toISOString()
+          .split("T")[0]
+          .replace(/-/g, "")
+          .substring(2);
 
         // 엑셀 파일 다운로드
-        const fileName = `데이터_${dateStr}.xlsx`;
+        const fileName = `특허 분류 체계_${dateStr}.xlsx`;
         XLSX.writeFile(workbook, fileName);
 
         console.log("엑셀 파일이 성공적으로 다운로드되었습니다.");
@@ -181,7 +202,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
     }, [onDataChanged]);
 
     return (
-      <div className="flex flex-col h-full font-pretendard w-full">
+      <div className="flex flex-col h-full font-pretendard w-full mt-2">
         {/* 툴바 영역 */}
         <DataTableToolbar
           fileName={fileName}
@@ -216,10 +237,10 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
               columnDefs={colDefs} // 열 정의
               defaultColDef={defaultColDef} // 기본 열 속성
               rowSelection={rowSelection} // 행 선택 옵션
-              alwaysMultiSort={true} // 항상 다중 정렬 허용 (여러 컬럼으로 동시에 정렬 가능)
               // suppressDragLeaveHidesColumns={true} // 열을 드래그하여 그리드 밖으로 이동시켜도 열이 숨겨지지 않도록 방지
               loading={loading} // 로딩 상태 표시
               onCellValueChanged={onCellValueChanged}
+              theme={theme}
             />
           )}
         </div>

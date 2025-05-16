@@ -98,8 +98,8 @@ const PatentFileUpload: React.FC<PatentFileUploadProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-between w-full h-full rounded-lg">
-      <div className="pt-24 px-20 w-full">
+    <div className="flex flex-col items-center justify-center w-full h-full rounded-lg">
+      <div className="pt-10 px-20 w-full">
         {isLoading ? (
           // 로딩
           <div className="flex flex-col items-center justify-center w-full p-16 border border-[#E3E6EA] rounded-lg bg-white dark:bg-[#23283D] dark:border-[#444B5F] shadow-[0_2px_4px_rgba(25,33,61,0.08)] h-96">
@@ -116,7 +116,7 @@ const PatentFileUpload: React.FC<PatentFileUploadProps> = ({
         ) : (
           // 파일 업로드
           <div
-            className={`relative flex flex-col items-center justify-center w-full p-16 border border-[#E3E6EA] dark:border-[#444B5F] rounded-lg transition-colors bg-white dark:bg-[#23283D] shadow-[0_2px_4px_rgba(25,33,61,0.08)] ${
+            className={`relative flex flex-col items-center justify-center w-full p-16 border border-[#E3E6EA] dark:border-[#444B5F] rounded-lg bg-white dark:bg-[#23283D] shadow-[0_2px_4px_rgba(25,33,61,0.08)] ${
               dragActive ? "border-primary-blue bg-gray-100" : ""
             }`}
             onDragEnter={handleDrag}
