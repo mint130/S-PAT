@@ -7,10 +7,16 @@ import {
 } from "react";
 import { AgGridReact } from "ag-grid-react";
 import type { ColDef, RowSelectionOptions } from "ag-grid-community";
-import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
+import {
+  AllCommunityModule,
+  ModuleRegistry,
+  themeQuartz,
+  colorSchemeDarkWarm,
+} from "ag-grid-community";
 import { AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
 import DataTableToolbar from "./DataTableToolbar";
+import useThemeStore from "../../../stores/useThemeStore";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -40,9 +46,20 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
     ref
   ) => {
     const gridRef = useRef<AgGridReact>(null); // 그리드 참조를 위한 내부 ref 생성
+    const { isDarkMode } = useThemeStore(); // 다크모드 상태 가져오기
 
     // 외부 ref가 내부 gridRef를 직접 참조하도록 설정
     useImperativeHandle(ref, () => gridRef.current!);
+
+    const theme = useMemo(() => {
+      return isDarkMode
+        ? themeQuartz.withPart(colorSchemeDarkWarm).withParams({
+            backgroundColor: "#141828",
+            cellTextColor: "#C9C9C9",
+            headerTextColor: "#C9C9C9",
+          })
+        : undefined;
+    }, [isDarkMode]);
 
     const defaultColDef: ColDef = {
       sortable: true, // 모든 열에 정렬 기능 활성화
@@ -220,6 +237,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
               // suppressDragLeaveHidesColumns={true} // 열을 드래그하여 그리드 밖으로 이동시켜도 열이 숨겨지지 않도록 방지
               loading={loading} // 로딩 상태 표시
               onCellValueChanged={onCellValueChanged}
+              theme={theme}
             />
           )}
         </div>

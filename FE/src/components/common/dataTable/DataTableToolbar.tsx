@@ -103,20 +103,22 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
     <div className="mb-2 flex justify-between items-end  w-full">
       {/* 파일 이름 */}
       <div className="">{fileName}</div>
-      <div className="h-8 w-full flex items-center justify-end gap-2 text-gray-500">
+      <div
+        className="h-8 w-full flex items-center justify-end gap-2 text-gray-500
+      ">
         {edit && (
           <>
             {/* 행 추가 버튼 */}
             <button
               onClick={onAddNewRow}
-              className="h-full flex items-center justify-center gap-1 px-2 text-sm hover:text-gray-700">
+              className="h-full flex items-center justify-center gap-1 px-2 text-sm hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300/80">
               <SquarePlus size={16} />
               <span>Add</span>
             </button>
             {/* 삭제 버튼 */}
             <button
               onClick={onRemoveSelected}
-              className="h-full flex items-center justify-center gap-1 px-2 text-sm hover:text-gray-700">
+              className="h-full flex items-center justify-center gap-1 px-2 text-sm hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300/80">
               <Trash2 size={16} />
               <span>Delete</span>
             </button>
@@ -127,26 +129,26 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
         <div className="relative h-full" ref={columnMenuRef}>
           <button
             onClick={handleFilterColumn}
-            className="h-full flex items-center justify-center gap-1 px-2 text-sm hover:text-gray-700">
+            className="h-full flex items-center justify-center gap-1 px-2 text-sm hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300/80">
             <ListFilter size={16} />
             <span>Columns</span>
           </button>
           {isOpen && (
-            <div className="absolute right-2 w-32 max-h-64 overflow-y-auto bg-white rounded-md shadow-md z-10">
+            <div className="absolute right-2 w-32 max-h-64 overflow-y-auto bg-white dark:bg-[#23283D] rounded-md shadow-md z-10">
               {Object.entries(columnVisibility)
                 // 전문가평가 항목 필터링
                 .filter(([colId]) => !(colId === "evaluation"))
                 .map(([colId, columnInfo]) => (
                   <div
                     key={colId}
-                    className="flex items-center gap-2 px-3 py-2 m-1 rounded-md hover:bg-gray-100 cursor-pointer"
+                    className="flex items-center gap-2 px-3 py-2 m-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900/50 cursor-pointer"
                     onClick={() => handleColumnVisibility(colId)}>
                     <div className="flex items-center justify-center w-4 h-4">
                       {!columnInfo.hide && (
                         <Check size={14} className="text-blue-600" />
                       )}
                     </div>
-                    <span className="text-sm font-pretendard font-medium text-gray-700">
+                    <span className="text-sm font-pretendard font-medium text-gray-700 dark:text-[#A7ACB4]">
                       {columnInfo.headerName}
                     </span>
                   </div>
@@ -162,7 +164,7 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
             value={quickFilterText}
             onChange={handleFilterChange}
             placeholder="Search"
-            className="w-full h-full pl-8 pr-4 text-sm border border-gray-300 rounded-md"
+            className="w-full h-full pl-8 pr-4 text-sm border border-gray-300 rounded-md dark:text-[#A7ACB4] dark:bg-[#23283D] dark:border-gray-700"
           />
           <Search
             className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400"
