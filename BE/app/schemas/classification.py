@@ -28,3 +28,16 @@ class ClassificationSchema(BaseModel):
     middleTitle: str
     smallCode: str
     smallTitle: str
+
+class LLMClassificationResult(BaseModel):
+    name: str = Field(..., description="LLM 이름 (GPT, Claude, Gemini, Grok)")
+    patents: List[Patent] = Field(..., description="분류된 특허 목록")
+    evaluation_score: Dict[str, Any] = Field(..., description="벡터 기반 유사도 평가 점수")
+
+class MultiLLMClassificationResponse(BaseModel):
+    results: List[LLMClassificationResult] = Field(..., description="각 LLM의 분류 결과 목록")
+
+class SampledClassificationResponse(BaseModel):
+    """샘플링된 분류 결과 및 평가 점수 응답 모델"""
+    sampling_info: Dict[str, Any] = Field(..., description="샘플링 정보 (총 특허 수, 샘플 크기, 신뢰도, 오차 범위, 인덱스)")
+    results: List[Dict[str, Any]] = Field(..., description="각 LLM의 샘플링된 분류 결과 및 평가 점수, 걸리는 시간")

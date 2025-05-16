@@ -1,178 +1,125 @@
-from typing import List
+import logging
 import os
-from openai import OpenAI
-from app.schemas.excel import StandardItem
-from app.crud.crud_excel import process_excel_file
-from fastapi import UploadFile, HTTPException
-from app.schemas.llm import LLMClassificationResult, LLMClassificationSample, MultiLLMClassificationResponse
-import asyncio
-import time
-from app.core.config import settings
-#from anthropic import Anthropic
-#import google.generativeai as genai
+from typing import List, Dict, Any
+from langchain_openai import ChatOpenAI
+from langchain.memory import ConversationBufferMemory
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.runnables import RunnablePassthrough
+from langchain.schema.runnable import RunnableMap
+from dotenv import load_dotenv
 
-# 각 LLM별 클라이언트(혹은 API 키) 준비
-openai_api_key = settings.OPENAI_API_KEY
-claude_api_key = settings.CLAUDE_API_KEY
-gemini_api_key = settings.GEMINI_API_KEY
-grok3_api_key = settings.GROK3_API_KEY
+load_dotenv()
+logger = logging.getLogger(__name__)
 
-gpt_client = OpenAI(api_key=openai_api_key)
-#claude_client = Anthropic(api_key=claude_api_key)
-#genai.configure(api_key=gemini_api_key)
-#gemini_model = genai.GenerativeModel("gemini-pro")
+# LLM 모델 초기화
+llm = ChatOpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
+    model_name="gpt-4o",
+    temperature=0
+)
 
+# JSON 출력 파서 초기화
+output_parser = JsonOutputParser()
 
-async def process_standards_with_llm(file: UploadFile, query: str) -> tuple[List[StandardItem], str]:
-    try:
-        # 엑셀 파일 처리
-        standards = await process_excel_file(file)
-        
-        # GPT 프롬프트 구성
-        prompt = f"""
-다음은 기술 분류 체계입니다:
+# 프롬프트 템플릿 정의
+template = """
+당신은 특허 분류 체계를 제작하는 특허 분류 전문가입니다.
+당신은 유저의 요청과 필수 규칙에 따라 특허 분류 체계를 상세히 작성해야 합니다.
 
-{[{{
-    "code": item.code,
-    "level": item.level,
-    "name": item.name,
-    "description": item.description
-}} for item in standards]}
+[중요 사항]
+- 반드시 엑셀 파일의 기존 분류 체계와 이전 생성한 분류 체계에서 확장/수정하는 방식으로 분류 체계를 생성해야 합니다.
+- 변경 사항만 제시해서는 안 됩니다. (중요)
+- 응답 = 기존 분류 체계 + 변경 사항 (무조건)
 
-사용자 질문: {query}
+[엑셀 파일의 기존 분류 체계]
+{excel_data}
 
-위 분류 체계를 참고하여 사용자의 질문에 답변해주세요. 
-답변은 반드시 주어진 분류 체계 내에서 적절한 항목을 선택하여 제시해야 합니다.
-선택한 항목들은 원래 형식을 그대로 유지하여 JSON 배열 형태로 반환해주세요.
+[이전 생성한 분류 체계]
+{chat_history}
+
+[유저의 요청]
+{user_input}
+
+[필수 규칙]
+1. 응답은 반드시 JSON 배열 형태로만 반환해야 합니다. 다른 텍스트나 설명을 포함하지 마세요.
+2. 각 항목은 code, level, name, description 필드만 무조건 포함해야 한다.
+3. 각 코드는 계층 구조를 따라야 한다.
+    예를 들어, 대분류: A01, 중분류: A01-01, 소분류: A01-01-01
+4. 엑셀 파일의 기존 분류 체계가 있다면, 반드시 그 주제와 도메인을 유지하면서 확장해야 한다.
+5. 이전 생성한 분류 체계가 있다면, 반드시 그 주제와 도메인을 유지하면서 확장해야 한다.
+6. 이전 생성한 분류 체계가 있다면, 사용자의 요청에 따라 이전 생성한 분류 체계에서 수정하여 반영해야 한다.
+7. 응답의 길이는 길어도 좋다.
+
+[응답 형식 예시]
+[
+  {{
+    "code": "H01",
+    "level": "대분류",
+    "name": "휴머노이드 플랫폼",
+    "description": "휴머노이드 전체 시스템에서 하드웨어 및 소프트웨어가 통합되어 작동하는 플랫폼 구조"
+  }}
+]
 """
 
-        # GPT API 호출
-        response = gpt_client.chat.completions.create(
-            model="gpt-4o",  # 또는 다른 적절한 모델
-            messages=[
-                {"role": "system", "content": "당신은 기술 분류 체계 전문가입니다. 주어진 분류 체계를 기반으로 사용자의 질문에 답변해주세요."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0
+prompt = PromptTemplate(
+    input_variables=["excel_data", "chat_history", "user_input"],
+    template=template
+)
+
+# 세션별 메모리 저장소
+conversation_memories = {}
+
+def get_memory(session_id: str) -> ConversationBufferMemory:
+    """
+    세션 ID에 해당하는 메모리를 가져오거나 새로 생성합니다.
+    """
+    if session_id not in conversation_memories:
+        chat_history = ChatMessageHistory()
+        conversation_memories[session_id] = ConversationBufferMemory(
+            memory_key="chat_history",
+            chat_memory=chat_history,
+            return_messages=True
         )
+    return conversation_memories[session_id]
 
-        # GPT 응답 처리
-        try:
-            gpt_response = response.choices[0].message.content
-            # JSON 문자열을 파싱하여 StandardItem 객체 리스트로 변환하는 로직 필요
-            # 이 부분은 GPT의 응답 형식에 따라 적절히 구현해야 함
-            
-            return standards, gpt_response
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"GPT 응답 처리 중 오류가 발생했습니다: {str(e)}")
-
+async def process_with_llm(
+    session_id: str,
+    excel_data: List[Dict[str, Any]],
+    user_input: str
+) -> List[Dict[str, Any]]:
+    """
+    LLM을 사용하여 엑셀 데이터와 사용자 입력을 처리합니다.
+    
+    Args:
+        session_id (str): 세션 ID
+        excel_data (List[Dict[str, Any]]): 엑셀에서 추출한 데이터
+        user_input (str): 사용자의 프롬프트 입력
+        
+    Returns:
+        List[Dict[str, Any]]: 처리된 분류 체계 데이터
+    """
+    try:
+        # 메모리 가져오기
+        memory = get_memory(session_id)
+        
+        # Chain 구성
+        chain = RunnableMap({
+            "excel_data": lambda _: excel_data,
+            "chat_history": memory.load_memory_variables,
+            "user_input": RunnablePassthrough()
+        }) | prompt | llm | output_parser
+        
+        # Chain 실행
+        response = await chain.ainvoke({"user_input": user_input})
+        
+        # 메모리에 대화 저장
+        memory.chat_memory.add_user_message(user_input)
+        memory.chat_memory.add_ai_message(response)
+        
+        return response
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"처리 중 오류가 발생했습니다: {str(e)}")
-
-
-# --- 여러 LLM을 비동기로 호출하는 함수 ---
-# async def classify_patent_with_multiple_llms(patent_data: List[dict], options: dict = None) -> MultiLLMClassificationResponse:
-#     # 각 LLM별 분류 함수 호출 (비동기)
-#     tasks = [
-#         classify_with_gpt(patent_data, options),
-#         classify_with_claude(patent_data, options),
-#         classify_with_gemini(patent_data, options),
-#         classify_with_grok3(patent_data, options)
-#     ]
-#     results = await asyncio.gather(*tasks)
-#     return MultiLLMClassificationResponse(results=results)
-
-# # --- 각 LLM별 분류 함수 (실제 API 연동) ---
-# async def classify_with_gpt(patent_data: List[dict], options: dict = None) -> LLMClassificationResult:
-#     start = time.time()
-#     # 프롬프트 구성 예시
-#     prompt = "GPT용 프롬프트 예시"
-#     response = gpt_client.chat.completions.create(
-#         model="gpt-4o",
-#         messages=[{"role": "user", "content": prompt}],
-#         temperature=0
-#     )
-#     # 실제 응답 파싱 필요
-#     sample = [LLMClassificationSample(
-#         applicationNumber="KR10-2023-0045678",
-#         title="자연어처리모델을 이용한...",
-#         abstract="본 발명은...",
-#         majorCode="H04",
-#         middleCode="H04-01",
-#         smallCode="H04-01-01",
-#         majorTitle="인터페이스 및 인지 시스템",
-#         middleTitle="음성 인식 인터페이스",
-#         smallTitle="경량화 음성 모델"
-#     )]
-#     speed = time.time() - start
-#     return LLMClassificationResult(name="gpt", speed=speed, similarity=0.95, llmEval=0.9, sample=sample)
-
-# async def classify_with_claude(patent_data: List[dict], options: dict = None) -> LLMClassificationResult:
-#     start = time.time()
-#     prompt = "Claude용 프롬프트 예시"
-#     response = claude_client.messages.create(
-#         model="claude-3-opus-20240229",
-#         messages=[{"role": "user", "content": prompt}]
-#     )
-#     # 실제 응답 파싱 필요
-#     sample = [LLMClassificationSample(
-#         applicationNumber="KR10-2023-0098765",
-#         title="로봇 수술을 위한 시스템 및 방법",
-#         abstract="수술 기구와...",
-#         majorCode="H05",
-#         middleCode="H05-01",
-#         smallCode="H05-01-01",
-#         majorTitle="핸들(Hand) 기술",
-#         middleTitle="메커니컬 핸들",
-#         smallTitle="액추에이터 기반 관련 손"
-#     )]
-#     speed = time.time() - start
-#     return LLMClassificationResult(name="claude", speed=speed, similarity=0.92, llmEval=0.88, sample=sample)
-
-# async def classify_with_gemini(patent_data: List[dict], options: dict = None) -> LLMClassificationResult:
-#     start = time.time()
-#     prompt = "Gemini용 프롬프트 예시"
-#     response = gemini_model.generate_content(prompt)
-#     # 실제 응답 파싱 필요
-#     sample = [LLMClassificationSample(
-#         applicationNumber="KR10-2023-0012345",
-#         title="AI 기반 영상 처리 장치",
-#         abstract="영상 신호를...",
-#         majorCode="G06",
-#         middleCode="G06-01",
-#         smallCode="G06-01-01",
-#         majorTitle="영상 처리",
-#         middleTitle="딥러닝 영상 분석",
-#         smallTitle="경량화 영상 모델"
-#     )]
-#     speed = time.time() - start
-#     return LLMClassificationResult(name="gemini", speed=speed, similarity=0.93, llmEval=0.89, sample=sample)
-
-# async def classify_with_grok3(patent_data: List[dict], options: dict = None) -> LLMClassificationResult:
-#     start = time.time()
-#     prompt = "Grok3용 프롬프트 예시"
-#     client = OpenAI(
-#         api_key=grok3_api_key,
-#         base_url="https://api.x.ai/v1",
-#     )
-
-#     completion = client.chat.completions.create(
-#         model="grok-3-beta",
-#         messages=[
-#             {"role": "user", "content": "What is the meaning of life?"}
-#         ]
-#     )
-#     # 실제 응답 파싱 필요
-#     sample = [LLMClassificationSample(
-#         applicationNumber="KR10-2023-0076543",
-#         title="스마트 센서 네트워크",
-#         abstract="센서 데이터 처리...",
-#         majorCode="B07",
-#         middleCode="B07-01",
-#         smallCode="B07-01-01",
-#         majorTitle="센서 네트워크",
-#         middleTitle="스마트 센서",
-#         smallTitle="저전력 센서"
-#     )]
-#     speed = time.time() - start
-#     return LLMClassificationResult(name="grok3", speed=speed, similarity=0.91, llmEval=0.87, sample=sample) 
+        logger.error(f"Error in process_with_llm: {str(e)}")
+        raise e

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from fastapi import UploadFile
 
@@ -20,4 +20,4 @@ class StandardRequest(BaseModel):
 
 class StandardLLMResponse(BaseModel):
     standards: List[StandardItem]
-    query: str 
+    query: Optional[str] = None 

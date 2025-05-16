@@ -3,27 +3,22 @@ import os
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from datetime import datetime
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from langchain.output_parsers import PydanticOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain.schema.runnable import RunnableMap
-from langchain_openai import OpenAIEmbeddings
 
 from app.schemas.conversation import ConversationRequest, ConversationResponse, SessionHistoryResponse
 from app.db.database import get_db
 from app.models.conversation import Conversation
 from app.crud.crud_conversation import create_conversation_record, get_conversation_history_by_session
-
 from app.crud.crud_excel import process_excel_file
 from app.schemas.excel import StandardResponse, StandardLLMResponse
-from app.crud.crud_llm import process_standards_with_llm
+from app.crud.crud_llm import process_with_llm
 
 load_dotenv()
 
@@ -178,36 +173,27 @@ async def upload_excel(session_id: str, file: UploadFile = File(...)):
 
 
 @standard_router.post("/{session_id}/upload/prompt", response_model=StandardLLMResponse, summary="엑셀 파일 업로드와 프롬프트로 분류 체계 생성", description="엑셀 파일을 업로드하고 GPT를 사용하여 분류 체계를 처리합니다.")
-async def process_with_llm(
+async def upload_excel_with_prompt(
     session_id: str,
     file: UploadFile = File(...),
-    query: str = Form(...),
+    prompt: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    # 1. 엑셀 파일 처리
-    standards = await process_excel_file(file)
-    
-    # 2. 메모리 가져오기
-    if session_id not in conversation_memories:
-        conversation_memories[session_id] = ConversationBufferMemory(memory_key="chat_history")
-    memory = conversation_memories[session_id]
-
-    # 3. 메모리에 입력 저장
-    memory.chat_memory.add_user_message(query)
-
-    # 4. Chain 만들기
-    chain = RunnableMap({
-        "chat_history": memory.load_memory_variables,
-        "user_input": RunnablePassthrough()
-    }) | prompt | llm | output_parser
-
-    # 5. Chain 실행
-    response = await chain.ainvoke({"user_input": query})
-    
-    # 6. db에 대화 저장
-    create_conversation_record(db, session_id, query, response)
-    
-    return {
-        "standards": response,
-        "query": query
-    }
+    try:
+        # 엑셀 파일 처리
+        standards = await process_excel_file(file)
+        
+        # LLM 처리
+        response = await process_with_llm(session_id, standards, prompt)
+        
+        # db에 대화 저장
+        create_conversation_record(db, session_id, prompt, response)
+        
+        # JSON 응답 반환
+        return {"standards": response}
+        
+    except Exception as e:
+        import traceback
+        error_detail = str(e) + "\n" + traceback.format_exc()
+        logger.error(f"Error occurred: {error_detail}")
+        raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
