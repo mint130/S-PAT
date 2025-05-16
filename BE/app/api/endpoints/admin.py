@@ -11,7 +11,7 @@ from app.db.database import get_db
 from app.schemas.best_llm import LLMCreate, LLMResponse
 from app.schemas.message import Message
 import pandas as pd
-from app.services.admin_classification import process_patent_classification_sse
+from app.services.admin_classification import process_patent_classification
 from app.schemas.classification import (
     SampledClassificationResponse
 )
@@ -69,7 +69,7 @@ async def upload_and_start_classification_and_evaluation(
 
             # 백그라운드 태스트 4개에서 분류 작업 실행
             asyncio.create_task(
-                process_patent_classification_sse(session_id, df, retriever, LLM, progress_queue)
+                process_patent_classification(session_id, df, retriever, LLM, progress_queue)
             )
 
         message = Message(
