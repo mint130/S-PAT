@@ -178,8 +178,10 @@ function Step4AdminPatentResult() {
         (item) => item.evaluation !== null && item.evaluation !== undefined
       ).length;
       setEvaluatedCount(count);
+    } else {
+      setEvaluatedCount(0);
     }
-  }, [currentPatents]);
+  }, [currentPatents, llmPatentData, selectedLLM]);
 
   // 전문가 평가 처리 함수
   const handleDataChanged = useCallback(
