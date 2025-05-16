@@ -131,20 +131,33 @@ async def get_sampled_classification(
         
         for llm_type in llm_types:
             patents_key = f"{session_id}:{llm_type}:patents"
+            reasons_key = f"{session_id}:{llm_type}:reasoning"
             if not redis.exists(patents_key):
                 continue
                 
             try:
                 # 특허 데이터 가져오기
                 patent_jsons = redis.lrange(patents_key, 0, -1)
+                # 평가 이유 데이터 가져오기
+                reason_jsons = redis.lrange(reasons_key, 0, -1)
                 patents = []
-                for patent_json in patent_jsons:
+                
+                # patent_jsons와 reason_jsons를 함께 순회
+                for i, patent_json in enumerate(patent_jsons):
                     try:
                         patent = json.loads(patent_json)
+                        
+                        # 해당 인덱스의 이유 데이터가 있는지 확인
+                        if i < len(reason_jsons):
+                            reason_text  = json.loads(reason_jsons[i])
+                            # 특허 객체에 reason 필드 추가
+                            patent['reason'] = reason_text.strip()
                         patents.append(patent)
+                        
                     except json.JSONDecodeError as e:
-                        logger.error(f"특허 데이터 파싱 실패 (LLM: {llm_type}): {str(e)}")
+                        logger.error(f"데이터 파싱 실패 (LLM: {llm_type}, 인덱스: {i}): {str(e)}")
                         continue
+                
                 all_patents[llm_type] = patents
             except Exception as e:
                 logger.error(f"특허 데이터 조회 실패 (LLM: {llm_type}): {str(e)}")
