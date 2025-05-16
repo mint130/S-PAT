@@ -158,7 +158,7 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
         </div>
 
         {/* 검색 영역 */}
-        <div className="relative h-full w-1/4 min-w-40">
+        <div className="relative h-full w-1/4 min-w-72">
           <input
             type="text"
             value={quickFilterText}
