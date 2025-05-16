@@ -331,8 +331,7 @@ async def process_patent_classification(
 
             # reason 값만 추출해서 redis에 저장
             reasoning_key=f"{session_id}:{llm_type}:reasoning"
-            reason = reasoning_evaluation["reason"]
-            redis.rpush(reasoning_key, json.dumps(reason, ensure_ascii=False))
+            redis.rpush(reasoning_key, json.dumps(reasoning_evaluation, ensure_ascii=False))
 
             # 통합 평가 결과
             evaluation = {

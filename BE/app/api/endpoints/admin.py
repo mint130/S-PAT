@@ -149,9 +149,19 @@ async def get_sampled_classification(
                         
                         # 해당 인덱스의 이유 데이터가 있는지 확인
                         if i < len(reason_jsons):
-                            reason_text  = json.loads(reason_jsons[i])
-                            # 특허 객체에 reason 필드 추가
-                            patent['reason'] = reason_text.strip()
+                            try:
+                                # JSON 데이터 파싱
+                                reason_data = json.loads(reason_jsons[i])
+                                
+                                # score와 reason 필드 추출
+                                if 'score' in reason_data:
+                                    patent['score'] = reason_data['score']
+                                if 'reason' in reason_data:
+                                    patent['reason'] = reason_data['reason']
+                            except json.JSONDecodeError as e:
+                                logger.error(f"이유 데이터 파싱 실패 (LLM: {llm_type}, 인덱스: {i}): {str(e)}")
+                                # 파싱 실패 시 원본 텍스트 사용
+                                patent['reason'] = reason_jsons[i]
                         patents.append(patent)
                         
                     except json.JSONDecodeError as e:
