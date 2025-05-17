@@ -5,15 +5,16 @@ import logging
 import os
 from pathlib import Path
 import pickle
-import platform
 import re
 import time
 from typing import Dict
+from openai import RateLimitError as OpenAIRateLimitError
+from anthropic import RateLimitError as ClaudeRateLimitError
 from langchain_openai import OpenAIEmbeddings
-from openai import OpenAIError
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 import pandas as pd
+import requests
 from app.core.celery import celery_app
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.output_parsers import PydanticOutputParser
@@ -24,6 +25,7 @@ from app.core.redis import get_redis_client
 from app.schemas.classification import ClassificationSchema, Patent
 from app.core.llm import gpt, claude, gemini, grok
 from app.schemas.message import Message, Progress
+from google.api_core import exceptions
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -59,7 +61,7 @@ def load_retriever_from_redis(session_id: str):
     return vector_store.as_retriever(search_kwargs={"k": 3})
 
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, retry_backoff=True, retry_kwargs={'max_retries': 5})
 def classify_patent(
     self,
     LLM: str, 
@@ -157,15 +159,17 @@ def classify_patent(
         # 결과 파싱
         cleaned = re.sub(r"```(?:json)?\s*([\s\S]+?)\s*```", r"\1", result.strip())
         parsed = json.loads(cleaned)
-        
+        def replace_na(value):
+            return value if value and value != "N/A" else "미분류"
+
         classifications = {
             "applicationNumber": application_number,  # 식별자 추가
-            "majorCode": parsed.get("majorCode", "미분류"),
-            "majorTitle": parsed.get("majorTitle", "미분류"),
-            "middleCode": parsed.get("middleCode", "미분류"),
-            "middleTitle": parsed.get("middleTitle", "미분류"),
-            "smallCode": parsed.get("smallCode", "미분류"),
-            "smallTitle": parsed.get("smallTitle", "미분류"),
+            "majorCode": replace_na(parsed.get("majorCode")),
+            "majorTitle": replace_na(parsed.get("majorTitle")),
+            "middleCode": replace_na(parsed.get("middleCode")),
+            "middleTitle": replace_na(parsed.get("middleTitle")),
+            "smallCode": replace_na(parsed.get("smallCode")),
+            "smallTitle": replace_na(parsed.get("smallTitle")),
         }
         
         # 진행률 업데이트
@@ -186,30 +190,68 @@ def classify_patent(
 
         return classifications
     
-    # except OpenAIError as e:
-    #     error_str = str(e)
-    #     logger.info("open ai error 발생")
-    #     if 'rate_limit_exceeded' in error_str:
-    #         # "Please try again in X.XXXs" 에서 시간 파싱
-    #         logger.info("rate time 발생")
-    #         wait_match = re.search(r'Please try again in ([\d.]+)s', error_str)
-    #         logger.info(f"wait_match {wait_match}")
-    #         if wait_match:
-    #             wait_time = float(wait_match.group(1))
-    #             logger.warning(f"[{session_id}] 기다림 {wait_time:.2f}s")
-    #             time.sleep(wait_time)
-    #         else:
-    #             # 못 찾으면 기본 backoff 시간 사용
-    #             logger.warning(f"[{session_id}] 백오프")
+    except OpenAIRateLimitError as e:
+        error_str = str(e)
+        if 'rate_limit_exceeded' in error_str:
+            # "Please try again in X.XXXs" 에서 시간 파싱
+            logger.info(f"[{session_id}] OpenAI rate limit 발생")
+            wait_match = re.search(r'Please try again in ([\d.]+)s', error_str)
+            logger.info(f"wait_match {wait_match}")
+            if wait_match:
+                wait_time = float(wait_match.group(1))
+                logger.warning(f"[{session_id}] 기다림 {wait_time:.2f}s")
+                time.sleep(wait_time)
+            else:
+                # 못 찾으면 기본 backoff 시간 사용
+                logger.warning(f"[{session_id}] 백오프")
 
-    #         raise self.retry(exc=e)
-    #     else:
-    #         raise
-        
+            raise self.retry(exc=e)
+        else:
+            raise
+
+    except ClaudeRateLimitError as e:
+        error_str = str(e)
+        logger.info(f"[{session_id}] Claude rate limit 발생")
+        raise self.retry(exc=e)
+    
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 429:
+            logger.info(f"[{session_id}] Grok rate limit 발생")
+            # 헤더에서 재시도 시간 확인
+            retry_after = int(e.response.headers.get('Retry-After', 60))
+            
+            # X-RateLimit 헤더 정보 로깅
+            limit = e.response.headers.get('X-RateLimit-Limit-Tokens', 'unknown')
+            remaining = e.response.headers.get('X-RateLimit-Remaining-Tokens', 'unknown')
+            reset = e.response.headers.get('X-RateLimit-Reset-Tokens', 'unknown')
+            
+            logger.info(f"[{session_id}] Grok Rate Limit 정보 - 한도: {limit}, 남은 토큰: {remaining}, 초기화: {reset}초 후")
+            
+            # 명시적 대기 시간이 있으면 해당 시간만큼 대기 후 재시도
+            if retry_after:
+                logger.warning(f"[{session_id}] Grok 명시적 대기: {retry_after}초")
+                time.sleep(retry_after)
+            
+            raise self.retry(exc=e)
+        else:
+            logger.error(f"[{session_id}] HTTP 요청 에러 발생: {e}")
+            raise
+
+    except exceptions.ResourceExhausted as e:
+        # gemini limit error
+        if e.status_code == 429:
+            logger.info(f"[{session_id}] Gemini rate limit 발생")
+            # 지수 백오프
+            logger.warning(f"[{session_id}] 백오프")
+            raise self.retry(exc=e)
+        else:
+            logger.error(f"[{session_id}] 다른 Gemini API 에러 발생: {e}")
+            raise
+
     except Exception as e:
-        logger.error("예외 발생: %s - %s", type(e).__name__, e)
         logger.error(f"[{session_id}] 분류 결과 처리 중 오류 발생: {e}")
         return {
+            "applicationNumber": application_number,
             "majorCode": "미분류",
             "middleCode": "미분류",
             "smallCode": "미분류",
