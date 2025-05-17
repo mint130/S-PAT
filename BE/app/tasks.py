@@ -148,11 +148,11 @@ def classify_patent(
         | StrOutputParser()
     )
     
-    # 체인 실행
-    result = rag_chain.invoke(patent_info)
-    
-    # 결과 파싱
     try:
+        # 체인 실행
+        result = rag_chain.invoke(patent_info)
+
+        # 결과 파싱
         cleaned = re.sub(r"```(?:json)?\s*([\s\S]+?)\s*```", r"\1", result.strip())
         parsed = json.loads(cleaned)
         
