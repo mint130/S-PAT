@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Title from "../components/common/Title";
 import patentColumnsStep4 from "../components/Step4/patentColumsStep4";
-import DataTable from "../components/common/dataTable/DataTable";
+import DataTable from "../components/dataTable/DataTable";
 import {
   fetchPatentClassifications,
   Patent,

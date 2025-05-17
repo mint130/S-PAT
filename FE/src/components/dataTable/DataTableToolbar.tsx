@@ -7,8 +7,8 @@ import {
   SquarePlus,
   Download,
 } from "lucide-react";
-import Button from "../Button";
-import AddRowModal from "../../Step2/AddRowModal";
+import Button from "../common/Button";
+import AddRowModal from "../Step2/AddRowModal";
 
 // 컬럼 상태 인터페이스 정의
 interface ColumnStateObject {

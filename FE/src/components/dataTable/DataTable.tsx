@@ -17,7 +17,7 @@ import {
 import { AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
 import DataTableToolbar from "./DataTableToolbar";
-import useThemeStore from "../../../stores/useThemeStore";
+import useThemeStore from "../../stores/useThemeStore";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 

@@ -4,7 +4,7 @@ import axios from "axios";
 import Title from "../components/common/Title";
 import Button from "../components/common/Button";
 import SelectLLM from "../components/common/SelectLLM";
-import DataTable from "../components/common/dataTable/DataTable";
+import DataTable from "../components/dataTable/DataTable";
 import ExpertSkip from "../components/Step4_Admin/ExpertSkip";
 import NextModal from "../components/common/NextModal";
 import { patentColumns } from "../components/Step4_Admin/patentColums";
