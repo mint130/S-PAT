@@ -235,7 +235,7 @@ function UserLoading({
                 <p className="text-gray-600 dark:text-gray-300 font-pretendard">
                   총 <span className="font-medium">{progress.total}</span>개 중{" "}
                   <span className="font-medium">{progress.current}</span>개
-                  처리됨
+                  처리중
                 </p>
                 <p className="text-gray-500 dark:text-gray-400 text-sm font-pretendard">
                   예상 남은 시간: {progress.estimatedTimeLeft}

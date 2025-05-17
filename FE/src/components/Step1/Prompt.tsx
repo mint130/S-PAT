@@ -173,7 +173,7 @@ const Prompt: React.FC<PromptProps> = ({
 
           <Button
             onClick={handleSubmit}
-            isLoading={isLoading}
+            // isLoading={isLoading}
             icon={<Send className="h-4 w-4" />}
             size="sm"
             className="ml-auto"
