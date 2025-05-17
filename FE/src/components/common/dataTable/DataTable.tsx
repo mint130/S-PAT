@@ -30,6 +30,7 @@ interface DataTableProps {
   download?: boolean; // 다운로드 가능 여부 (기본값: false)
   onDataChanged?: (data: any[]) => void; // 전문가 점수에 필요
   loading?: boolean;
+  handleExcelDownload?: () => Promise<void>;
 }
 
 // DataTable 컴포넌트 정의 - forwardRef로 감싸서 외부 ref를 받음
@@ -43,6 +44,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       download = false,
       onDataChanged,
       loading = false,
+      handleExcelDownload,
     },
     ref
   ) => {
@@ -156,7 +158,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
     }, []);
 
     // 엑셀 다운로드 함수
-    const handleExcelDownload = useCallback(() => {
+    const internalExcelDownload = useCallback(() => {
       try {
         if (!gridRef.current?.api) return;
 
@@ -208,6 +210,16 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       }
     }, [rowData, colDefs]);
 
+    // 다운로드 버튼 클릭 핸들러
+    const onExcelDownload = () => {
+      // handleExcelDownload props가 있으면 그것을 사용, 없으면 내부 함수 사용
+      if (handleExcelDownload) {
+        handleExcelDownload();
+      } else {
+        internalExcelDownload();
+      }
+    };
+
     // 데이터 변경 감지 이벤트 처리
     const onCellValueChanged = useCallback(() => {
       if (onDataChanged && gridRef.current?.api) {
@@ -232,7 +244,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
           onRemoveSelected={onRemoveSelected}
           onColumnVisibility={onColumnVisibility}
           onFilterTextChanged={onFilterTextChanged}
-          onExcelDownload={handleExcelDownload}
+          onExcelDownload={onExcelDownload}
           getColumnsState={getColumnsState}
         />
 

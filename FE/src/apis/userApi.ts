@@ -42,3 +42,30 @@ export const fetchPatentClassifications = async (): Promise<PatentResponse> => {
     throw error;
   }
 };
+
+/**
+ * 특허 분류 데이터를 엑셀 파일로 다운로드하는 함수
+ */
+export const fetchPatentClassificationsExcel = async (): Promise<Blob> => {
+  try {
+    // 로컬 스토리지에서 sessionId 가져오기
+    const sessionId = localStorage.getItem("sessionId");
+    if (!sessionId) {
+      throw new Error("세션 ID가 없습니다.");
+    }
+
+    // 응답 타입을 blob으로 설정하여 파일 데이터 가져오기
+    const response = await axios.get(
+      `${BASE_URL}/user/${sessionId}/classification/excel`,
+      {
+        responseType: "blob",
+      }
+    );
+
+    // Blob 형태의 데이터 반환
+    return response.data;
+  } catch (error) {
+    console.error("특허 분류 엑셀 데이터 가져오기 실패:", error);
+    throw error;
+  }
+};

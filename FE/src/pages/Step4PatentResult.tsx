@@ -2,8 +2,12 @@ import { useState, useEffect } from "react";
 import Title from "../components/common/Title";
 import patentColumnsStep4 from "../components/Step4/patentColumsStep4";
 import DataTable from "../components/common/dataTable/DataTable";
-import { fetchPatentClassifications, Patent } from "../apis/userApi";
-import { AlertCircle, RefreshCw } from "lucide-react";
+import {
+  fetchPatentClassifications,
+  Patent,
+  fetchPatentClassificationsExcel,
+} from "../apis/userApi";
+import { AlertCircle, RefreshCw, Download } from "lucide-react";
 import Button from "../components/common/Button";
 import useThemeStore from "../stores/useThemeStore";
 
@@ -28,6 +32,39 @@ function Step4PatentResult() {
     }
   };
 
+  // 엑셀 다운로드 핸들러 함수
+  const handleExcelDownload = async () => {
+    try {
+      // API를 통해 엑셀 파일 데이터 가져오기
+      const blobData = await fetchPatentClassificationsExcel();
+      // Blob URL 생성
+      const url = window.URL.createObjectURL(new Blob([blobData]));
+
+      // 현재 날짜를 YYMMDD 형식으로 포맷팅
+      const now = new Date();
+      const dateStr = now
+        .toISOString()
+        .split("T")[0]
+        .replace(/-/g, "")
+        .substring(2);
+
+      // 다운로드 링크 생성 및 설정
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `특허 데이터 분류 결과_${dateStr}.xlsx`);
+
+      // 다운로드 실행
+      document.body.appendChild(link);
+      link.click();
+
+      // 리소스 정리
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("엑셀 다운로드 중 오류 발생:", err);
+      alert("엑셀 다운로드 중 오류가 발생했습니다.");
+    }
+  };
   useEffect(() => {
     fetchData();
   }, []);
@@ -60,6 +97,7 @@ function Step4PatentResult() {
           rowData={patentData}
           download={true}
           loading={loading}
+          handleExcelDownload={handleExcelDownload}
         />
       )}
     </div>
