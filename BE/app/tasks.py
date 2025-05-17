@@ -232,7 +232,7 @@ def classify_patent(
                 logger.warning(f"[{session_id}] Grok 명시적 대기: {retry_after}초")
                 time.sleep(retry_after)
             
-            raise self.retry(exc=e)
+            raise self.retry(exc=e, countdown=wait_time)
         else:
             logger.error(f"[{session_id}] HTTP 요청 에러 발생: {e}")
             raise
