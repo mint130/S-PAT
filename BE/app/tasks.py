@@ -60,7 +60,7 @@ def load_retriever_from_redis(session_id: str):
     return vector_store.as_retriever(search_kwargs={"k": 3})
 
 
-@celery_app.task(bind=True, retry_backoff=True, retry_backoff_max=10, retry_kwargs={'max_retries': 5})
+@celery_app.task(bind=True, retry_backoff=True, retry_backoff_max=10, retry_kwargs={'max_retries': 12})
 def classify_patent(
     self,
     LLM: str, 
@@ -194,14 +194,14 @@ def classify_patent(
         if 'rate_limit_exceeded' in error_str:
             # "Please try again in X.XXXs" 에서 시간 파싱
             logger.info(f"[{session_id}] OpenAI rate limit 발생")
-            raise self.retry(countdown= 3)
+            raise self.retry(countdown= 5)
         else:
             raise
 
     except ClaudeRateLimitError as e:
         error_str = str(e)
         logger.info(f"[{session_id}] Claude rate limit 발생")
-        raise self.retry(countdown= 3)
+        raise self.retry(countdown= 5)
     
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 429:
@@ -221,7 +221,7 @@ def classify_patent(
                 logger.warning(f"[{session_id}] Grok 명시적 대기: {retry_after}초")
                 time.sleep(retry_after)
             
-            raise self.retry(countdown= 3)
+            raise self.retry(countdown= 5)
         else:
             logger.error(f"[{session_id}] HTTP 요청 에러 발생: {e}")
             raise
@@ -232,7 +232,7 @@ def classify_patent(
             logger.info(f"[{session_id}] Gemini rate limit 발생")
             # 지수 백오프
             logger.warning(f"[{session_id}] 백오프")
-            raise self.retry(countdown= 3)
+            raise self.retry(countdown= 5)
         else:
             logger.error(f"[{session_id}] 다른 Gemini API 에러 발생: {e}")
             raise
