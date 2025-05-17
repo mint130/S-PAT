@@ -14,6 +14,8 @@ interface NextModalProps {
   onCancel: () => void;
   /** 확인 버튼 클릭 핸들러 */
   onConfirm: () => void;
+  // 취소 버튼 여부
+  onCancelButton?: boolean;
   /** 로딩 상태 여부 */
   isLoading?: boolean;
 
@@ -28,6 +30,7 @@ const NextModal: React.FC<NextModalProps> = ({
   description,
   onCancel,
   onConfirm,
+  onCancelButton = true,
   isLoading = false,
   cancleText = "취소",
   confirmText = "진행하기",
@@ -63,13 +66,15 @@ const NextModal: React.FC<NextModalProps> = ({
 
         {/* 모달 푸터 (버튼 영역) */}
         <div className="px-6 pt-4 rounded-b-lg flex justify-end space-x-2 mb-4">
-          <Button
-            variant={isDarkMode ? "dark-outline" : "outline"}
-            size="md"
-            onClick={onCancel}
-            className="w-auto min-w-fit px-4">
-            {cancleText}
-          </Button>
+          {onCancelButton && (
+            <Button
+              variant={isDarkMode ? "dark-outline" : "outline"}
+              size="md"
+              onClick={onCancel}
+              className="w-auto min-w-fit px-4">
+              {cancleText}
+            </Button>
+          )}
           <Button
             variant="primary"
             size="md"
