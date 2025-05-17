@@ -184,27 +184,28 @@ def classify_patent(
 
         return classifications
     
-    except OpenAIError as e:
-        error_str = str(e)
-        print("open ai error 발생")
-        if 'rate_limit_exceeded' in error_str:
-            # "Please try again in X.XXXs" 에서 시간 파싱
-            print("rate time 발생")
-            wait_match = re.search(r'Please try again in ([\d.]+)s', error_str)
-            print(f"wait_match {wait_match}")
-            if wait_match:
-                wait_time = float(wait_match.group(1))
-                print(f"[{session_id}] 기다림 {wait_time:.2f}s")
-                time.sleep(wait_time)
-            else:
-                # 못 찾으면 기본 backoff 시간 사용
-                print(f"[{session_id}] 백오프")
+    # except OpenAIError as e:
+    #     error_str = str(e)
+    #     logger.info("open ai error 발생")
+    #     if 'rate_limit_exceeded' in error_str:
+    #         # "Please try again in X.XXXs" 에서 시간 파싱
+    #         logger.info("rate time 발생")
+    #         wait_match = re.search(r'Please try again in ([\d.]+)s', error_str)
+    #         logger.info(f"wait_match {wait_match}")
+    #         if wait_match:
+    #             wait_time = float(wait_match.group(1))
+    #             logger.warning(f"[{session_id}] 기다림 {wait_time:.2f}s")
+    #             time.sleep(wait_time)
+    #         else:
+    #             # 못 찾으면 기본 backoff 시간 사용
+    #             logger.warning(f"[{session_id}] 백오프")
 
-            raise self.retry(exc=e)
-        else:
-            raise
+    #         raise self.retry(exc=e)
+    #     else:
+    #         raise
         
     except Exception as e:
+        logger.error("예외 발생: %s - %s", type(e).__name__, e)
         logger.error(f"[{session_id}] 분류 결과 처리 중 오류 발생: {e}")
         return {
             "majorCode": "미분류",
