@@ -60,7 +60,7 @@ def load_retriever_from_redis(session_id: str):
     return vector_store.as_retriever(search_kwargs={"k": 3})
 
 
-@celery_app.task(rate_limit='3/s', bind=True, retry_backoff=True, retry_kwargs={'max_retries': 5})
+@celery_app.task(bind=True, retry_backoff=True, retry_backoff_max=10, retry_kwargs={'max_retries': 5})
 def classify_patent(
     self,
     LLM: str, 
@@ -200,12 +200,11 @@ def classify_patent(
                 unit = wait_match.group(2)
                 if unit == 'ms':
                     wait_time /= 1000  # 밀리초를 초로 변환
-                logger.warning(f"[{session_id}] 기다림 {wait_time:.3f}s")
-                time.sleep(wait_time)
             else:
+                wait_time = 5  # 기본 대기 시간 설정 (예: 5초)
                 logger.warning(f"[{session_id}] 백오프")
 
-            raise self.retry(exc=e)
+            raise self.retry(countdown= max(1, int(wait_time)))
         else:
             raise
 
