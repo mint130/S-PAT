@@ -257,6 +257,7 @@ def classification_completion(results, session_id):
                     smallTitle=result["smallTitle"]
                 )
                 redis.rpush(session_id, patent_data.model_dump_json())
+                redis.expire(session_id, 86400)
             else:
                 logger.warning(f"출원번호 {application_number}에 해당하는 행을 찾을 수 없음")
 
