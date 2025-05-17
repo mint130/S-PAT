@@ -12,6 +12,7 @@ import {
   ModuleRegistry,
   themeQuartz,
   colorSchemeDarkWarm,
+  SizeColumnsToContentStrategy,
 } from "ag-grid-community";
 import { AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -66,7 +67,15 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       unSortIcon: true, // 정렬되지 않은 열에도 아이콘 표시
       resizable: true, // 열 크기 조절 가능
       editable: edit, // props로 전달된 edit 값따라 편집 가능 여부 설정
+      minWidth: 100,
     };
+
+    // 열 사이즈 설정 - 셀 내용에 맞게 자동 조정
+    const autoSizeStrategy = useMemo<SizeColumnsToContentStrategy>(() => {
+      return {
+        type: "fitCellContents",
+      };
+    }, []);
 
     // 행 선택 설정
     const rowSelection = useMemo<RowSelectionOptions | undefined>(() => {
@@ -247,6 +256,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
               rowData={rowData} // 행 데이터
               columnDefs={colDefs} // 열 정의
               defaultColDef={defaultColDef} // 기본 열 속성
+              autoSizeStrategy={autoSizeStrategy}
               rowSelection={rowSelection} // 행 선택 옵션
               // suppressDragLeaveHidesColumns={true} // 열을 드래그하여 그리드 밖으로 이동시켜도 열이 숨겨지지 않도록 방지
               loading={loading} // 로딩 상태 표시
