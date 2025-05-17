@@ -207,7 +207,7 @@ const Step0ModeSelect: React.FC = () => {
                   className={`text-xl font-bold ${
                     isDarkMode ? "text-white" : "text-gray-800"
                   } font-pretendard`}>
-                  관리자 모드
+                  전문가 모드
                 </h2>
               </div>
 
