@@ -26,8 +26,10 @@ function Button({
   ...props // 나머지 모든 속성들 (onClick 포함)
 }: ButtonProps) {
   // 기본 클래스
-  const baseClasses = `flex items-center justify-center border font-pretendard tracking-wider rounded-lg transition-colors whitespace-nowrap ${
-    isLoading ? "cursor-wait" : "disabled:opacity-50 disabled:cursor-not-allowed"
+  const baseClasses = `flex items-center justify-center border font-pretendard tracking-wider rounded-lg whitespace-nowrap ${
+    isLoading
+      ? "cursor-wait"
+      : "disabled:opacity-50 disabled:cursor-not-allowed"
   }`;
 
   // 버튼 색상 스타일
