@@ -59,7 +59,7 @@ def load_retriever_from_redis(session_id: str):
     return vector_store.as_retriever(search_kwargs={"k": 3})
 
 
-@celery_app.task(bind=True, retry_backoff=True, retry_kwargs={'max_retries': 5})
+@celery_app.task(bind=True)
 def classify_patent(
     self,
     LLM: str, 
@@ -150,7 +150,9 @@ def classify_patent(
     
     try:
         # 체인 실행
+        logger.info(f"[{session_id}] rag_chain.invoke 시작")
         result = rag_chain.invoke(patent_info)
+        logger.info(f"[{session_id}] rag_chain.invoke 완료")
 
         # 결과 파싱
         cleaned = re.sub(r"```(?:json)?\s*([\s\S]+?)\s*```", r"\1", result.strip())
