@@ -194,24 +194,14 @@ def classify_patent(
         if 'rate_limit_exceeded' in error_str:
             # "Please try again in X.XXXs" 에서 시간 파싱
             logger.info(f"[{session_id}] OpenAI rate limit 발생")
-            wait_match = re.search(r'Please try again in ([\d.]+)(ms|s)', error_str)
-            if wait_match:
-                wait_time = float(wait_match.group(1))
-                unit = wait_match.group(2)
-                if unit == 'ms':
-                    wait_time /= 1000  # 밀리초를 초로 변환
-            else:
-                wait_time = 5  # 기본 대기 시간 설정 (예: 5초)
-                logger.warning(f"[{session_id}] 백오프")
-
-            raise self.retry(countdown= max(1, int(wait_time)))
+            raise self.retry(countdown= 3)
         else:
             raise
 
     except ClaudeRateLimitError as e:
         error_str = str(e)
         logger.info(f"[{session_id}] Claude rate limit 발생")
-        raise self.retry(exc=e)
+        raise self.retry(countdown= 3)
     
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 429:
@@ -231,7 +221,7 @@ def classify_patent(
                 logger.warning(f"[{session_id}] Grok 명시적 대기: {retry_after}초")
                 time.sleep(retry_after)
             
-            raise self.retry(exc=e, countdown=wait_time)
+            raise self.retry(countdown= 3)
         else:
             logger.error(f"[{session_id}] HTTP 요청 에러 발생: {e}")
             raise
@@ -242,7 +232,7 @@ def classify_patent(
             logger.info(f"[{session_id}] Gemini rate limit 발생")
             # 지수 백오프
             logger.warning(f"[{session_id}] 백오프")
-            raise self.retry(exc=e)
+            raise self.retry(countdown= 3)
         else:
             logger.error(f"[{session_id}] 다른 Gemini API 에러 발생: {e}")
             raise
