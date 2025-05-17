@@ -74,20 +74,31 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
     }, [edit]);
 
     // 행 추가 함수
-    const addNewRow = useCallback(() => {
-      // 새 행을 위한 빈 객체 생성
-      const newRow: Record<string, any> = {};
+    const addNewRow = useCallback(
+      (rowData: Record<string, any>) => {
+        if (rowData) {
+          const mappedData: Record<string, any> = {};
 
-      // colDefs에서 모든 필드에 대해 기본값 설정
-      colDefs.forEach((col) => {
-        if (col.field) {
-          newRow[col.field] = "";
+          if (colDefs.some((col) => col.field === "code")) {
+            mappedData.code = rowData.code;
+          }
+          if (colDefs.some((col) => col.field === "level")) {
+            mappedData.level = rowData.level;
+          }
+          if (colDefs.some((col) => col.field === "name")) {
+            mappedData.name = rowData.name;
+          }
+          if (colDefs.some((col) => col.field === "description")) {
+            mappedData.description = rowData.description;
+          }
+
+          gridRef.current?.api.applyTransaction({
+            add: [mappedData],
+          });
         }
-      });
-      gridRef.current?.api.applyTransaction({
-        add: [newRow],
-      });
-    }, [colDefs]);
+      },
+      [colDefs]
+    );
 
     // 행 삭제 함수
     const onRemoveSelected = useCallback(() => {
