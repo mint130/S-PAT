@@ -194,7 +194,8 @@ def classify_patent(
         if 'rate_limit_exceeded' in error_str:
             # "Please try again in X.XXXs" 에서 시간 파싱
             logger.info(f"[{session_id}] OpenAI rate limit 발생")
-            raise self.retry(countdown= 5)
+            logger.info(f"[{session_id}] Retrying {self.request.retries}/12 due to OpenAI rate limit")
+            raise self.retry(countdown= 5, max_retries = 12)
         else:
             raise
 
