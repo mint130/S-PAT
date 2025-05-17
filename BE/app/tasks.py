@@ -8,8 +8,8 @@ import pickle
 import platform
 import re
 from typing import Dict
-
 from langchain_openai import OpenAIEmbeddings
+from openai import OpenAIError
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 import pandas as pd
@@ -58,8 +58,9 @@ def load_retriever_from_redis(session_id: str):
     return vector_store.as_retriever(search_kwargs={"k": 3})
 
 
-@celery_app.task
+@celery_app.task(bind=True, retry_backoff=True, retry_kwargs={'max_retries': 5})
 def classify_patent(
+    self,
     LLM: str, 
     session_id: str, 
     patent_info: str,
@@ -181,7 +182,14 @@ def classify_patent(
         redis.expire(progress_key, 86400)
 
         return classifications
-
+    
+    except OpenAIError as e:
+        # 에러 메시지 안에 rate_limit_exceeded가 포함되어 있으면 재시도
+        if 'rate_limit_exceeded' in str(e):
+            raise self.retry(exc=e)
+        else:
+            raise  # 재시도 불가 에러면 그냥 예외를 그대로 던짐
+        
     except Exception as e:
         logger.error(f"[{session_id}] 분류 결과 처리 중 오류 발생: {e}")
         return {

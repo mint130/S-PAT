@@ -62,9 +62,7 @@ def process_patent_classification(
             tasks.append(
                 classify_patent.s(LLM, session_id, patent_info, application_number)
             )   
-
-            time.sleep(0.5)
-
+        
         except Exception as e:
             logger.error(f"[{index}] 에러 발생: {e}")
 
