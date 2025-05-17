@@ -60,7 +60,7 @@ def load_retriever_from_redis(session_id: str):
     return vector_store.as_retriever(search_kwargs={"k": 3})
 
 
-@celery_app.task(bind=True, retry_backoff=True, retry_kwargs={'max_retries': 5})
+@celery_app.task(rate_limit='3/s', bind=True, retry_backoff=True, retry_kwargs={'max_retries': 5})
 def classify_patent(
     self,
     LLM: str, 
