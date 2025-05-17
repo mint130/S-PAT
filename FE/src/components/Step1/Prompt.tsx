@@ -1,19 +1,23 @@
 import React, { useState, useRef } from "react";
 import { Paperclip, Send } from "lucide-react";
 import Button from "../common/Button";
+import useThemeStore from "../../stores/useThemeStore";
 
 interface PromptProps {
   onSubmit?: (promptText: string) => void;
   isLoading?: boolean;
   onFileProcessed?: (file: File, buffer: ArrayBuffer) => void;
+  showFileUpload?: boolean; // 파일 업로드 버튼 표시 여부
 }
 
 const Prompt: React.FC<PromptProps> = ({
   onSubmit,
   isLoading = false,
   onFileProcessed,
+  showFileUpload = true, // 기본값은 true
 }) => {
   const [promptText, setPromptText] = useState<string>("");
+  const { isDarkMode } = useThemeStore();
 
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [fileLoading, setFileLoading] = useState<boolean>(false);
@@ -69,6 +73,8 @@ const Prompt: React.FC<PromptProps> = ({
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
       handleFile(e.target.files[0]);
+      // 파일 input의 value를 초기화하여 같은 파일도 다시 선택 가능하게 함
+      e.target.value = "";
     }
   };
 
@@ -105,8 +111,18 @@ const Prompt: React.FC<PromptProps> = ({
     setPromptText(e.target.value);
   };
 
+  // 키보드 이벤트 핸들러 추가
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Enter 키를 눌렀고 Shift 키를 누르지 않았을 때 제출
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); // 기본 줄바꿈 동작 방지
+      handleSubmit();
+    }
+    // Shift + Enter는 기본 동작(줄바꿈) 그대로 허용
+  };
+
   const handleSubmit = () => {
-    if (!promptText.trim() || isLoading) return; // isLoading이 true면 제출 못하게
+    if (!promptText.trim() || isLoading || fileLoading) return; // isLoading이나 fileLoading이 true면 제출 못하게
 
     if (onSubmit) {
       onSubmit(promptText);
@@ -117,19 +133,20 @@ const Prompt: React.FC<PromptProps> = ({
   return (
     <div className="flex flex-col">
       <div
-        className={`bg-white rounded-xl shadow-sm p-4 sm:py-4 sm:px-5 overflow-hidden
+        className={`bg-white dark:bg-[#23283D] rounded-xl shadow-sm p-4 sm:py-4 sm:px-5 overflow-hidden
           ${dragActive ? "border-2 border-blue-500 bg-blue-50" : ""}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}>
         <textarea
-          className={`w-full min-h-[60px] rounded-lg focus:outline-none resize-none text-gray-700 font-samsung400 text-sm break-words ${
+          className={`w-full min-h-[60px] rounded-lg focus:outline-none resize-none text-gray-700 dark:text-[#A7ACB4] dark:bg-[#23283D] font-pretendard text-md break-words bg-white disabled:bg-white disabled:text-gray-700 ${
             isLoading || fileLoading ? "cursor-not-allowed" : ""
           }`}
-          placeholder="특허 분류 체계를 생성하기 위한 프롬프트를 입력해주세요"
+          placeholder="ex) 휴머노이드 특허데이터에 대한 분류 체계를 생성해줘"
           value={promptText}
           onChange={handlePromptChange}
+          onKeyDown={handleKeyDown}
           disabled={isLoading || fileLoading}
         />
 
@@ -141,22 +158,25 @@ const Prompt: React.FC<PromptProps> = ({
           onChange={handleChange}
         />
 
-        <div className="flex flex-col sm:flex-row justify-between gap-2">
-          <Button
-            variant="outline"
-            icon={<Paperclip className="h-4 w-4" />}
-            size="sm"
-            textSize="xs"
-            disabled={isLoading || fileLoading}
-            onClick={handleButtonClick}>
-            {fileLoading ? "업로드 중..." : "Upload"}
-          </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          {showFileUpload && (
+            <Button
+              variant={isDarkMode ? "dark-outline" : "outline"}
+              icon={<Paperclip className="h-4 w-4" />}
+              size="sm"
+              textSize="xs"
+              disabled={isLoading || fileLoading}
+              onClick={handleButtonClick}>
+              {fileLoading ? "업로드 중..." : "Upload"}
+            </Button>
+          )}
 
           <Button
             onClick={handleSubmit}
             isLoading={isLoading}
             icon={<Send className="h-4 w-4" />}
             size="sm"
+            className="ml-auto"
             disabled={
               promptText.trim() === "" || isLoading || fileLoading
             }></Button>

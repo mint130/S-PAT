@@ -1,11 +1,20 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Cell,
+} from "recharts";
 import useLLMStore from "../../stores/useLLMStore";
-import { ChartNoAxesColumnIncreasing } from "lucide-react";
+import useThemeStore from "../../stores/useThemeStore";
+import { ChartColumn } from "lucide-react";
 
 // Props 타입 정의
 interface LLMBarChartProps {
   title: string;
-  dataKey: "similarity" | "llmEval" | "expert";
+  dataKey: "vector_accuracy" | "reasoning_score" | "expert";
   unit?: string;
   color?: string;
   barSize?: number;
@@ -22,34 +31,80 @@ function LLMBarChart({
 }: LLMBarChartProps) {
   // Zustand 스토어에서 데이터 가져오기
   const llmData = useLLMStore((state) => state.llmData);
+  const selectedLLM = useLLMStore((state) => state.selectedLLM);
+  const { isDarkMode } = useThemeStore();
 
-  // 차트 데이터 준비
+  // 차트 데이터 준비 (선택된 LLM에 따라 색상 조정)
   const chartData = llmData.map((item) => ({
     name: item.name,
     [dataKey]: item[dataKey] * 100,
+    // selectedLLM과 item.name 모두 이미 대문자이므로 직접 비교
+    color:
+      !selectedLLM || selectedLLM === item.name
+        ? color
+        : isDarkMode
+        ? "#4B5563"
+        : "#E0E0E0", // 다크모드에서는 더 진한 회색
   }));
+
+  // X축 커스텀 틱 컴포넌트
+  const CustomXAxisTick = (props: any) => {
+    const { x, y, payload } = props;
+    // selectedLLM과 payload.value 모두 이미 대문자이므로 직접 비교
+    const isActive = !selectedLLM || selectedLLM === payload.value;
+
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text
+          x={0}
+          y={0}
+          dy={16}
+          textAnchor="middle"
+          fill={
+            isActive
+              ? isDarkMode
+                ? "#E5E7EB"
+                : "#000000"
+              : isDarkMode
+              ? "#6B7280"
+              : "#9CA3AF"
+          }
+          fontFamily="Pretendard"
+          fontSize={12}>
+          {payload.value}
+        </text>
+      </g>
+    );
+  };
 
   return (
     <div className="flex flex-col h-full">
       {/* 제목 */}
       <div className="flex space-x-2">
-        <ChartNoAxesColumnIncreasing />
-        <div className="text-pretendard font-extrabold mb-2">{title}</div>
+        <ChartColumn size={20} className="text-gray-900 dark:text-gray-100" />
+        <div className="font-pretendard font-semibold mb-2 text-sm text-gray-900 dark:text-gray-100">
+          {title}
+        </div>
       </div>
       {/* 차트 */}
-      <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm flex-1 flex items-center justify-center">
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#23283D] shadow-sm flex-1 flex items-center justify-center py-2">
         <BarChart
           width={360}
-          height={height || 210}
+          height={height || 180}
           data={chartData}
           margin={{ top: 10, right: 10, left: -20, bottom: -5 }}>
-          <CartesianGrid strokeDasharray="1 3" stroke="#C9C9C9" />
-          <XAxis
-            dataKey="name"
-            tickLine={false} // X축 틱 마크 제거
+          <CartesianGrid
+            strokeDasharray="1 3"
+            stroke={isDarkMode ? "#4B5563" : "#C9C9C9"}
           />
+          <XAxis dataKey="name" tickLine={false} tick={<CustomXAxisTick />} />
           <YAxis
-            tickCount={6} // 틱 개수 조정
+            tickCount={5}
+            tick={{
+              fontSize: 12,
+              fontFamily: "Pretendard",
+              fill: isDarkMode ? "#E5E7EB" : "#000000",
+            }}
           />
           <Tooltip
             formatter={(value) => {
@@ -61,10 +116,20 @@ function LLMBarChart({
             }}
             contentStyle={{
               borderRadius: "4px",
-              border: "1px solid #e2e8f0",
+              border: isDarkMode ? "1px solid #4B5563" : "1px solid #e2e8f0",
+              backgroundColor: isDarkMode ? "#2A2F45" : "#ffffff",
+              color: isDarkMode ? "#FFFFFF" : "#000000",
+              fontFamily: "Pretendard",
+              fontSize: "12px",
+              padding: "8px",
             }}
+            cursor={{ fill: "transparent" }}
           />
-          <Bar dataKey={dataKey} fill={color} barSize={barSize} />
+          <Bar dataKey={dataKey} barSize={barSize} fill={color} fillOpacity={1}>
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Bar>
         </BarChart>
       </div>
     </div>
