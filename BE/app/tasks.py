@@ -7,6 +7,7 @@ from pathlib import Path
 import pickle
 import platform
 import re
+import time
 from typing import Dict
 from langchain_openai import OpenAIEmbeddings
 from openai import OpenAIError
@@ -184,11 +185,21 @@ def classify_patent(
         return classifications
     
     except OpenAIError as e:
-        # 에러 메시지 안에 rate_limit_exceeded가 포함되어 있으면 재시도
-        if 'rate_limit_exceeded' in str(e):
+        error_str = str(e)
+        if 'rate_limit_exceeded' in error_str:
+            # "Please try again in X.XXXs" 에서 시간 파싱
+            wait_match = re.search(r'Please try again in ([\d.]+)s', error_str)
+            if wait_match:
+                wait_time = float(wait_match.group(1))
+                logger.warning(f"[{session_id}] Rate limit hit. Waiting {wait_time:.2f}s before retrying.")
+                time.sleep(wait_time)
+            else:
+                # 못 찾으면 기본 backoff 시간 사용
+                logger.warning(f"[{session_id}] Rate limit hit. No wait time found, proceeding to retry with backoff.")
+
             raise self.retry(exc=e)
         else:
-            raise  # 재시도 불가 에러면 그냥 예외를 그대로 던짐
+            raise
         
     except Exception as e:
         logger.error(f"[{session_id}] 분류 결과 처리 중 오류 발생: {e}")
