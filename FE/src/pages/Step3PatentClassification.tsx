@@ -125,7 +125,7 @@ function Step3PatentClassification() {
     <div className="p-8 pb-6 h-full flex flex-col justify-stretch grow">
       {isClassifying ? (
         localStorage.getItem("role") === "Admin" ? (
-          <MultiAILoadingScreen sessionId={sessionId} />
+          <MultiAILoadingScreen sessionId={sessionId} fileLength={fileLength}/>
         ) : (
           <UserLoading sessionId={sessionId} fileLength={fileLength} />
         )
