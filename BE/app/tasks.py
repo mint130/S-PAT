@@ -699,22 +699,23 @@ def evaluation_completion(results, LLM, session_id):
         evaluation_score = calculate_vector_based_score(results)
 
         # Redis에 간소화된 평가 점수만 저장
-        evaluation_key = f"{key}:evaluation"
         simplified_evaluation = {
             "vector_accuracy": evaluation_score["vector_accuracy"],
             "reasoning_score": evaluation_score["reasoning_score"]
         }
-        redis.set(evaluation_key, json.dumps(simplified_evaluation, ensure_ascii=False))
+        redis.set(f"{key}:evaluation", json.dumps(simplified_evaluation, ensure_ascii=False))
 
         # 평과 결과 만료 시간 설정
-        redis.expire(evaluation_key, 86400)
-
+        redis.expire(f"{key}:evaluation", 86400)
+        redis.expire(f"{key}:patents", 86400)
+        redis.expire(f"{key}:reasoning", 86400)
+        
         # 알림
         message = Message(
             status="completed",
             message="분류 및 평가 작업이 완료되었습니다."
         )
-        
+
     except Exception as e:
         logger.error(f"[{session_id}:{LLM}] 분류 결과 처리 중 오류 발생: {e}")
         message = Message(
