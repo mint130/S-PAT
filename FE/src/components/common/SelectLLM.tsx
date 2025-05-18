@@ -84,7 +84,7 @@ const SelectLLM = () => {
             <button
               key={llm.id}
               onClick={() => handleSelectLLM(llm.id)}
-              className={`flex items-center justify-center w-28 px-3 py-2 rounded-md transition-all ${
+              className={`flex items-center justify-center w-28 px-3 py-2 rounded-md ${
                 llm.colorClass
               } ${llm.darkColorClass} ${
                 isSelected
