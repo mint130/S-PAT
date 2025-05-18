@@ -20,5 +20,5 @@ celery_app.conf.update(
 )
 
 # 작업 자동 발견
-celery_app.autodiscover_tasks(['app.tasks'])
+celery_app.autodiscover_tasks(['app.tasks', 'app.coordinator'])
 celery_app.set_default()

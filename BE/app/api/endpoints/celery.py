@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, 
 from fastapi.responses import FileResponse, StreamingResponse
 import pandas as pd
 from requests import Session
+from app.coordinator.tasks import start_llm_classification_task
 from app.core.redis import get_redis, get_redis_client, get_redis_async_pool
 from app.core.sse import format_sse
 from app.db.database import get_db
@@ -202,10 +203,12 @@ async def upload_and_start_classification_and_evaluation(
         with open(f"./temp_data/{session_id}.pkl", "wb") as f:pickle.dump(df, f)
     
         # celery 실행
-        # process_patent_classification(session_id, LLM, df, redis)
-        for LLM in ["gpt", "claude", "gemini", "grok"]:
-            process_patent_classification_evaluation(session_id, LLM, df, redis)
+        # for LLM in ["gpt", "claude", "gemini", "grok"]:
+        #     process_patent_classification_evaluation(session_id, LLM, df, redis)
         
+        for LLM in ["gpt", "claude", "gemini", "grok"]:
+            start_llm_classification_task.delay(session_id, LLM)
+            
         message = Message(
             status="processing",
             message="분류 작업이 시작되었습니다."

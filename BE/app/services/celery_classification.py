@@ -5,6 +5,7 @@ from celery import chain, chord, group
 from langchain_openai import OpenAIEmbeddings
 import pandas as pd
 from langchain_community.vectorstores import FAISS
+from app.core.redis import get_redis_client
 from app.schemas.message import Progress
 from app.tasks import classification_completion, classify_patent, collect_evaluation_results, evaluate_classification_by_reasoning, evaluate_classification_by_vector, evaluation_completion
 
@@ -77,8 +78,8 @@ def process_patent_classification_evaluation(
     session_id: str,
     LLM: str,
     df: pd.DataFrame,
-    redis,
 ): 
+    redis = get_redis_client()
     logger.info(f"호출 완료")
 
     logger.info(f"시작")
