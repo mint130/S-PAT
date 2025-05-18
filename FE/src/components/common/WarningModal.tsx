@@ -15,8 +15,8 @@ function WarningModal({ isOpen, onConfirm }: WarningModalProps) {
         <div className="p-6">
           {/* 헤더 */}
           <div className="flex items-center mb-4">
-            <div className="bg-orange-500 rounded-full p-2 mr-3">
-              <AlertCircle className="text-white w-6 h-6" />
+            <div className=" rounded-full p-2">
+              <AlertCircle className="text-gray-700 w-6 h-6 dark:text-gray-300" />
             </div>
             <h2 className="text-lg font-medium text-orange-800 dark:text-orange-400">
               분류체계 수정 주의사항
@@ -27,10 +27,7 @@ function WarningModal({ isOpen, onConfirm }: WarningModalProps) {
           <div className="mb-6">
             <p className="text-gray-800 dark:text-gray-200 mb-4">
               분류체계 변경은 이후 특허 분류 결과에 직접적인 영향을 미치며,
-              수정으로 인한 분류 결과 변경에 대한 책임은 사용자에게 있습니다.
-            </p>
-            <p className="text-red-600 dark:text-red-400 my-4 font-medium">
-              새로고침 시 수정사항이 사라집니다.
+              수정으로 인한 분류 결과에 대한 책임은 사용자에게 있습니다.
             </p>
 
             <div className="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-4">
@@ -42,6 +39,9 @@ function WarningModal({ isOpen, onConfirm }: WarningModalProps) {
                 일관성을 유지해주세요.
               </p>
             </div>
+            <p className="text-red-600 dark:text-red-400 mt-8 font-medium">
+              ※ 새로고침 시 수정사항이 사라집니다.
+            </p>
           </div>
 
           {/* 버튼 */}

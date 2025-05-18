@@ -28,6 +28,8 @@ const Prompt: React.FC<PromptProps> = ({
 
   // 파일 업로드 처리 함수
   const handleFile = (file: File) => {
+    if (isLoading || fileLoading) return; // 로딩 중일 때 파일 처리 막기
+    
     const extension = file.name.split(".").pop()?.toUpperCase();
     if (extension && supportedFormats.includes(extension)) {
       setFileLoading(true);
@@ -82,6 +84,9 @@ const Prompt: React.FC<PromptProps> = ({
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // isLoading 또는 fileLoading 상태일 때는 드래그 효과 비활성화
+    if (isLoading || fileLoading) return;
 
     if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
@@ -95,6 +100,9 @@ const Prompt: React.FC<PromptProps> = ({
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
+    
+    // isLoading 또는 fileLoading 상태일 때는 파일 드롭 처리 막기
+    if (isLoading || fileLoading) return;
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0]);
@@ -131,10 +139,11 @@ const Prompt: React.FC<PromptProps> = ({
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col ">
       <div
         className={`bg-white dark:bg-[#23283D] rounded-xl shadow-sm p-4 sm:py-4 sm:px-5 overflow-hidden
-          ${dragActive ? "border-2 border-blue-500 bg-blue-50" : ""}`}
+          ${dragActive && !isLoading && !fileLoading ? "border-2 border-blue-500 bg-blue-50" : ""}
+          ${isLoading || fileLoading ? "cursor-not-allowed" : ""}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
@@ -156,6 +165,7 @@ const Prompt: React.FC<PromptProps> = ({
           className="hidden"
           accept=".csv,.xlsx"
           onChange={handleChange}
+          disabled={isLoading || fileLoading} // 파일 입력도 비활성화
         />
 
         <div className="flex flex-col sm:flex-row gap-2">
