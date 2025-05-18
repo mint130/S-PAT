@@ -1,5 +1,5 @@
-import { Crown } from "lucide-react";
-import { useMemo, useEffect } from "react";
+import { Crown, AlertCircle } from "lucide-react"; // AlertCircle 추가
+import { useMemo, useEffect, useState } from "react"; // useState 추가
 import useLLMStore from "../../stores/useLLMStore";
 import useThemeStore from "../../stores/useThemeStore";
 
@@ -7,7 +7,13 @@ const TotalScore = () => {
   // Zustand 스토어에서 LLM 데이터와 선택된 LLM 가져오기
   const llmData = useLLMStore((state) => state.llmData);
   const selectedLLM = useLLMStore((state) => state.selectedLLM);
+  const expertEvaluationSkipped = useLLMStore(
+    (state) => state.expertEvaluationSkipped
+  );
   const { isDarkMode } = useThemeStore();
+
+  // 툴팁 표시 상태
+  const [showTooltip, setShowTooltip] = useState(false);
 
   // 표시용 이름으로 변환하는 함수
   const getDisplayName = (name: string): string => {
@@ -28,12 +34,23 @@ const TotalScore = () => {
   const calculatedScores = useMemo(() => {
     return llmData.map((model) => {
       // 각 항목은 0-1 사이의 값이므로 100을 곱하여 100점 만점으로 변환
-      const totalScore = Math.round(
-        (model.vector_accuracy * 0.2 +
-          model.reasoning_score * 0.4 +
-          model.expert * 0.4) *
-          100
-      );
+
+      let totalScore = 0;
+
+      if (expertEvaluationSkipped) {
+        // 스킵했을 경우: vector_accuracy 40%, reasoning_score 60%
+        totalScore = Math.round(
+          (model.vector_accuracy * 0.4 + model.reasoning_score * 0.6) * 100
+        );
+      } else {
+        // 스킵하지 않았을 경우: 원래 가중치 유지
+        totalScore = Math.round(
+          (model.vector_accuracy * 0.2 +
+            model.reasoning_score * 0.4 +
+            model.expert * 0.4) *
+            100
+        );
+      }
 
       return {
         name: model.name,
@@ -55,7 +72,7 @@ const TotalScore = () => {
             : "#999999", // Grok 색상
       };
     });
-  }, [llmData, isDarkMode]);
+  }, [llmData, isDarkMode, expertEvaluationSkipped]);
 
   // 점수에 따른 크기 계산 함수 (선택된 LLM은 더 크게)
   const calculateSize = (score: number, isSelected: boolean) => {
@@ -91,13 +108,48 @@ const TotalScore = () => {
   }, [selectedLLM]);
 
   return (
-    <div className="h-full flex flex-col">
-      <h3 className="font-pretendard font-semibold mb-2 flex items-center text-sm text-gray-900 dark:text-gray-100">
+    <div className="h-full flex flex-col ">
+      <div className="flex items-center mb-2 relative">
         <span className="mr-2">
           <Crown size={16} className="text-gray-900 dark:text-gray-100" />
         </span>
-        종합 점수
-      </h3>
+        <h3 className="font-pretendard font-semibold text-sm text-gray-900 dark:text-gray-100">
+          종합 점수
+        </h3>
+        <div className="relative inline-block ml-2">
+          <AlertCircle
+            size={16}
+            className="text-gray-500 dark:text-gray-400 cursor-help"
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+          />
+
+          {showTooltip && (
+            <div className="absolute left-0 top-6 z-[990] w-64 p-3 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 text-xs font-normal">
+              <div className="text-gray-800 dark:text-gray-200">
+                <p className="font-semibold">종합 점수 계산 방법:</p>
+                <ul className="mt-1 list-disc pl-4 space-y-1">
+                  {expertEvaluationSkipped ? (
+                    <>
+                      <li>벡터 유사도: 40%</li>
+                      <li>LLM 평가: 60%</li>
+                      <li className="text-gray-500 dark:text-gray-400 italic">
+                        전문가 평가는 생략되었습니다.
+                      </li>
+                    </>
+                  ) : (
+                    <>
+                      <li>벡터 유사도: 20%</li>
+                      <li>LLM 평가: 40%</li>
+                      <li>전문가 평가: 40%</li>
+                    </>
+                  )}
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
       <div className="bg-white dark:bg-[#23283D] p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex-1 flex items-center justify-center overflow-hidden">
         <div className="w-full h-full relative">
           {/* 애니메이션 스타일 추가 */}
@@ -258,26 +310,6 @@ const TotalScore = () => {
                       filter: "blur(0.5px)", // 약간의 블러 효과
                       ["--circumference" as any]: circumference,
                       ["--offset" as any]: progressOffset,
-                    }}
-                  />
-                  {/* 움직이는 점 효과 (선택사항) */}
-                  <circle
-                    cx={progressSize / 2}
-                    cy={strokeWidth / 2}
-                    r={isSelected ? strokeWidth + 1 : strokeWidth} // 선택된 LLM은 점도 더 크게
-                    fill={
-                      isSelected
-                        ? "rgba(255, 255, 255, 0.9)"
-                        : "rgba(255, 255, 255, 0.7)"
-                    }
-                    className={isSelected ? "animate-pulse" : ""}
-                    style={{
-                      transformOrigin: `${progressSize / 2}px ${
-                        progressSize / 2
-                      }px`,
-                      transform: `rotate(${scorePercent * 360}deg)`,
-                      filter: "blur(0.5px)", // 약간의 블러 효과
-                      transition: `transform 1.5s ease-in-out`,
                     }}
                   />
                 </svg>
