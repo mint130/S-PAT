@@ -71,41 +71,11 @@
 
 @layer components {
   .scrollbar-custom {
-    /* Firefox용 스크롤바 스타일 */
     scrollbar-width: thin;
-    scrollbar-color: #c6cef7 transparent; /* 트랙 부분을 투명하게 설정 */
+    scrollbar-color: #94a3b8 transparent;
   }
 
-  /* Webkit(Chrome, Safari 등)용 스크롤바 스타일 */
-  .scrollbar-custom::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  .scrollbar-custom::-webkit-scrollbar-track {
-    background: transparent; /* 트랙 배경을 투명하게 설정 */
-    border-radius: 8px;
-  }
-
-  .scrollbar-custom::-webkit-scrollbar-thumb {
-    background: #c6cef7;
-    border-radius: 8px;
-  }
-
-  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-    background: #c6cef7;
-  }
-
-  /* 다크 모드 대응 */
-  .dark .scrollbar-custom::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .dark .scrollbar-custom::-webkit-scrollbar-thumb {
-    background: #c6cef7;
-  }
-
-  .dark .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-    background: #c6cef7;
+  .dark .scrollbar-custom {
+    scrollbar-color: #475569 transparent;
   }
 }
