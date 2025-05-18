@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/common/Button";
 import SelectLLM from "../components/common/SelectLLM";
@@ -14,8 +14,16 @@ import useLLMStore from "../stores/useLLMStore";
 
 function Step5AdminModelComparison() {
   const selectedLLM = useLLMStore((state) => state.selectedLLM);
+  const expertEvaluationSkipped = useLLMStore(
+    (state) => state.expertEvaluationSkipped
+  );
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // 페이지가 로드될 때 LLM 선택 초기화
+    useLLMStore.getState().setSelectedLLM(null);
+  }, []);
 
   // 모달 상태 관리
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -102,6 +110,7 @@ function Step5AdminModelComparison() {
             dataKey="expert"
             color="#5A6ACF"
             barSize={16}
+            expertSkipped={expertEvaluationSkipped} // 전문가 평가 스킵 여부
           />
         </div>
 
