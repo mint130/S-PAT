@@ -5,7 +5,7 @@ from celery import chain, chord, group
 from langchain_openai import OpenAIEmbeddings
 import pandas as pd
 from langchain_community.vectorstores import FAISS
-from app.schemas.message import Message, Progress
+from app.schemas.message import Progress
 from app.tasks import classification_completion, classify_patent, collect_evaluation_results, evaluate_classification_by_reasoning, evaluate_classification_by_vector, evaluation_completion
 
 # 로그
