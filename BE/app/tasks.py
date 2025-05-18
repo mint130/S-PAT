@@ -752,6 +752,9 @@ def evaluation_completion(results, LLM, session_id):
             message="분류 및 평가 작업이 완료되었습니다."
         )
 
+        redis.set(f"{key}:progress", message.model_dump_json())
+        redis.publish(f"{key}:progress", message.model_dump_json())
+
     except Exception as e:
         logger.error(f"[{session_id}:{LLM}] 분류 결과 처리 중 오류 발생: {e}")
         message = Message(
