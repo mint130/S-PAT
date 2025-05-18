@@ -175,22 +175,29 @@ def classify_patent(
             "smallTitle": replace_na(parsed.get("smallTitle")),
         }
         
+        progress_key = f"{session_id}:progress"
+        
         # 진행률 업데이트
         if not isAdmin:
-            progress_key = f"{session_id}:progress"
             current = redis.incr(f"{session_id}:progress_counter")  # +1 누적
             total = int(redis.get(f"{session_id}:total_count") or 1)
             percentage = int(current / total * 100)
+        else:
+            progress_key = f"{session_id}:{LLM}:progress"
+            current = float(redis.incrbyfloat(f"{session_id}:{LLM}:progress_counter", 0.25)) # +0.25 누적
+            total = float(redis.get(f"{session_id}:{LLM}:total_count") or 1)
+            percentage = int(current / total * 100)
 
-            progress = Progress(
-                current=current,
-                total=total,
-                percentage=percentage
-            )
+        
+        progress = Progress(
+            current=current,
+            total=total,
+            percentage=percentage
+        )
 
-            redis.set(progress_key, progress.model_dump_json())
-            redis.publish(progress_key, progress.model_dump_json())
-            redis.expire(progress_key, 86400)
+        redis.set(progress_key, progress.model_dump_json())
+        redis.publish(progress_key, progress.model_dump_json())
+        redis.expire(progress_key, 86400)
 
         return classifications
     
@@ -448,6 +455,21 @@ def evaluate_classification_by_vector(classification_result, LLM, session_id, pa
         small_code = "미분류"
         small_title = "미분류"
 
+    progress_key = f"{session_id}:{LLM}:progress"
+    current = float(redis.incrbyfloat(f"{session_id}:{LLM}:progress_counter", 0.25)) # +0.25 누적
+    total = float(redis.get(f"{session_id}:{LLM}:total_count") or 1)
+    percentage = int(current / total * 100)
+
+    progress = Progress(
+            current=current,
+            total=total,
+            percentage=percentage
+        )
+
+    redis.set(progress_key, progress.model_dump_json())
+    redis.publish(progress_key, progress.model_dump_json())
+
+
     return {
         "similarity_score": normalized_score,
         "best_match": {
@@ -565,6 +587,20 @@ def evaluate_classification_by_reasoning(
         reason_match = re.search(r"이유.*?[:：\s]\s*(.+?)(?:\n##|$)", response.content, re.DOTALL)
         reason = reason_match.group(1).strip() if reason_match else ""
 
+        progress_key = f"{session_id}:{LLM}:progress"
+        current = float(redis.incrbyfloat(f"{session_id}:{LLM}:progress_counter", 0.25)) # +0.25 누적
+        total = float(redis.get(f"{session_id}:{LLM}:total_count") or 1)
+        percentage = int(current / total * 100)
+
+        progress = Progress(
+                current=current,
+                total=total,
+                percentage=percentage
+            )
+
+        redis.set(progress_key, progress.model_dump_json())
+        redis.publish(progress_key, progress.model_dump_json())
+        
         return {
             "score": score,
             "reason": reason
@@ -590,20 +626,19 @@ def collect_evaluation_results(evaluation_results, LLM, session_id, application_
     redis.hset(f"{key}:reason", application_number, json.dumps(reasoning_result, ensure_ascii=False))
   
     # 진행도 계산
-    progress_key = f"{key}:progress"
-    current = redis.incr(f"{key}:progress_counter")  # +1 누적
-    total = int(redis.get(f"{key}:total_count") or 1)
+    progress_key = f"{session_id}:{LLM}:progress"
+    current = float(redis.incrbyfloat(f"{session_id}:{LLM}:progress_counter", 0.25)) # +0.25 누적
+    total = float(redis.get(f"{session_id}:{LLM}:total_count") or 1)
     percentage = int(current / total * 100)
 
     progress = Progress(
-        current=current,
-        total=total,
-        percentage=percentage
-    )
+            current=current,
+            total=total,
+            percentage=percentage
+        )
 
     redis.set(progress_key, progress.model_dump_json())
     redis.publish(progress_key, progress.model_dump_json())
-    redis.expire(progress_key, 86400)
     
     return {
         "vector_based": vector_result,
@@ -709,6 +744,7 @@ def evaluation_completion(results, LLM, session_id):
         redis.expire(f"{key}:evaluation", 86400)
         redis.expire(f"{key}:patents", 86400)
         redis.expire(f"{key}:reasoning", 86400)
+        redis.expire(f"{key}", 86400)
         
         # 알림
         message = Message(
