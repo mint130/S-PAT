@@ -29,6 +29,10 @@ interface LLMStoreState {
   selectedLLM: string | null;
   // 선택된 LLM을 설정하는 액션 추가
   setSelectedLLM: (llm: string | null) => void;
+  // 스킵 상태 추가
+  expertEvaluationSkipped: boolean;
+  // 전문가 평가 스킵 여부 상태 추가
+  setExpertEvaluationSkipped: (skipped: boolean) => void;
 }
 
 // 초기 데이터
@@ -71,7 +75,10 @@ const useLLMStore = create<LLMStoreState>()(
       llmData: initialLLMData,
 
       // 초기값은 null (아무것도 선택되지 않음)
-      selectedLLM: null,
+      selectedLLM: "GPT",
+
+      // 스킵 상태 초기값 (기본적으로 스킵하지 않음)
+      expertEvaluationSkipped: false,
 
       // 선택된 LLM을 설정하는 액션
       setSelectedLLM: (llm) => set({ selectedLLM: llm }),
@@ -101,11 +108,19 @@ const useLLMStore = create<LLMStoreState>()(
 
         set({ llmData: updatedData });
       },
+
+      setExpertEvaluationSkipped: (skipped) =>
+        set({
+          expertEvaluationSkipped: skipped,
+        }),
     }),
     {
       name: "llm-store", // 로컬스토리지에 저장될 키 이름
       // 선택적: 특정 필드만 저장하고 싶다면
-      partialize: (state) => ({ llmData: state.llmData }),
+      partialize: (state) => ({
+        llmData: state.llmData,
+        expertEvaluationSkipped: state.expertEvaluationSkipped,
+      }),
     }
   )
 );

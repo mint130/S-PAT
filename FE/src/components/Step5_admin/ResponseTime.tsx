@@ -8,11 +8,25 @@ const ResponseTime = () => {
   const selectedLLM = useLLMStore((state) => state.selectedLLM);
   const { isDarkMode } = useThemeStore();
 
-  // 시간을 분:초 형식으로 변환하는 함수
+  // 시간을 시:분:초 형식으로 변환하는 함수 (각 단위가 0이면 표시하지 않음)
   const formatTime = (timeInSeconds: number): string => {
-    const minutes = Math.floor(timeInSeconds / 60);
+    const hours = Math.floor(timeInSeconds / 3600);
+    const minutes = Math.floor((timeInSeconds % 3600) / 60);
     const seconds = Math.floor(timeInSeconds % 60);
-    return `${minutes}m ${seconds}s`;
+
+    let formattedTime = "";
+
+    if (hours > 0) {
+      formattedTime += `${hours}h `;
+    }
+
+    if (minutes > 0 || hours > 0) {
+      formattedTime += `${minutes}m `;
+    }
+
+    formattedTime += `${seconds}s`;
+
+    return formattedTime;
   };
 
   // 표시용 이름으로 변환하는 함수

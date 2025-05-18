@@ -210,10 +210,13 @@ function Step4AdminPatentResult() {
 
   // 모달 확인 핸들러
   const handleConfirm = () => {
-    // 모든 LLM의 expert 점수를 1로 업데이트
+    // 모든 LLM의 expert 평가 점수를 0으로 설정
     llmData.forEach((llm) => {
-      updateLLM(llm.name, { expert: 1 });
+      updateLLM(llm.name, { expert: 0 });
     });
+
+    // 스킵 상태를 true로 설정
+    useLLMStore.getState().setExpertEvaluationSkipped(true);
 
     setIsModalOpen(false);
     navigate("/admin/step5");
@@ -233,6 +236,7 @@ function Step4AdminPatentResult() {
 
   // 다음 버튼 클릭 핸들러
   const handleNextClick = () => {
+    useLLMStore.getState().setExpertEvaluationSkipped(false);
     navigate("/admin/step5");
   };
 
@@ -242,7 +246,7 @@ function Step4AdminPatentResult() {
       <div className="flex flex-col h-full w-full p-8 pb-6">
         <Title
           text="특허데이터 분류 결과 확인"
-          subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 생략 시 전문가평가는 100점으로 처리됩니다."
+          subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다."
         />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-gray-500">로딩 중...</div>
@@ -257,7 +261,7 @@ function Step4AdminPatentResult() {
       <div className="flex flex-col h-full w-full p-8 pb-6">
         <Title
           text="특허데이터 분류 결과 확인"
-          subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 생략 시 전문가평가는 100점으로 처리됩니다."
+          subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다."
         />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -278,7 +282,7 @@ function Step4AdminPatentResult() {
     <div className="flex flex-col h-full w-full p-8 pb-6">
       <Title
         text="특허데이터 분류 결과 확인"
-        subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 생략 시 전문가평가는 100점으로 처리됩니다."
+        subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다."
       />
 
       <DataTable
@@ -312,7 +316,7 @@ function Step4AdminPatentResult() {
       <NextModal
         isOpen={isModalOpen}
         title="전문가 평가를 그만하시겠습니까?"
-        description="각 LLM에 대한 전문가 평가가 모두 100점으로 저장됩니다."
+        description="각 LLM에 대한 전문가 평가가 생략됩니다."
         onCancel={handleCancel}
         onConfirm={handleConfirm}
       />

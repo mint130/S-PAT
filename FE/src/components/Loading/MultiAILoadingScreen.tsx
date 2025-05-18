@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useThemeStore from "../../stores/useThemeStore";
+import { CircleCheck } from "lucide-react";
 
 interface AIModelProgressProps {
   id: number;
@@ -13,9 +14,13 @@ interface AIModelProgressProps {
 
 interface MultiAILoadingScreenProps {
   sessionId: string;
+  fileLength: number;
 }
 
-function MultiAILoadingScreen({ sessionId }: MultiAILoadingScreenProps) {
+function MultiAILoadingScreen({
+  sessionId,
+  fileLength,
+}: MultiAILoadingScreenProps) {
   const navigate = useNavigate();
   const { isDarkMode } = useThemeStore();
 
@@ -24,7 +29,7 @@ function MultiAILoadingScreen({ sessionId }: MultiAILoadingScreenProps) {
     {
       id: 1,
       name: "GPT",
-      totalPatents: 100,
+      totalPatents: fileLength,
       classifiedPatents: 0,
       estimatedTimeLeft: "계산 중...",
       isComplete: false,
@@ -32,7 +37,7 @@ function MultiAILoadingScreen({ sessionId }: MultiAILoadingScreenProps) {
     {
       id: 2,
       name: "Claude",
-      totalPatents: 100,
+      totalPatents: fileLength,
       classifiedPatents: 0,
       estimatedTimeLeft: "계산 중...",
       isComplete: false,
@@ -40,7 +45,7 @@ function MultiAILoadingScreen({ sessionId }: MultiAILoadingScreenProps) {
     {
       id: 3,
       name: "Gemini",
-      totalPatents: 100,
+      totalPatents: fileLength,
       classifiedPatents: 0,
       estimatedTimeLeft: "계산 중...",
       isComplete: false,
@@ -48,7 +53,7 @@ function MultiAILoadingScreen({ sessionId }: MultiAILoadingScreenProps) {
     {
       id: 4,
       name: "Grok",
-      totalPatents: 100,
+      totalPatents: fileLength,
       classifiedPatents: 0,
       estimatedTimeLeft: "계산 중...",
       isComplete: false,
@@ -247,7 +252,13 @@ function MultiAILoadingScreen({ sessionId }: MultiAILoadingScreenProps) {
                         {model.name}
                       </span>
                       {model.isComplete && (
-                        <span className="ml-2 text-green-500 text-sm">✓</span>
+                        // <span className="ml-2 text-primary-blue text-sm">
+                        //   ✓
+                        // </span>
+                        <CircleCheck
+                          className="ml-2 text-primary-blue"
+                          size={16}
+                        />
                       )}
                     </div>
                     <span className="text-blue-600 dark:text-blue-400 font-medium">
