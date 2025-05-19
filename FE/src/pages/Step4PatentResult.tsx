@@ -7,7 +7,7 @@ import {
   Patent,
   fetchPatentClassificationsExcel,
 } from "../apis/userApi";
-import { AlertCircle, RefreshCw, Download } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import Button from "../components/common/Button";
 import useThemeStore from "../stores/useThemeStore";
 
