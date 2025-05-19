@@ -33,6 +33,9 @@ interface LLMStoreState {
   expertEvaluationSkipped: boolean;
   // 전문가 평가 스킵 여부 상태 추가
   setExpertEvaluationSkipped: (skipped: boolean) => void;
+  // 파일 길이 관련 상태와 액션 추가
+  filelength: number;
+  setFilelength: (length: number) => void;
 }
 
 // 초기 데이터
@@ -80,6 +83,9 @@ const useLLMStore = create<LLMStoreState>()(
       // 스킵 상태 초기값 (기본적으로 스킵하지 않음)
       expertEvaluationSkipped: false,
 
+      // 파일 길이 초기값
+      filelength: 0,
+
       // 선택된 LLM을 설정하는 액션
       setSelectedLLM: (llm) => set({ selectedLLM: llm }),
 
@@ -113,6 +119,9 @@ const useLLMStore = create<LLMStoreState>()(
         set({
           expertEvaluationSkipped: skipped,
         }),
+
+      // 파일 길이 설정 액션
+      setFilelength: (length) => set({ filelength: length }),
     }),
     {
       name: "llm-store", // 로컬스토리지에 저장될 키 이름
@@ -120,6 +129,7 @@ const useLLMStore = create<LLMStoreState>()(
       partialize: (state) => ({
         llmData: state.llmData,
         expertEvaluationSkipped: state.expertEvaluationSkipped,
+        filelength: state.filelength, // filelength도 저장
       }),
     }
   )

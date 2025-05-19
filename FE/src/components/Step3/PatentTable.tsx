@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import DataTable from "../dataTable/DataTable";
 import type { ColDef } from "ag-grid-community";
+import useLLMStore from "../../stores/useLLMStore";
 
 interface PatentTableProps {
   // file: File;
@@ -15,6 +16,7 @@ const PatentTable: React.FC<PatentTableProps> = ({
 }) => {
   const [patentData, setPatentData] = useState<any[]>([]);
   const [colDefs, setColDefs] = useState<ColDef<any, any>[]>([]);
+  const { setFilelength } = useLLMStore();
 
   useEffect(() => {
     // 파일 데이터 처리
@@ -31,6 +33,7 @@ const PatentTable: React.FC<PatentTableProps> = ({
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
         setfileLength(jsonData.length);
+        setFilelength(jsonData.length); // Zustand 스토어에 파일 길이 저장
 
         // JSON 데이터 상태에 저장
         setPatentData(jsonData);

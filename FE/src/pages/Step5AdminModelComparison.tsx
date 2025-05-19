@@ -17,6 +17,7 @@ function Step5AdminModelComparison() {
   const expertEvaluationSkipped = useLLMStore(
     (state) => state.expertEvaluationSkipped
   );
+  const filelength = useLLMStore((state) => state.filelength);
 
   const navigate = useNavigate();
 
@@ -79,11 +80,16 @@ function Step5AdminModelComparison() {
           subText="LLM 별 평가점수를 확인하고 최적의 LLM 모델을 선정하세요."
         />
       </div>
-      <SelectLLM />
+      <div className="flex items-center justify-between w-full">
+        <SelectLLM />
+        <p className="font-pretendard font-semibold dark:text-white">
+          특허 데이터 수 : {filelength}건
+        </p>
+      </div>
 
       {/* 컨텐츠 영역 - flex 컨테이너로 변경 */}
       <div
-        className="flex flex-col flex-grow mt-1 w-full"
+        className="flex flex-col flex-grow mt-3 w-full"
         style={{ minHeight: "calc(100vh - 300px)" }}>
         <div
           className="grid grid-cols-3 gap-6 w-full flex-grow-2"
