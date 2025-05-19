@@ -202,19 +202,19 @@ def classify_patent(
         return classifications
     
     except OpenAIRateLimitError as e:
-        error_str = str(e)
-        if 'rate_limit_exceeded' in error_str:
-            # "Please try again in X.XXXs" 에서 시간 파싱
-            logger.info(f"[{session_id}] OpenAI rate limit 발생")
-            logger.info(f"[{session_id}] Retrying {self.request.retries}/12 due to OpenAI rate limit")
-            raise self.retry(countdown= 5, max_retries = 12)
-        else:
-            raise
-
+        logger.info(f"[{session_id}] OpenAI rate limit 발생")
+        retry_count = self.request.retries
+        additional_delay = min(retry_count * 5, 60)  # 재시도마다 5초씩 추가, 최대 60초
+            
+        logger.info(f"[{session_id}] Retrying {retry_count}/20, additional delay: {additional_delay}s")
+        raise self.retry(countdown=additional_delay, max_retries=20)    
+    
     except ClaudeRateLimitError as e:
-        error_str = str(e)
         logger.info(f"[{session_id}] Claude rate limit 발생")
-        raise self.retry(countdown= 5)
+        retry_count = self.request.retries
+        additional_delay = min(retry_count * 5, 60)
+        logger.info(f"[{session_id}] Retrying Claude, count: {retry_count}/20, delay: {additional_delay}s")
+        raise self.retry(countdown=additional_delay, max_retries=20)
     
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 429:
@@ -232,9 +232,9 @@ def classify_patent(
             # 명시적 대기 시간이 있으면 해당 시간만큼 대기 후 재시도
             if retry_after:
                 logger.warning(f"[{session_id}] Grok 명시적 대기: {retry_after}초")
-                time.sleep(retry_after)
+
             
-            raise self.retry(countdown= retry_after)
+            raise self.retry(countdown= retry_after, max_retries=20)
         else:
             logger.error(f"[{session_id}] HTTP 요청 에러 발생: {e}")
             raise
