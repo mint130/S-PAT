@@ -66,6 +66,8 @@ function MultiAILoadingScreen({
     const sources: EventSource[] = [];
     const startTimes: Record<string, number> = {};
 
+    console.log(isDarkMode);
+
     // 각 AI 모델에 대한 SSE 연결 설정
     aiModels.forEach((model) => {
       const url = `https://s-pat.site/api/admin/${sessionId}/progress?LLM=${model.name}`;
@@ -158,7 +160,7 @@ function MultiAILoadingScreen({
     return () => {
       sources.forEach((source) => source.close());
     };
-  }, [sessionId]);
+  }, [sessionId, isDarkMode]);
 
   // 전체 진행도 계산
   const totalProgress =
@@ -252,11 +254,10 @@ function MultiAILoadingScreen({
                         {model.name}
                       </span>
                       {model.isComplete && (
-                        // <span className="ml-2 text-primary-blue text-sm">
-                        //   ✓
-                        // </span>
                         <CircleCheck
-                          className="ml-2 text-primary-blue"
+                          className={`ml-2 ${
+                            isDarkMode ? "text-blue-400" : "text-primary-blue"
+                          }`}
                           size={16}
                         />
                       )}
