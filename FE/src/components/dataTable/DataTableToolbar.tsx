@@ -7,7 +7,8 @@ import {
   SquarePlus,
   Download,
 } from "lucide-react";
-import Button from "../Button";
+import Button from "../common/Button";
+import AddRowModal from "../Step2/AddRowModal";
 
 // 컬럼 상태 인터페이스 정의
 interface ColumnStateObject {
@@ -22,7 +23,7 @@ interface DataTableToolbarProps {
   fileName: React.ReactNode;
   edit?: boolean;
   download?: boolean;
-  onAddNewRow: () => void;
+  onAddNewRow: (rowData: Record<string, any>) => void;
   onRemoveSelected: () => void;
   onColumnVisibility: (field: string, hide: boolean) => void;
   onFilterTextChanged: (text: string) => void;
@@ -48,6 +49,22 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
   const [columnVisibility, setColumnVisibility] = useState<ColumnStateObject>(
     {}
   );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // 모달 열기 함수
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  // 모달 닫기 함수
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  // 새 행 추가 함수 (모달에서 입력받은 데이터로 행 추가)
+  const handleAddRow = (rowData: Record<string, any>) => {
+    onAddNewRow(rowData);
+  };
 
   // 외부 클릭 감지
   useEffect(() => {
@@ -110,7 +127,7 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
           <>
             {/* 행 추가 버튼 */}
             <button
-              onClick={onAddNewRow}
+              onClick={handleOpenModal}
               className="h-full flex items-center justify-center gap-1 px-2 text-sm hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300/80">
               <SquarePlus size={16} />
               <span>Add</span>
@@ -158,7 +175,7 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
         </div>
 
         {/* 검색 영역 */}
-        <div className="relative h-full w-1/4 min-w-40">
+        <div className="relative h-full w-1/4 min-w-72">
           <input
             type="text"
             value={quickFilterText}
@@ -181,6 +198,12 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
             <span>Download</span>
           </Button>
         )}
+
+        <AddRowModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onAddRow={handleAddRow}
+        />
       </div>
     </div>
   );

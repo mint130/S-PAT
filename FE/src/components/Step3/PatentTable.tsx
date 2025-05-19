@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
-import DataTable from "../common/dataTable/DataTable";
+import DataTable from "../dataTable/DataTable";
 import type { ColDef } from "ag-grid-community";
 
 interface PatentTableProps {
