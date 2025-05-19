@@ -14,7 +14,7 @@ from langchain.output_parsers import PydanticOutputParser
 from app.core.redis import get_redis_client
 from app.schemas.classification import ClassificationSchema, Patent
 from app.core.config import settings
-from app.core.llm import gpt, claude, gemini, grok
+from app.core.llm import classification_llms, reasoning_llms
 from app.schemas.message import Message, Progress
 
 logger = logging.getLogger(__name__)
@@ -258,14 +258,8 @@ async def process_patent_classification(
     """
     try:    
         redis = get_redis_client()
-        # LLM 선택
-        llm_map: Dict[str, Any] = {
-            "gpt": gpt,
-            "claude": claude,
-            "gemini": gemini,
-            "grok": grok
-        }
-        llm = llm_map.get(llm_type.lower())
+        # 분류용 LLM 선택
+        llm = classification_llms.get(llm_type.lower())
         if not llm:
             raise HTTPException(status_code=400, detail=f"지원하지 않는 LLM 타입입니다: {llm_type}")
 
@@ -322,11 +316,12 @@ async def process_patent_classification(
                 retriever
             )
             
-            # Reasoning LLM 평가 수행 (Claude 사용)
+            # 각 LLM의 Reasoning 모델로 평가 수행
             reasoning_evaluation = await evaluate_classification_by_reasoning(
                 patent_info,
                 classifications,
-                retriever
+                retriever,
+                llm_type
             )
 
             # reason 값만 추출해서 redis에 저장
@@ -389,12 +384,8 @@ async def process_patent_classification(
 
         await progress_queue.put(completion_data.model_dump())  
 
-        # API 응답에는 전체 evaluation_score 반환 (일관성 유지)
-        # return patents, evaluation_score
-    
     except  Exception as e:
         # 오류가 발생한 경우 메시지 전송
-        
         error_message = Message(
             status="error",
             message=f"오류가 발생했습니다: {str(e)}"
@@ -405,12 +396,18 @@ async def process_patent_classification(
 async def evaluate_classification_by_reasoning(
     patent_info: str,
     classification_result: Dict[str, str],
-    retriever: Any
+    retriever: Any,
+    llm_type: str
 ) -> Dict[str, Any]:
     """
-    Claude를 사용하여 분류 결과를 평가합니다.
+    각 LLM의 Reasoning 모델을 사용하여 분류 결과를 평가합니다.
     0.0~1.0 사이의 점수로 평가합니다.
     """
+    # Reasoning LLM 선택
+    llm = reasoning_llms.get(llm_type.lower())
+    if not llm:
+        raise HTTPException(status_code=400, detail=f"지원하지 않는 LLM 타입입니다: {llm_type}")
+
     # 유사도 기반 분류 체계 검색
     similar_docs = await retriever.ainvoke(patent_info)
     
@@ -436,7 +433,7 @@ async def evaluate_classification_by_reasoning(
     현재 분류 결과는 저장된 분류 체계를 기반으로 분류한 결과입니다.
     유사도 기반 추천 분류 체계는 분류 체계 중 특허 정보와 가장 유사한 3개의 분류입니다.
     당신의 목표는 이것들을 기준으로 이 특허 분류가 정확한지 평가하는 것입니다.
-    평가 요구사항과 주의사항에 맞게 잘 평가해 주세요.
+    평가 필수 요구 사항과 주의사항에 맞게 잘 평가해 주세요.
     
     [특허 정보]
     {patent_info}
@@ -449,9 +446,9 @@ async def evaluate_classification_by_reasoning(
     [유사도 기반 추천 분류 체계]
     {similar_classifications}
 
-    [평가 요구사항]
+    [평가 필수 요구 사항] (무조건 지키세요)
     1. 분석: 유사도 기반 추천 분류 체계와 현재 분류 결과를 비교하여 평가해주세요.
-    2. 점수: 0.0부터 1.0 사이의 점수로 평가해주세요.
+    2. 점수: 0.0, 0.5, 1.0 중 하나의 점수로 평가해주세요.
        - 0.0: 완전히 부적절한 분류
        - 0.5: 부분적으로 적절한 분류
        - 1.0: 완벽하게 적절한 분류
@@ -461,7 +458,7 @@ async def evaluate_classification_by_reasoning(
     1. 반드시 분류 체계를 기반으로 평가해야 합니다.
     2. 분류 체계에 없는 분류는 '미분류'로 간주합니다.
     - 미분류의 예시: 특허 정보가 제시된 분류 체계만으로 분류할 수 없다고 판단될 경우, 미분류로 판단합니다.
-    3. 평가 요구 사항의 포맷 [1. 분석 2. 점수 3. 이유]를 반드시 지킵니다.
+    3. 평가 필수 요구 사항의 포맷 [1. 분석 2. 점수 3. 이유]를 반드시 지켜야 합니다
     """
 
     prompt = ChatPromptTemplate.from_template(template)
@@ -478,17 +475,19 @@ async def evaluate_classification_by_reasoning(
         similar_classifications=similar_classifications_text
     )
     
-    # Claude 호출
-    response = await claude.ainvoke(filled_prompt)
+    # 선택된 LLM 호출
+    response = await llm.ainvoke(filled_prompt)
     
     # 응답에서 점수 추출 (0.0~1.0 사이의 숫자)
     try:
-        score_match = re.search(r'0\.\d+|1\.0', response.content)
+        score_match = re.search(r'(?:점수|score)[:：\s]*(\d*\.?\d+)', response.content, re.IGNORECASE)
         if score_match:
-            score = float(score_match.group())
+            score = float(score_match.group(1))
+            # 0.0~1.0 범위로 정규화
+            score = max(0.0, min(1.0, score))
         else:
             score = 0.0
-            logger.warning("점수를 찾을 수 없어 기본값 0.0을 사용합니다.")
+            logger.warning(f"점수를 찾을 수 없어 기본값 0.0을 사용합니다. LLM 응답: {response.content}")
     except Exception as e:
         logger.error(f"점수를 추출 중 오류 발생: {str(e)}")
         score = 0.0
@@ -501,7 +500,7 @@ async def evaluate_classification_by_reasoning(
     return {
         "score": score,
         "reason": reason
-    } 
+    }
 
 def calculate_sample_size(total_population: int, confidence_level: float, margin_error: float) -> int:
     """
@@ -536,7 +535,7 @@ def calculate_sample_size(total_population: int, confidence_level: float, margin
     if total_population > 0:
         sample_size = sample_size / (1 + (sample_size - 1) / total_population)
     
-    # 표본 크기가 모집단 크기보다 크지 않도록 보정
-    sample_size = min(math.floor(sample_size), total_population)
+    # 표본 크기가 모집단 크기보다 크지 않도록 보정 (반올림 적용)
+    sample_size = min(round(sample_size), total_population)
     
     return sample_size
