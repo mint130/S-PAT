@@ -133,7 +133,7 @@ const TotalScore = () => {
                     <>
                       <li>벡터 유사도: 40%</li>
                       <li>LLM 평가: 60%</li>
-                      <li className="text-gray-500 dark:text-gray-400 italic">
+                      <li className="text-gray-500 dark:text-gray-400">
                         전문가 평가는 생략되었습니다.
                       </li>
                     </>
