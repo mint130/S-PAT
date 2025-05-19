@@ -727,7 +727,7 @@ def evaluation_completion(results, LLM, session_id):
             redis.rpush(f"{key}:reasoning", reason_json)
 
         # 임시로 저장한 데이터 삭제
-        redis.delete(f"{key}:reason")
+        redis.delete(f"{key}:reasoning")
         redis.delete(f"{key}:classifications")
 
         # 최종 평가 점수 계산 (간소화된 버전)
