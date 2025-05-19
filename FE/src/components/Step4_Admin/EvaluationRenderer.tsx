@@ -15,10 +15,10 @@ const EvaluationButton: React.FC<EvaluationButtonProps> = ({
 }) => {
   return (
     <button
-      className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-pretendard transition-colors
+      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-pretendard 
         ${
           isSelected
-            ? "border border-primary-blue text-primary-blue bg-primary-blue/10"
+            ? "border border-primary-blue text-primary-blue bg-primary-blue/10 dark:bg-blue-600/40"
             : "border border-gray-400 text-gray-400"
         }`}
       onClick={() => onClick(value)}>

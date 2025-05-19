@@ -12,11 +12,12 @@ import {
   ModuleRegistry,
   themeQuartz,
   colorSchemeDarkWarm,
+  SizeColumnsToContentStrategy,
 } from "ag-grid-community";
 import { AlertCircle } from "lucide-react";
 import * as XLSX from "xlsx";
 import DataTableToolbar from "./DataTableToolbar";
-import useThemeStore from "../../../stores/useThemeStore";
+import useThemeStore from "../../stores/useThemeStore";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -29,6 +30,7 @@ interface DataTableProps {
   download?: boolean; // 다운로드 가능 여부 (기본값: false)
   onDataChanged?: (data: any[]) => void; // 전문가 점수에 필요
   loading?: boolean;
+  handleExcelDownload?: () => Promise<void>;
 }
 
 // DataTable 컴포넌트 정의 - forwardRef로 감싸서 외부 ref를 받음
@@ -42,6 +44,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       download = false,
       onDataChanged,
       loading = false,
+      handleExcelDownload,
     },
     ref
   ) => {
@@ -66,7 +69,15 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       unSortIcon: true, // 정렬되지 않은 열에도 아이콘 표시
       resizable: true, // 열 크기 조절 가능
       editable: edit, // props로 전달된 edit 값따라 편집 가능 여부 설정
+      minWidth: 100,
     };
+
+    // 열 사이즈 설정 - 셀 내용에 맞게 자동 조정
+    const autoSizeStrategy = useMemo<SizeColumnsToContentStrategy>(() => {
+      return {
+        type: "fitCellContents",
+      };
+    }, []);
 
     // 행 선택 설정
     const rowSelection = useMemo<RowSelectionOptions | undefined>(() => {
@@ -74,20 +85,31 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
     }, [edit]);
 
     // 행 추가 함수
-    const addNewRow = useCallback(() => {
-      // 새 행을 위한 빈 객체 생성
-      const newRow: Record<string, any> = {};
+    const addNewRow = useCallback(
+      (rowData: Record<string, any>) => {
+        if (rowData) {
+          const mappedData: Record<string, any> = {};
 
-      // colDefs에서 모든 필드에 대해 기본값 설정
-      colDefs.forEach((col) => {
-        if (col.field) {
-          newRow[col.field] = "";
+          if (colDefs.some((col) => col.field === "code")) {
+            mappedData.code = rowData.code;
+          }
+          if (colDefs.some((col) => col.field === "level")) {
+            mappedData.level = rowData.level;
+          }
+          if (colDefs.some((col) => col.field === "name")) {
+            mappedData.name = rowData.name;
+          }
+          if (colDefs.some((col) => col.field === "description")) {
+            mappedData.description = rowData.description;
+          }
+
+          gridRef.current?.api.applyTransaction({
+            add: [mappedData],
+          });
         }
-      });
-      gridRef.current?.api.applyTransaction({
-        add: [newRow],
-      });
-    }, [colDefs]);
+      },
+      [colDefs]
+    );
 
     // 행 삭제 함수
     const onRemoveSelected = useCallback(() => {
@@ -136,7 +158,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
     }, []);
 
     // 엑셀 다운로드 함수
-    const handleExcelDownload = useCallback(() => {
+    const internalExcelDownload = useCallback(() => {
       try {
         if (!gridRef.current?.api) return;
 
@@ -188,6 +210,16 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       }
     }, [rowData, colDefs]);
 
+    // 다운로드 버튼 클릭 핸들러
+    const onExcelDownload = () => {
+      // handleExcelDownload props가 있으면 그것을 사용, 없으면 내부 함수 사용
+      if (handleExcelDownload) {
+        handleExcelDownload();
+      } else {
+        internalExcelDownload();
+      }
+    };
+
     // 데이터 변경 감지 이벤트 처리
     const onCellValueChanged = useCallback(() => {
       if (onDataChanged && gridRef.current?.api) {
@@ -212,7 +244,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
           onRemoveSelected={onRemoveSelected}
           onColumnVisibility={onColumnVisibility}
           onFilterTextChanged={onFilterTextChanged}
-          onExcelDownload={handleExcelDownload}
+          onExcelDownload={onExcelDownload}
           getColumnsState={getColumnsState}
         />
 
@@ -236,6 +268,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
               rowData={rowData} // 행 데이터
               columnDefs={colDefs} // 열 정의
               defaultColDef={defaultColDef} // 기본 열 속성
+              autoSizeStrategy={autoSizeStrategy}
               rowSelection={rowSelection} // 행 선택 옵션
               // suppressDragLeaveHidesColumns={true} // 열을 드래그하여 그리드 밖으로 이동시켜도 열이 숨겨지지 않도록 방지
               loading={loading} // 로딩 상태 표시
