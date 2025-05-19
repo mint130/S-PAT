@@ -15,10 +15,10 @@ function WarningModal({ isOpen, onConfirm }: WarningModalProps) {
         <div className="p-6">
           {/* 헤더 */}
           <div className="flex items-center mb-4">
-            <div className=" rounded-full p-2">
-              <AlertCircle className="text-gray-700 w-6 h-6 dark:text-gray-300" />
+            <div className=" rounded-full py-2">
+              <AlertCircle className="text-red-600 w-6 h-6 dark:text-red-400" />
             </div>
-            <h2 className="text-lg font-medium text-orange-800 dark:text-orange-400">
+            <h2 className="pl-2 text-xl font-bold text-red-600 dark:text-red-400">
               분류체계 수정 주의사항
             </h2>
           </div>
@@ -39,7 +39,7 @@ function WarningModal({ isOpen, onConfirm }: WarningModalProps) {
                 일관성을 유지해주세요.
               </p>
             </div>
-            <p className="text-red-600 dark:text-red-400 mt-8 font-medium">
+            <p className="text-red-600 dark:text-red-500 mt-8 font-medium">
               ※ 새로고침 시 수정사항이 사라집니다.
             </p>
           </div>
@@ -51,7 +51,7 @@ function WarningModal({ isOpen, onConfirm }: WarningModalProps) {
               size="sm"
               variant="primary"
               className="ml-auto">
-              이해했습니다, 계속하기
+              계속하기
             </Button>
           </div>
         </div>
