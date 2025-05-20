@@ -82,7 +82,7 @@ function Step3PatentClassification() {
       if (Role === "User") {
         // 분류 작업 시작 API 호출
         const response = await axios.post(
-          `https://s-pat.site/api/user/${session_id}/upload?LLM=${llm}`,
+          `https://s-pat.site/api/user/${session_id}/upload_and_start_classification?LLM=${llm}`,
           formData,
           {
             headers: {
@@ -96,7 +96,7 @@ function Step3PatentClassification() {
       } else {
         // 분류 작업 시작 API 호출
         const response = await axios.post(
-          `https://s-pat.site/api/admin/${session_id}/upload`,
+          `https://s-pat.site/api/admin/${session_id}/upload_and_start_classification_and_evaluation`,
           formData,
           {
             headers: {
