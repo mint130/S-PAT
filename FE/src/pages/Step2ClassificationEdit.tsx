@@ -2,10 +2,12 @@ import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Title from "../components/common/Title";
-import DataTable from "../components/common/dataTable/DataTable";
+import DataTable from "../components/dataTable/DataTable";
 import Button from "../components/common/Button";
 import type { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
+import NextModal from "../components/common/NextModal";
+import WarningModal from "../components/common/WarningModal";
 
 const CLASSIFICATION_COLUMNS: ColDef[] = [
   {
@@ -40,6 +42,8 @@ function Step2ClassificationEdit() {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(false);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [warningModalOpen, setWarningModalOpen] = useState<boolean>(false);
 
   const { selectedStandards } = location.state || [];
   const [colDefs] = useState<ColDef[]>(CLASSIFICATION_COLUMNS);
@@ -58,7 +62,27 @@ function Step2ClassificationEdit() {
     }
   }, [selectedStandards, navigate]);
 
+  useEffect(() => {
+    setWarningModalOpen(true);
+  }, []);
+
+  const handleWarningModalConfirm = () => {
+    setWarningModalOpen(false);
+  };
+
+  if (!selectedStandards) {
+    return null;
+  }
+
   const handleNext = async () => {
+    setModalOpen(true);
+  };
+
+  const onCancel = () => {
+    setModalOpen(false);
+  };
+
+  const onConfirm = async () => {
     setLoading(true);
 
     try {
@@ -104,10 +128,6 @@ function Step2ClassificationEdit() {
     }
   };
 
-  if (!selectedStandards) {
-    return null;
-  }
-
   return (
     <div className="flex flex-col h-full w-full px-8 py-5">
       <Title
@@ -126,14 +146,24 @@ function Step2ClassificationEdit() {
       </div>
 
       <div className="flex justify-end w-full mt-7">
-        <Button
-          variant="primary"
-          size="md"
-          onClick={handleNext}
-          isLoading={loading}>
+        <Button variant="primary" size="md" onClick={handleNext}>
           다음
         </Button>
       </div>
+
+      <NextModal
+        isOpen={modalOpen}
+        title="해당 특허분류 체계로 진행하시겠습니까?"
+        description="진행하기 버튼을 누르면 수정이 불가합니다."
+        onCancel={onCancel}
+        onConfirm={onConfirm}
+        isLoading={loading}
+      />
+
+      <WarningModal
+        isOpen={warningModalOpen}
+        onConfirm={handleWarningModalConfirm}
+      />
     </div>
   );
 }

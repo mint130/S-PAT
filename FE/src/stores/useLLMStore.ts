@@ -29,6 +29,13 @@ interface LLMStoreState {
   selectedLLM: string | null;
   // 선택된 LLM을 설정하는 액션 추가
   setSelectedLLM: (llm: string | null) => void;
+  // 스킵 상태 추가
+  expertEvaluationSkipped: boolean;
+  // 전문가 평가 스킵 여부 상태 추가
+  setExpertEvaluationSkipped: (skipped: boolean) => void;
+  // 파일 길이 관련 상태와 액션 추가
+  filelength: number;
+  setFilelength: (length: number) => void;
 }
 
 // 초기 데이터
@@ -51,7 +58,7 @@ const initialLLMData: LLMItem[] = [
     name: "GEMINI",
     time: 684,
     vector_accuracy: 0.75,
-    reasoning_score: 0.9,
+    reasoning_score: 0.7,
     expert: 0.6, // 전문가 평가 (0-1)
   },
   {
@@ -71,7 +78,13 @@ const useLLMStore = create<LLMStoreState>()(
       llmData: initialLLMData,
 
       // 초기값은 null (아무것도 선택되지 않음)
-      selectedLLM: null,
+      selectedLLM: "GPT",
+
+      // 스킵 상태 초기값 (기본적으로 스킵하지 않음)
+      expertEvaluationSkipped: false,
+
+      // 파일 길이 초기값
+      filelength: 500,
 
       // 선택된 LLM을 설정하는 액션
       setSelectedLLM: (llm) => set({ selectedLLM: llm }),
@@ -101,11 +114,23 @@ const useLLMStore = create<LLMStoreState>()(
 
         set({ llmData: updatedData });
       },
+
+      setExpertEvaluationSkipped: (skipped) =>
+        set({
+          expertEvaluationSkipped: skipped,
+        }),
+
+      // 파일 길이 설정 액션
+      setFilelength: (length) => set({ filelength: length }),
     }),
     {
       name: "llm-store", // 로컬스토리지에 저장될 키 이름
       // 선택적: 특정 필드만 저장하고 싶다면
-      partialize: (state) => ({ llmData: state.llmData }),
+      partialize: (state) => ({
+        llmData: state.llmData,
+        expertEvaluationSkipped: state.expertEvaluationSkipped,
+        filelength: state.filelength, // filelength도 저장
+      }),
     }
   )
 );

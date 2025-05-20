@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    font-family: "Pretendard";
+  }
+}
+
 @font-face {
   font-family: "Samsung400";
   font-style: normal;
@@ -61,4 +67,15 @@
     format("woff");
   font-weight: 800;
   font-style: normal;
+}
+
+@layer components {
+  .scrollbar-custom {
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 transparent;
+  }
+
+  .dark .scrollbar-custom {
+    scrollbar-color: #475569 transparent;
+  }
 }
