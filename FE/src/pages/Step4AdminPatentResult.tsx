@@ -247,7 +247,7 @@ function Step4AdminPatentResult() {
     return (
       <div className="flex flex-col h-full w-full p-8 pb-6">
         <Title
-          text="특허데이터 분류 결과 확인"
+          text="특허데이터 분류 결과 확인 및 전문가 평가"
           subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다."
         />
         <div className="flex-1 flex items-center justify-center">
@@ -262,7 +262,7 @@ function Step4AdminPatentResult() {
     return (
       <div className="flex flex-col h-full w-full p-8 pb-6">
         <Title
-          text="특허데이터 분류 결과 확인"
+          text="특허데이터 분류 결과 확인 및 전문가 평가"
           subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다."
         />
         <div className="flex-1 flex items-center justify-center">
@@ -283,7 +283,7 @@ function Step4AdminPatentResult() {
   return (
     <div className="flex flex-col h-full w-full p-8 pb-6">
       <Title
-        text="특허데이터 분류 결과 확인"
+        text="특허데이터 분류 결과 확인 및 전문가 평가"
         subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다."
       />
 
