@@ -295,11 +295,16 @@ function Step4AdminPatentResult() {
       />
 
       {/* 평가 카운트 표시 */}
-      {selectedLLM && (
-        <div className="text-right text-sm text-gray-500 mt-1">
-          총 {currentPatents.length}건 중 {evaluatedCount}건 평가 완료
+      <div className="flex items-between justify-between w-full ">
+        <div className="text-gray-400 text-sm mt-1">
+          신뢰도 95%, 오차범위 ±5% 전체 데이터 중 일부를 추출하였습니다.
         </div>
-      )}
+        {selectedLLM && (
+          <div className="text-sm text-gray-500 mt-1">
+            총 {currentPatents.length}건 중 {evaluatedCount}건 평가 완료
+          </div>
+        )}
+      </div>
 
       <div className="flex justify-end w-full mt-4">
         <div className="flex items-center space-x-6">
