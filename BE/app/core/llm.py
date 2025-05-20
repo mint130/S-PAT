@@ -14,8 +14,7 @@ grok = ChatXAI(model="grok-3-beta", temperature=0, xai_api_key=settings.GROK3_AP
 # 평가용 LLM 모델 (Reasoning에 더 적합한 모델들)
 gpt_reasoning = ChatOpenAI(
     api_key=settings.OPENAI_API_KEY, 
-    model_name="o3-mini", 
-    temperature=0,
+    model_name="o3-mini",
     use_responses_api=True,  # Responses API 사용 (리즈닝 모델에 필요)
     model_kwargs={
         "reasoning": {
@@ -26,7 +25,7 @@ gpt_reasoning = ChatOpenAI(
 )
 claude_reasoning = ChatAnthropic(
     model="claude-3-7-sonnet-20250219",
-    temperature=0,
+    temperature=1,
     api_key=settings.CLAUDE_API_KEY,
     thinking={
         "type": "enabled",
