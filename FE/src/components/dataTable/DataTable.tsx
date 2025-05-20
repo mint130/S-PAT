@@ -189,6 +189,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
         gridRef.current?.api.applyColumnState({
           state: state,
         });
+        gridRef.current!.api.onFilterChanged();
       },
       []
     );
@@ -198,6 +199,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       gridRef.current?.api.applyColumnState({
         defaultState: { hide },
       });
+      gridRef.current!.api.onFilterChanged();
     }, []);
 
     // 검색 함수

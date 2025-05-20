@@ -53,8 +53,8 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
   const [hiddenColumns, setHiddenColumns] = useState<ColumnState[]>([]); // 표시되지 않는 컬럼
   const [allSelected, setAllSelected] = useState<boolean>(true); // 컬럼 전체 선택
 
-  const [quickFilterText, setQuickFilterText] = useState(""); // 검색어 상태
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [quickFilterText, setQuickFilterText] = useState<string>(""); // 검색어 상태
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   // 모달 열기 함수
   const handleOpenModal = () => {
