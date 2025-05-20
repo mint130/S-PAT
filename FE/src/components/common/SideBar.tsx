@@ -122,7 +122,7 @@ const SideBar: React.FC = () => {
                     : "text-primary-gray dark:text-[#737E8F] text-sm font-samsung400"
                 }`}>
                 <span>Step 3</span>
-                <span className="mx-2">특허 데이터 분류</span>
+                <span className="mx-2">데이터 업로드 및 분류</span>
               </p>
             </div>
           </div>
@@ -140,7 +140,7 @@ const SideBar: React.FC = () => {
                     : "text-primary-gray dark:text-[#737E8F] text-sm font-samsung400"
                 }`}>
                 <span>Step 4</span>
-                <span className="mx-2">특허 데이터 분류 결과</span>
+                <span className="mx-2">분류 결과 확인</span>
               </p>
             </div>
           </div>
@@ -160,7 +160,7 @@ const SideBar: React.FC = () => {
                   }`}>
                   {/* Step 5 성능 비교 및 최적 모델 선택 */}
                   <span>Step 5</span>
-                  <span className="mx-2">최적 모델 선택</span>
+                  <span className="mx-2">성능 비교 및 LLM 선택</span>
                 </p>
               </div>
             </div>
@@ -170,7 +170,7 @@ const SideBar: React.FC = () => {
         {/* 하단 영역 */}
         <div className="mt-auto">
           {/* 다크모드 토글 */}
-          <div className="flex items-center justify-between mb-6 px-2">
+          <div className="flex items-center justify-between mb-6 px-2 cursor-pointer">
             <div className="flex items-center">
               <Moon className="h- w-3 text-primary-gray dark:text-gray-400 mr-2" />
               <span className="text-primary-gray dark:text-gray-400 text-xs font-samsung400">

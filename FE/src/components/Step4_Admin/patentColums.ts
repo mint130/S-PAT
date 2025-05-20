@@ -39,6 +39,14 @@ export const patentColumns: ColDef[] = [
     field: "smallTitle",
   },
   {
+    headerName: "Reasoning LLM 점수",
+    field: "score",
+  },
+  {
+    headerName: "Reasoning LLM 평가",
+    field: "reason",
+  },
+  {
     headerName: "전문가평가",
     field: "evaluation",
     cellRenderer: EvaluationRenderer,

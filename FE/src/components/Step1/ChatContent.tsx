@@ -392,7 +392,7 @@ const ChatContent: React.FC = () => {
         {/* 더 보기/접기 버튼 */}
         {showMoreButton && (
           <div
-            className="flex justify-center items-center p-2 bg-gray-50 dark:bg-[#2A304A] border-t border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#353E5C] transition-colors duration-200"
+            className="flex justify-center items-center p-2 bg-gray-50 dark:bg-[#2A304A] border-t border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#353E5C]"
             onClick={() => toggleTableExpansion(messageIndex)}>
             <span className="text-blue-600 dark:text-blue-400 font-medium text-sm">
               {isExpanded ? "접기" : "더 보기"}
@@ -441,7 +441,7 @@ const ChatContent: React.FC = () => {
     // absolute 위치 지정을 위한 relative 컨테이너
     <div className="relative h-full">
       {/* 메시지 영역 - 입력 영역 높이보다 큰 여백을 주어 내용이 짤리지 않도록 함 */}
-      <div className="absolute top-0 left-0 right-0 bottom-[130px] overflow-y-auto p-6">
+      <div className="absolute top-0 left-0 right-0 bottom-[130px] overflow-y-auto p-6 scrollbar-custom">
         {!chatStarted ? (
           // 대화가 시작되지 않았으면 IntroContent 표시
           <div className="flex justify-center items-center h-full pt-12">
