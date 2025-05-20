@@ -152,12 +152,15 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
   };
 
   return (
-    <div className="mb-2 flex justify-between items-end  w-full">
+    <div className="mb-2 flex justify-between items-end w-full">
       {/* 파일 이름 */}
-      <div className="">{fileName}</div>
       <div
-        className="h-8 w-full flex items-center justify-end gap-2 text-gray-500
-      ">
+        className={`flex-1 w-full min-w-20 font-pretendard font-medium ${
+          typeof fileName === "string" ? "truncate h-8 flex items-center" : ""
+        }`}>
+        {fileName}
+      </div>
+      <div className="h-8 flex items-center justify-end gap-2 text-gray-500">
         {edit && (
           <>
             {/* 행 추가 버튼 */}
