@@ -125,14 +125,14 @@ function Step3PatentClassification() {
     <div className="p-8 pb-6 h-full flex flex-col justify-stretch grow">
       {isClassifying ? (
         localStorage.getItem("role") === "Admin" ? (
-          <MultiAILoadingScreen sessionId={sessionId} fileLength={fileLength}/>
+          <MultiAILoadingScreen sessionId={sessionId} fileLength={fileLength} />
         ) : (
           <UserLoading sessionId={sessionId} fileLength={fileLength} />
         )
       ) : (
         <>
           <Title
-            text="분류 데이터 분류"
+            text="데이터 업로드 및 분류"
             subText="분류할 특허 데이터 파일을 업로드해주세요. 이전 단계에서 설정한 분류체계에 따라 AI가 자동으로 특허를 분류합니다."
           />
 
