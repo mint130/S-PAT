@@ -13,9 +13,9 @@ grok = ChatXAI(model="grok-3-beta", temperature=0, xai_api_key=settings.GROK3_AP
 
 # 평가용 LLM 모델 (Reasoning에 더 적합한 모델들)
 gpt_reasoning = ChatOpenAI(api_key=settings.OPENAI_API_KEY, model_name="gpt-o3", temperature=0)
-claude_reasoning = ChatAnthropic(model="claude-3-opus-20240229", temperature=0, api_key=settings.CLAUDE_API_KEY)
-gemini_reasoning = ChatGoogleGenerativeAI(model="gemini-2.0-pro", temperature=0, google_api_key=settings.GEMINI_API_KEY)
-grok_reasoning = ChatXAI(model="grok-3-ultra", temperature=0, xai_api_key=settings.GROK3_API_KEY)
+claude_reasoning = ChatAnthropic(model="claude-3-7-sonnet-20250219", temperature=0, api_key=settings.CLAUDE_API_KEY)
+gemini_reasoning = ChatGoogleGenerativeAI(model="gemini-2.5-pro", temperature=0, google_api_key=settings.GEMINI_API_KEY)
+grok_reasoning = ChatXAI(model="grok-3-beta", temperature=0, xai_api_key=settings.GROK3_API_KEY)
 
 # LLM 매핑 딕셔너리
 classification_llms = {
