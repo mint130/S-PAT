@@ -84,7 +84,7 @@ template = """
     예를 들어, 대분류: A01, 중분류: A01-01, 소분류: A01-01-01
 4. 이전 생성한 분류 체계가 있다면, 반드시 그 주제와 도메인을 유지하면서 확장해야 한다.
 5. 이전 생성한 분류 체계가 있다면, 사용자의 요청에 따라 이전 생성한 분류 체계에서 수정하여 반영해야 한다.
-6. 각 분류마다 지정된 최소 분류 개수 이상의 분류 항목이 있어야 한다.
+6. 이전 생성한 분류 체계가 없다면, 새로운 분류 체계를 만들 때 각 분류마다 지정된 최소 분류 개수 이상의 분류 항목이 있어야 한다.
     [최소 분류 개수]
     대분류: 무조건 5개 이상,
     중분류: 각 대분류마다 5개 이상,
@@ -121,28 +121,25 @@ async def create_conversation(session_id: str, conv: ConversationRequest, db: Se
     try:
         # 메모리 가져오기
         memory = get_memory(session_id)
-
-        # 메모리에 입력 저장
-        memory.chat_memory.add_user_message(conv.query)
-        # print("메모리 내용:", memory.load_memory_variables)
-
+        
+        # 이전 대화 기록 가져오기
+        chat_history = memory.load_memory_variables({})
+        
         # Chain 만들기
         chain = RunnableMap({
-            "chat_history": memory.load_memory_variables,
+            "chat_history": lambda x: chat_history.get("chat_history", ""),
             "user_input": RunnablePassthrough()
         }) | prompt | llm | output_parser
 
         # Chain 실행
         response = await chain.ainvoke({"user_input": conv.query})
-        # print(f"Running chain with input: {conv.query}")
-        # print(f"Chain response type: {type(response)}")
-        # print(f"Chain response: {response[0]}")
 
         # db에 대화 저장
         create_conversation_record(db, session_id, conv.query, response)
 
         # 메모리에 응답 저장
-        memory.chat_memory.add_ai_message(response)
+        memory.chat_memory.add_user_message(conv.query)
+        memory.chat_memory.add_ai_message(str(response))
         
         # JSON 응답 반환
         return {"standards": response}
