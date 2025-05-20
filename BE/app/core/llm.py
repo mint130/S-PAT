@@ -18,8 +18,7 @@ gpt_reasoning = ChatOpenAI(
     use_responses_api=True,  # Responses API 사용 (리즈닝 모델에 필요)
     model_kwargs={
         "reasoning": {
-            "effort": "high",  # 최대 추론 노력 (medium 또는 low로 설정 가능)
-            "summary": "auto"  # 추론 과정 요약 (detailed 또는 None으로 설정 가능)
+            "effort": "high"  # 최대 추론 노력 (medium 또는 low로 설정 가능)
         }
     }
 )
@@ -30,7 +29,8 @@ claude_reasoning = ChatAnthropic(
     thinking={
         "type": "enabled",
         "budget_tokens": 2000  # 추론에 할당할 토큰 수
-    }
+    },
+    max_tokens=6000
 )
 gemini_reasoning = ChatGoogleGenerativeAI(
     model="gemini-2.5-pro-preview-03-25",
