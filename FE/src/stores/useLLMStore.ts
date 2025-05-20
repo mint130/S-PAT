@@ -58,7 +58,7 @@ const initialLLMData: LLMItem[] = [
     name: "GEMINI",
     time: 684,
     vector_accuracy: 0.75,
-    reasoning_score: 0.9,
+    reasoning_score: 0.7,
     expert: 0.6, // 전문가 평가 (0-1)
   },
   {
@@ -84,7 +84,7 @@ const useLLMStore = create<LLMStoreState>()(
       expertEvaluationSkipped: false,
 
       // 파일 길이 초기값
-      filelength: 0,
+      filelength: 500,
 
       // 선택된 LLM을 설정하는 액션
       setSelectedLLM: (llm) => set({ selectedLLM: llm }),
