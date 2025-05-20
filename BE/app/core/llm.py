@@ -12,26 +12,10 @@ gemini = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0, google_
 grok = ChatXAI(model="grok-3-beta", temperature=0, xai_api_key=settings.GROK3_API_KEY)
 
 # 평가용 LLM 모델 (Reasoning에 더 적합한 모델들)
-gpt_reasoning = ChatOpenAI(
-    api_key=settings.OPENAI_API_KEY, 
-    model_name="o3-mini",
-    use_responses_api=True,  # Responses API 사용 (리즈닝 모델에 필요)
-    model_kwargs={
-        "reasoning": {
-            "effort": "high"  # 최대 추론 노력 (medium 또는 low로 설정 가능)
-        }
-    }
-)
-claude_reasoning = ChatAnthropic(
-    model="claude-3-7-sonnet-20250219",
-    temperature=1,
-    api_key=settings.CLAUDE_API_KEY,
-    thinking={
-        "type": "enabled",
-        "budget_tokens": 2000  # 추론에 할당할 토큰 수
-    },
-    max_tokens=6000
-)
+# gpt, claude는 좀 더 reasoning에 적합한 모델로 변경할 수 있을 것 같으나, 현재는 모델 변경 시 소요 시간이 커지고 제대로 작동하지 않음.
+# 따라서 현 모델을 사용하여 Reasoning 모델을 구현함. (현 모델로도 충분히 수행 가능)
+gpt_reasoning = ChatOpenAI(api_key=settings.OPENAI_API_KEY, model_name="gpt-4o", temperature=0)
+claude_reasoning = ChatAnthropic(model="claude-3-7-sonnet-20250219", temperature=0, api_key=settings.CLAUDE_API_KEY)
 gemini_reasoning = ChatGoogleGenerativeAI(
     model="gemini-2.5-pro-preview-03-25",
     temperature=0,
