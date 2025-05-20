@@ -461,9 +461,11 @@ async def evaluate_classification_by_reasoning(
 
     [주의사항]
     1. 반드시 분류 체계를 기반으로 평가해야 합니다.
-    2. 분류 체계에 없는 분류는 '미분류'로 간주합니다.
-    - 미분류의 예시: 특허 정보가 제시된 분류 체계만으로 분류할 수 없다고 판단될 경우, 미분류로 판단합니다.
-    3. 평가 필수 요구 사항의 포맷 [1. 분석 2. 점수 3. 이유]를 반드시 지켜야 합니다.
+    2. 분류 결과가 '미분류'인 경우, (중요)
+        - 분류 체계에 없는 분류는 '미분류'로 간주합니다.
+        - 주어진 분류 체계만으로 분류가 힘들 경우, '미분류'가 정답이 됩니다. 따라서 이런 경우 '미분류'는 높은 점수를 받습니다.
+        - 반대로 주어진 분류 체계 내에서 분류가 가능한 경우, '미분류'는 낮은 점수를 받습니다.
+    3. 응답은 평가 필수 요구 사항의 포맷 [1. 분석 2. 점수 3. 이유]를 반드시 지켜야 합니다.
     """
 
     prompt = ChatPromptTemplate.from_template(template)
@@ -491,8 +493,11 @@ async def evaluate_classification_by_reasoning(
             # 0.0~1.0 범위로 정규화
             score = max(0.0, min(1.0, score))
         else:
-            score = 0.0
-            logger.warning(f"점수를 찾을 수 없어 기본값 0.0을 사용합니다. LLM 응답: {response.content}")
+            # 이유(reason) 추출
+            reason_match = re.search(r"이유.*?[:：\s]\s*(.+?)(?:\n##|$)", response.content, re.DOTALL)
+            reason = reason_match.group(1).strip() if reason_match else response.content
+            logger.warning(f"점수를 찾을 수 없어 LLM에 이유를 재질문합니다. reason: {reason}")
+            score = await get_score_from_reason_with_llm(reason, llm)
     except Exception as e:
         logger.error(f"점수를 추출 중 오류 발생: {str(e)}")
         score = 0.0
@@ -544,3 +549,18 @@ def calculate_sample_size(total_population: int, confidence_level: float, margin
     sample_size = min(round(sample_size), total_population)
     
     return sample_size
+
+async def get_score_from_reason_with_llm(reason_text, llm):
+    prompt = (
+        f"다음 설명은 분류에 대한 평가의 이유야. 이 설명을 보고 0.0, 0.5, 1.0 중 어떤 점수를 줬을지 추측해줘."
+        f"설명: {reason_text}"
+        f"점수만 숫자로 답변해줘."
+    )
+    response = await llm.ainvoke(prompt)
+    import re
+    match = re.search(r"\d*\.?\d+", response.content)
+    if match:
+        score = float(match.group())
+        return max(0.0, min(1.0, score))
+    else:
+        return 0.5  # 기본값
