@@ -10,6 +10,7 @@ import type {
   ColDef,
   RowSelectionOptions,
   SelectionColumnDef,
+  ColumnEvent,
 } from "ag-grid-community";
 import {
   AllCommunityModule,
@@ -106,6 +107,11 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       };
     }, []);
 
+    // AG Grid 컴포넌트에서 사용할 이벤트 핸들러
+    const handleColumnVisibleChanged = () => {
+      gridRef.current!.api.onFilterChanged();
+    };
+
     // ----------------------------------------------------------------------------
     // 행 추가 함수
     const addNewRow = useCallback(
@@ -189,7 +195,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
         gridRef.current?.api.applyColumnState({
           state: state,
         });
-        gridRef.current!.api.onFilterChanged();
+        // gridRef.current!.api.onFilterChanged();
       },
       []
     );
@@ -199,7 +205,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       gridRef.current?.api.applyColumnState({
         defaultState: { hide },
       });
-      gridRef.current!.api.onFilterChanged();
+      // gridRef.current!.api.onFilterChanged();
     }, []);
 
     // 검색 함수
@@ -313,6 +319,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
             loading={loading} // 로딩 상태 표시
             onCellValueChanged={onCellValueChanged}
             theme={theme} // 다크 모드 스타일 적용 (다크모드가 아닐 경우 undefined)
+            onColumnVisible={handleColumnVisibleChanged}
           />
         </div>
       </div>
