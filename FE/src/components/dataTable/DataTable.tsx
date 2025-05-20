@@ -6,7 +6,11 @@ import {
   useImperativeHandle,
 } from "react";
 import { AgGridReact } from "ag-grid-react";
-import type { ColDef, RowSelectionOptions } from "ag-grid-community";
+import type {
+  ColDef,
+  RowSelectionOptions,
+  SelectionColumnDef,
+} from "ag-grid-community";
 import {
   AllCommunityModule,
   ModuleRegistry,
@@ -28,9 +32,9 @@ interface DataTableProps {
   edit?: boolean; // 편집 가능 여부 (기본값: false)
   fileName?: React.ReactNode; // 문자열이나 컴포넌트 모두 가능하도록 변경
   download?: boolean; // 다운로드 가능 여부 (기본값: false)
-  onDataChanged?: (data: any[]) => void; // 전문가 점수에 필요
   loading?: boolean;
-  handleExcelDownload?: () => Promise<void>;
+  handleExcelDownload?: () => Promise<void>; // 다운로드 api 연결할 경우 우선 적용할 함수
+  onDataChanged?: (data: any[]) => void; // 전문가 점수에 필요
 }
 
 // DataTable 컴포넌트 정의 - forwardRef로 감싸서 외부 ref를 받음
@@ -42,9 +46,9 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       edit = false,
       fileName = "",
       download = false,
-      onDataChanged,
       loading = false,
       handleExcelDownload,
+      onDataChanged,
     },
     ref
   ) => {
@@ -54,6 +58,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
     // 외부 ref가 내부 gridRef를 직접 참조하도록 설정
     useImperativeHandle(ref, () => gridRef.current!);
 
+    // 다크 모드 스타일
     const theme = useMemo(() => {
       return isDarkMode
         ? themeQuartz.withPart(colorSchemeDarkWarm).withParams({
@@ -64,6 +69,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
         : undefined;
     }, [isDarkMode]);
 
+    // 기본 열 설정
     const defaultColDef: ColDef = {
       sortable: true, // 모든 열에 정렬 기능 활성화
       unSortIcon: true, // 정렬되지 않은 열에도 아이콘 표시
@@ -79,11 +85,21 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       };
     }, []);
 
-    // 행 선택 설정
+    // 행 선택 설정 -다중 행 선택, 필터를 충족하는 모든 행 선택
     const rowSelection = useMemo<RowSelectionOptions | undefined>(() => {
-      return edit ? { mode: "multiRow" } : undefined; // edit이 true일 때만 다중 행 선택 활성화
+      return edit ? { mode: "multiRow", selectAll: "filtered" } : undefined; // edit이 true일 때만 다중 행 선택 활성화
     }, [edit]);
 
+    // 체크박스 열 설정
+    const selectionColumnDef = useMemo<SelectionColumnDef>(() => {
+      return {
+        pinned: "left",
+        minWidth: 50,
+        maxWidth: 50,
+      };
+    }, []);
+
+    // ----------------------------------------------------------------------------
     // 행 추가 함수
     const addNewRow = useCallback(
       (rowData: Record<string, any>) => {
@@ -268,12 +284,13 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
               rowData={rowData} // 행 데이터
               columnDefs={colDefs} // 열 정의
               defaultColDef={defaultColDef} // 기본 열 속성
-              autoSizeStrategy={autoSizeStrategy}
+              autoSizeStrategy={autoSizeStrategy} //열 사이즈 설정
               rowSelection={rowSelection} // 행 선택 옵션
+              selectionColumnDef={selectionColumnDef}
               // suppressDragLeaveHidesColumns={true} // 열을 드래그하여 그리드 밖으로 이동시켜도 열이 숨겨지지 않도록 방지
               loading={loading} // 로딩 상태 표시
               onCellValueChanged={onCellValueChanged}
-              theme={theme}
+              theme={theme} // 다크 모드 스타일 적용 (다크모드가 아닐 경우 undefined)
             />
           )}
         </div>
