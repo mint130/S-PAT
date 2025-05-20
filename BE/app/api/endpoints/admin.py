@@ -29,7 +29,7 @@ session_progress_queues: Dict[str, asyncio.Queue] = {}
 
 admin_router = APIRouter(prefix="/admin")
 
-@admin_router.post("/{session_id}/upload", status_code=status.HTTP_202_ACCEPTED, response_model = Message, summary="특허 데이터 파일 업로드", description="분류 하고 싶은 특허 데이터 파일을 업로드합니다.")
+@admin_router.post("/{session_id}/upload_and_start_classification_and_evaluation", status_code=status.HTTP_202_ACCEPTED, response_model = Message, summary="특허 데이터 파일 업로드", description="분류 하고 싶은 특허 데이터 파일을 업로드합니다.")
 async def upload_and_start_classification_and_evaluation(
     session_id: str,
     file: UploadFile = File(...)
