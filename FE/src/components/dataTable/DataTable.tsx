@@ -94,6 +94,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
     const selectionColumnDef = useMemo<SelectionColumnDef>(() => {
       return {
         pinned: "left",
+        lockPinned: true,
         minWidth: 50,
         maxWidth: 50,
       };
