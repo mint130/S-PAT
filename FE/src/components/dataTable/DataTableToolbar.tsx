@@ -17,6 +17,13 @@ interface ColumnState {
   hide: boolean;
 }
 
+// 행 상태 인터페이스 정의
+interface CodesByLevel {
+  대분류: string[];
+  중분류: string[];
+  소분류: string[];
+}
+
 // Toolbar 컴포넌트 Props 인터페이스 정의
 interface DataTableToolbarProps {
   fileName: React.ReactNode;
@@ -32,6 +39,7 @@ interface DataTableToolbarProps {
     visibleColumns: ColumnState[];
     hiddenColumns: ColumnState[];
   };
+  getCodesByLevel: () => CodesByLevel;
 }
 
 const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
@@ -45,25 +53,34 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
   onFilterTextChanged,
   onExcelDownload,
   getColumnsState,
+  getCodesByLevel,
 }) => {
   // 내부 상태 관리
+  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [codesByLevel, setCodesByLevel] = useState<CodesByLevel>({
+    대분류: [],
+    중분류: [],
+    소분류: [],
+  });
+
   const columnMenuRef = useRef<HTMLDivElement>(null); // 컬럼 필터링 참조를 위한 ref 생성
-  const [isOpen, setIsOpen] = useState(false); // 컬럼 드롭다운
+  const [isColumnOpen, setIsColumnOpen] = useState(false); // 컬럼 드롭다운
   const [visibleColumns, setVisibleColumns] = useState<ColumnState[]>([]); // 표시 컬럼
   const [hiddenColumns, setHiddenColumns] = useState<ColumnState[]>([]); // 표시되지 않는 컬럼
   const [allSelected, setAllSelected] = useState<boolean>(true); // 컬럼 전체 선택
 
   const [quickFilterText, setQuickFilterText] = useState<string>(""); // 검색어 상태
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   // 모달 열기 함수
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
+  const handleOpenAddModal = () => {
+    const data = getCodesByLevel();
+    setCodesByLevel(data);
+    setIsAddModalOpen(true);
   };
 
   // 모달 닫기 함수
   const handleCloseModal = () => {
-    setIsModalOpen(false);
+    setIsAddModalOpen(false);
   };
 
   // 새 행 추가 함수 (모달에서 입력받은 데이터로 행 추가)
@@ -78,7 +95,7 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
         columnMenuRef.current &&
         !columnMenuRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false);
+        setIsColumnOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -87,8 +104,8 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
 
   // 컬럼 버튼 클릭시 드롭다운 표시 함수
   const handleFilterColumn = () => {
-    if (isOpen) {
-      setIsOpen(false);
+    if (isColumnOpen) {
+      setIsColumnOpen(false);
       return;
     }
 
@@ -96,7 +113,7 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
     setVisibleColumns(columns.visibleColumns);
     setHiddenColumns(columns.hiddenColumns);
 
-    setIsOpen(true);
+    setIsColumnOpen(true);
   };
 
   // 전체 선택/해제 함수
@@ -155,7 +172,7 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
     <div className="mb-2 flex justify-between items-end w-full">
       {/* 파일 이름 */}
       <div
-        className={`flex-1 w-full min-w-20 font-pretendard font-medium ${
+        className={`flex-1 w-full min-w-20 font-pretendard font-medium text-gray-800 dark:text-[#C9C9C9] ${
           typeof fileName === "string" ? "truncate h-8 flex items-center" : ""
         }`}>
         {fileName}
@@ -165,7 +182,7 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
           <>
             {/* 행 추가 버튼 */}
             <button
-              onClick={handleOpenModal}
+              onClick={handleOpenAddModal}
               className="h-full flex items-center justify-center gap-1 px-2 text-sm hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300/80">
               <SquarePlus size={16} />
               <span>Add</span>
@@ -195,7 +212,7 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
           {!allSelected && (
             <div className="absolute top-1 right-0.5 w-1.5 h-1.5 bg-blue-300/50 rounded-full"></div>
           )}
-          {isOpen && (
+          {isColumnOpen && (
             <div className="absolute right-2 w-40 max-h-64 overflow-y-auto overflow-x-auto whitespace-nowrap bg-white dark:bg-[#23283D] rounded-md shadow-md z-10 no-scrollbar">
               {/* 전체 선택 옵션 추가 */}
               <div
@@ -255,8 +272,9 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
         )}
 
         <AddRowModal
-          isOpen={isModalOpen}
+          isOpen={isAddModalOpen}
           onClose={handleCloseModal}
+          codesByLevel={codesByLevel}
           onAddRow={handleAddRow}
         />
       </div>
