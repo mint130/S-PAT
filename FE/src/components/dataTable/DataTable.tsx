@@ -31,6 +31,13 @@ interface ColumnState {
   hide: boolean;
 }
 
+// 행 상태 인터페이스 정의
+interface CodesByLevel {
+  대분류: string[];
+  중분류: string[];
+  소분류: string[];
+}
+
 // 데이터 테이블 Props 인터페이스 정의
 interface DataTableProps {
   rowData: any[]; // 표시할 행 데이터 배열
@@ -124,6 +131,41 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
     };
 
     // ----------------------------------------------------------------------------
+    // 행 데이터를 level별로 분류하여  code 목록 반환
+    const getCodesByLevel = useCallback((): CodesByLevel => {
+      if (!gridRef.current?.api) return { 대분류: [], 중분류: [], 소분류: [] };
+
+      const result: CodesByLevel = {
+        대분류: [],
+        중분류: [],
+        소분류: [],
+      };
+
+      gridRef.current.api.forEachNode((node) => {
+        if (node.data && node.data.code && node.data.level) {
+          const level = node.data.level as string;
+          const code = node.data.code as string;
+
+          // 명시적으로 각 레벨 케이스 체크
+          if (level === "대분류") {
+            result.대분류.push(code);
+          } else if (level === "중분류") {
+            result.중분류.push(code);
+          } else if (level === "소분류") {
+            result.소분류.push(code);
+          }
+        }
+      });
+
+      // 각 분류별로 코드 정렬
+      result.대분류.sort((a, b) => a.localeCompare(b, "ko", { numeric: true }));
+      result.중분류.sort((a, b) => a.localeCompare(b, "ko", { numeric: true }));
+      result.소분류.sort((a, b) => a.localeCompare(b, "ko", { numeric: true }));
+      console.log(result);
+
+      return result;
+    }, []);
+
     // 행 추가 함수
     const addNewRow = useCallback(
       (rowData: Record<string, any>) => {
@@ -206,7 +248,6 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
         gridRef.current?.api.applyColumnState({
           state: state,
         });
-        // gridRef.current!.api.onFilterChanged();
       },
       []
     );
@@ -216,7 +257,6 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       gridRef.current?.api.applyColumnState({
         defaultState: { hide },
       });
-      // gridRef.current!.api.onFilterChanged();
     }, []);
 
     // 검색 함수
@@ -314,6 +354,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
           onFilterTextChanged={onFilterTextChanged}
           onExcelDownload={onExcelDownload}
           getColumnsState={getColumnsState}
+          getCodesByLevel={getCodesByLevel}
         />
 
         {/* 테이블 영역 */}
