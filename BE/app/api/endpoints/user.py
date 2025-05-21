@@ -79,7 +79,7 @@ async def save_standard(session_id: str, standard: ConversationResponse, db:Sess
     redis.expire(vector_key, 86400)
     return True
 
-# 1. 파일 업로드 엔드포인트 (작업 시작만 담당), 202 반환
+# 1. 파일 업로드 엔드포인트 (작업 시작만 담당), 202 반환 -> 분류 작업을 background task로 수행
 # @user_router.post("/{session_id}/upload", status_code=status.HTTP_202_ACCEPTED, response_model = Message, summary="특허 데이터 파일 업로드", description="분류 하고 싶은 특허 데이터 파일을 업로드합니다.")
 # async def upload_and_start_classification(
 #     session_id: str, 
@@ -158,7 +158,7 @@ async def save_standard(session_id: str, standard: ConversationResponse, db:Sess
 #         logger.error(f"분류 작업 시작 중 오류 발생: {str(e)}")
         # raise HTTPException(status_code=500, detail=f"분류 작업 시작 중 오류가 발생했습니다: {str(e)}")
 
-# 1. 파일 업로드 엔드포인트 (작업 시작만 담당), 202 반환 -> celery
+# 1. 파일 업로드 엔드포인트 (작업 시작만 담당), 202 반환 -> 분류 작업을 celery로 수행
 @user_router.post("/{session_id}/upload_and_start_classification", status_code=status.HTTP_202_ACCEPTED, response_model = Message, summary="특허 데이터 파일 업로드", description="분류 하고 싶은 특허 데이터 파일을 업로드합니다.")
 async def upload_and_start_classification(
     session_id: str, 

@@ -62,7 +62,7 @@ def load_retriever_from_redis(session_id: str):
 
     return vector_store.as_retriever(search_kwargs={"k": 3})
 
-
+# 특허 분류 함수
 @celery_app.task(bind=True, retry_backoff=True, retry_backoff_max=10, retry_kwargs={'max_retries': 12})
 def classify_patent(
     self,
@@ -212,7 +212,7 @@ def classify_patent(
     except ClaudeRateLimitError as e:
         logger.info(f"[{session_id}] Claude rate limit 발생")
         retry_count = self.request.retries
-        additional_delay = min(retry_count * 5, 60)
+        additional_delay = min(retry_count * 5, 60) # 재시도마다 5초씩 추가, 최대 60초
         logger.info(f"[{session_id}] Retrying Claude, count: {retry_count}/20, delay: {additional_delay}s")
         raise self.retry(countdown=additional_delay, max_retries=20)
     
@@ -232,7 +232,6 @@ def classify_patent(
             # 명시적 대기 시간이 있으면 해당 시간만큼 대기 후 재시도
             if retry_after:
                 logger.warning(f"[{session_id}] Grok 명시적 대기: {retry_after}초")
-
             
             raise self.retry(countdown= retry_after, max_retries=20)
         else:
@@ -262,6 +261,7 @@ def classify_patent(
             "smallTitle": "미분류"
         }
 
+# 모든 작업을 완료했을 때 실행되는 함수
 @celery_app.task
 def classification_completion(results, session_id):
     try:
@@ -487,6 +487,7 @@ def evaluate_classification_by_vector(classification_result, LLM, session_id, pa
         }
     }
 
+# LLM 평가 함수
 @celery_app.task(bind=True, retry_backoff=True, retry_backoff_max=10, retry_kwargs={'max_retries': 12})
 def evaluate_classification_by_reasoning(
     self, 
@@ -610,6 +611,7 @@ def evaluate_classification_by_reasoning(
         logger.info(f"[{session_id}] Claude rate limit 발생")
         raise self.retry(countdown= 5)
 
+# 결과 합침
 @celery_app.task
 def collect_evaluation_results(evaluation_results, LLM, session_id, application_number):
     # 진행도 계산, 두 결과 합침
@@ -669,6 +671,7 @@ def calculate_vector_based_score(patent_evaluations):
         "reasoning_score": reasoning_average_score
     }
 
+# 분류 및 평가가 모두 끝났을 때 실행되는 함수
 @celery_app.task
 def evaluation_completion(results, LLM, session_id):
     # 모든 처리 끝남
