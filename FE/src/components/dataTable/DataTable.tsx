@@ -96,6 +96,18 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
       return edit ? { mode: "multiRow", selectAll: "filtered" } : undefined; // edit이 true일 때만 다중 행 선택 활성화
     }, [edit]);
 
+    // useMemo로 행 드래그 관련 속성들을 edit 값에 따라 조건부로 설정
+    const rowDragProps = useMemo(() => {
+      return edit
+        ? {
+            rowDragManaged: true,
+            rowDragEntireRow: true,
+            rowDragMultiRow: true,
+            suppressMoveWhenRowDragging: true,
+          }
+        : {};
+    }, [edit]);
+
     // 체크박스 열 설정
     const selectionColumnDef = useMemo<SelectionColumnDef>(() => {
       return {
@@ -319,6 +331,7 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
             onCellValueChanged={onCellValueChanged}
             theme={theme} // 다크 모드 스타일 적용 (다크모드가 아닐 경우 undefined)
             onColumnVisible={handleColumnVisibleChanged}
+            {...rowDragProps}
           />
         </div>
       </div>
