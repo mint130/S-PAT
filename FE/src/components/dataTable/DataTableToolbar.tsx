@@ -172,7 +172,7 @@ const DataTableToolbar: React.FC<DataTableToolbarProps> = ({
     <div className="mb-2 flex justify-between items-end w-full">
       {/* 파일 이름 */}
       <div
-        className={`flex-1 w-full min-w-20 font-pretendard font-medium ${
+        className={`flex-1 w-full min-w-20 font-pretendard font-medium text-gray-800 dark:text-[#C9C9C9] ${
           typeof fileName === "string" ? "truncate h-8 flex items-center" : ""
         }`}>
         {fileName}
