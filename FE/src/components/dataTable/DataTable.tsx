@@ -10,6 +10,8 @@ import type {
   ColDef,
   RowSelectionOptions,
   SelectionColumnDef,
+  SizeColumnsToFitGridStrategy,
+  // SizeColumnsToFitProvidedWidthStrategy,
 } from "ag-grid-community";
 import {
   AllCommunityModule,
@@ -92,9 +94,16 @@ const DataTable = forwardRef<AgGridReact, DataTableProps>(
     };
 
     // 열 사이즈 설정 - 셀 내용에 맞게 자동 조정
-    const autoSizeStrategy = useMemo<SizeColumnsToContentStrategy>(() => {
+    // const autoSizeStrategy = useMemo<SizeColumnsToContentStrategy>(() => {
+    //   return {
+    //     type: "fitCellContents",
+    //   };
+    // }, []);
+    // 열 사이즈 설정 - 그리드에 맞게 열 크기 자동 조정
+    const autoSizeStrategy = useMemo<SizeColumnsToFitGridStrategy>(() => {
       return {
-        type: "fitCellContents",
+        type: "fitGridWidth",
+        defaultMinWidth: 200,
       };
     }, []);
 
