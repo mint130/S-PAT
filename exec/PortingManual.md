@@ -622,158 +622,163 @@
 
 - `docker-compose.yml`
 
-    ```yaml
+    ```bash
     services:
-     nginx:
-       image: nginx:latest
-       container_name: nginx
-       ports:
-         - "80:80"
-         - "443:443"
-       volumes:
-         - ./nginx/conf.d:/etc/nginx/conf.d
-         - ./nginx/ssl:/etc/nginx/ssl
-       networks:
-         - app-network
-       restart: always
-       depends_on:
-         - fastapi-blue
-         - fastapi-green
-         - s-pat-react
+      nginx:
+        image: nginx:latest
+        container_name: nginx
+        ports:
+          - "80:80"
+          - "443:443"
+        volumes:
+          - ./nginx/conf.d:/etc/nginx/conf.d
+          - ./nginx/ssl:/etc/nginx/ssl
+        networks:
+          - app-network
+        restart: always
+        depends_on:
+          - fastapi-blue
+          - fastapi-green
+          - s-pat-react
     
-     postgres:
-       image: postgres:latest
-       container_name: postgres
-       environment:
-         POSTGRES_USER: ${POSTGRES_USER}
-         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-         POSTGRES_DB: ${POSTGRES_DB}
-         TZ: Asia/Seoul
-       ports:
-         - "54320:5432"
-       volumes:
-         - pgdata:/var/lib/postgresql/data
-       networks:
-         - app-network 
+      postgres:
+        image: postgres:latest
+        container_name: postgres
+        environment:
+          POSTGRES_USER: ${POSTGRES_USER}
+          POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+          POSTGRES_DB: ${POSTGRES_DB}
+          TZ: Asia/Seoul
+        ports:
+          - "54320:5432"
+        volumes:
+          - pgdata:/var/lib/postgresql/data
+        networks:
+          - app-network 
      
-     # blue
-     fastapi-blue:
-       image: mint130/s-pat-fastapi:blue
-       container_name: s-pat-fastapi-blue
-       env_file:
+      # blue
+      fastapi-blue:
+        image: [사용자명]/s-pat-fastapi:blue
+        container_name: s-pat-fastapi-blue
+        env_file:
           - ./.env
-       volumes:
-         - excel-data:/code/classified_excels
-         - temp-data:/code/temp_data
-         - vectorstores-data:/code/vectorstores
-       ports:
-         - "8001:8000"
-       depends_on:
-         - postgres
-         - redis
-       networks:
-         - app-network
-       restart: always    
+        volumes:
+          - excel-data:/code/classified_excels
+          - temp-data:/code/temp_data
+          - vectorstores-data:/code/vectorstores
+        ports:
+          - "8001:8000"
+        depends_on:
+          - postgres
+          - redis
+        networks:
+          - app-network
+        restart: always    
     
-     # green
-     fastapi-green:
-       image: mint130/s-pat-fastapi:green
-       container_name: s-pat-fastapi-green
-       env_file:
+      # green
+      fastapi-green:
+        image: [사용자명]/s-pat-fastapi:green
+        container_name: s-pat-fastapi-green
+        env_file:
           - ./.env
-       volumes:
-         - excel-data:/code/classified_excels
-         - temp-data:/code/temp_data
-         - vectorstores-data:/code/vectorstores
-       ports:
-         - "8002:8000"
-       depends_on:
-         - postgres
-         - redis
-       networks:
-         - app-network
-       restart: always
+        volumes:
+          - excel-data:/code/classified_excels
+          - temp-data:/code/temp_data
+          - vectorstores-data:/code/vectorstores
+        ports:
+          - "8002:8000"
+        depends_on:
+          - postgres
+          - redis
+        networks:
+          - app-network
+        restart: always
       
-     # celery  
-     celery-worker:
-    	 image: mint130/s-pat-fastapi:blue
-    	 container_name: celery-worker
-    	 env_file:
-    		 - ./.env
-    	 volumes: 
-    	   - excel-data:/code/classified_excels
-         - temp-data:/code/temp_data
-         - vectorstores-data:/code/vectorstores
-    	 command: >
-    	   celery -A app.core.celery.celery_app worker --loglevel=info
-    	 depends_on:
-    	   - redis
-    	 networks:
-    	   - app-network
-    	 restart: always
-    	 healthcheck:
-    	  test: ["CMD", "celery", "-A", "app.core.celery.celery_app", "status"]
-    	  interval: 30s
-    	  timeout: 10s
-    	  retries: 3
+      # celery  
+      celery-worker:
+        image: [사용자명]/s-pat-fastapi:blue #s-pat-fastapi:green
+        container_name: celery-worker
+        env_file:
+          - ./.env
+        volumes:
+          - excel-data:/code/classified_excels
+          - temp-data:/code/temp_data
+          - vectorstores-data:/code/vectorstores
+        command: >
+          celery -A app.core.celery.celery_app worker --loglevel=info
+        depends_on:
+          - redis
+        networks:
+          - app-network
+        restart: always
+        healthcheck:
+          test: ["CMD", "celery", "-A", "app.core.celery.celery_app", "status"]
+          interval: 30s
+          timeout: 10s 
+          retries: 3
      
-     # react   
-     s-pat-react:
-       image: mint130/s-pat-react:latest
-       container_name: s-pat-react
-       expose:
-         - "3000"
-       networks:
-         - app-network
-       restart: always
+      # react   
+      s-pat-react:
+        image: [사용자명]/s-pat-react:latest
+        container_name: s-pat-react
+        expose:
+          - "3000"
+        networks:
+          - app-network
+        restart: always
     
-     redis:
-       image: redis:latest
-       container_name: redis
-       ports:
-         - "17603:6379"
-       volumes:
-         - redis-data:/data
-       environment:
-         - TZ=Asia/Seoul
-       command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
-       networks: 
-         - app-network
-       restart: always
+      redis:
+        image: redis:latest
+        container_name: redis
+        ports:
+          - "17603:6379"
+        volumes:
+          - redis-data:/data
+        environment:
+          - TZ=Asia/Seoul
+        command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+        networks: 
+          - app-network
+        restart: always
     
-     jenkins:
-       image: jenkins/jenkins
-       container_name: jenkins
-       ports:
-         - "8080"
-         - "50000:50000"
-       environment:
-         - TZ=Asia/Seoul
-         - JENKINS_OPTS=--prefix=/jenkins
-       volumes:
-         - jenkins-data:/var/jenkins_home
-         - /var/run/docker.sock:/var/run/docker.sock
-         - /usr/bin/docker:/usr/bin/docker
-       restart: always
-       networks:
-         - app-network
+      jenkins:
+        image: jenkins/jenkins
+        container_name: jenkins
+        ports:
+          - "8080"
+          - "50000:50000"
+        environment:
+          - TZ=Asia/Seoul
+          - JENKINS_OPTS=--prefix=/jenkins
+        volumes:
+          - jenkins-data:/var/jenkins_home
+          - /var/run/docker.sock:/var/run/docker.sock
+          - /usr/bin/docker:/usr/bin/docker
+        restart: always
+        networks:
+          - app-network
     
     networks:
-     app-network:
-      driver: bridge
+      app-network:
+        driver: bridge
     
     volumes:
-     pgdata:
-     jenkins-data:
-     redis-data:
-     excel-data:
-       external: true
-     temp-data:
-       external: true
-     vectorstores-data:
-       external: true
-    
+      pgdata:
+      jenkins-data:
+      redis-data:
+      excel-data:
+        external: true
+      temp-data:
+        external: true
+      vectorstores-data:
+        external: true
     ```
+  - Nginx: 80/443
+  - Redis: 17603 → 6379
+  - Frontend: 3000 → 3000
+  - Backend: 8001(Blue), 8002(Green) → 8000
+  - Jenkins: 8080
+  - Postgres: 54320 → 5432
 
 ## 7.2 Docker volume 생성
 
@@ -992,7 +997,7 @@ docker volume create vectorstores-data
         agent any
     
         environment {
-            DOCKER_HUB_USERNAME = 'mint130'
+            DOCKER_HUB_USERNAME = '[사용자명]'
             DOCKER_IMAGE_NAME   = 's-pat-fastapi'
             DOCKER_REGISTRY     = "${DOCKER_HUB_USERNAME}/${DOCKER_IMAGE_NAME}"
             BUILD_TAG           = "${BUILD_NUMBER}"
@@ -1424,7 +1429,7 @@ docker volume create vectorstores-data
         }
     
         environment {
-            DOCKER_HUB_USERNAME = 'mint130'
+            DOCKER_HUB_USERNAME = '[사용자명]'
             DOCKER_IMAGE_NAME   = 's-pat-react'
             DOCKER_REGISTRY     = "${DOCKER_HUB_USERNAME}/${DOCKER_IMAGE_NAME}"
             BUILD_TAG           = "${BUILD_NUMBER}"
