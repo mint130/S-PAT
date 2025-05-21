@@ -248,7 +248,7 @@ function Step4AdminPatentResult() {
       <div className="flex flex-col h-full w-full p-8 pb-6">
         <Title
           text="특허데이터 분류 결과 확인"
-          subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다."
+          subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다. (전문가평가: 0 틀림 / 0.5 보완 / 1 정확)"
         />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-gray-500">로딩 중...</div>
@@ -263,7 +263,7 @@ function Step4AdminPatentResult() {
       <div className="flex flex-col h-full w-full p-8 pb-6">
         <Title
           text="특허데이터 분류 결과 확인"
-          subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다."
+          subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다. (전문가평가: 0 틀림 / 0.5 보완 / 1 정확)"
         />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -284,7 +284,7 @@ function Step4AdminPatentResult() {
     <div className="flex flex-col h-full w-full p-8 pb-6">
       <Title
         text="특허데이터 분류 결과 확인"
-        subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다."
+        subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다. (전문가평가: 0 틀림 / 0.5 보완 / 1 정확)"
       />
 
       <DataTable

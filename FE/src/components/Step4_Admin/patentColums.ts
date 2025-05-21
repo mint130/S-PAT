@@ -54,7 +54,8 @@ export const patentColumns: ColDef[] = [
     lockPinned: true,
     lockPosition: "right",
     resizable: false,
-    width: 130,
+    minWidth: 125,
+    maxWidth: 125,
     suppressMovable: true,
   },
 ];
