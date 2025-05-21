@@ -82,7 +82,7 @@ const AddRowModal: React.FC<AddRowModalProps> = ({
       ...prev,
       code: fullCode,
     }));
-  }, [selectedParentCode, codeSuffix, formData.level, allCodes]);
+  }, [selectedParentCode, codeSuffix, formData.level, codesByLevel]);
 
   // 폼 초기화 함수
   const resetForm = () => {
