@@ -793,16 +793,16 @@ docker volume create vectorstores-data
 - `/home/ubuntu` 경로에 `.env` 파일 생성
 
     ```bash
-    DATABASE_URL=postgresql://s108:s108spat!@postgres:5432/spatdb
-    POSTGRES_USER=s108
-    POSTGRES_PASSWORD=s108spat!
-    POSTGRES_DB=spatdb
+    DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    POSTGRES_USER=********
+    POSTGRES_PASSWORD=********
+    POSTGRES_DB=********
     
     REDIS_HOST=redis
     REDIS_PORT=6379
-    REDIS_PASSWORD=s108spat!
+    REDIS_PASSWORD=********
     
-    REDIS_URL=redis://:s108spat%21@redis:6379/0
+    REDIS_URL=redis://:${REDIS_PASSWORD_ENCODED}@redis:6379/0
     
     LANGSMITH_TRACING=true
     LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
@@ -841,8 +841,6 @@ docker volume create vectorstores-data
       docker logs jenkins
       docker exec -it jenkins cat /var/jenkins_home/secrets/initalAdminPassword
       ```
-- 계정명: S108
-- 비밀번호: dptmvots108! (에스팻s108!)
 
 ## 8.2 Security
 
@@ -919,14 +917,14 @@ docker volume create vectorstores-data
     GROK3_API_KEY=${GROK3_API_KEY}
     
     # DB
-    DATABASE_URL=postgresql://s108:s108spat!@postgres:5432/spatdb
+    DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     DEBUG=True
     
     # Redis
     REDIS_HOST=redis
     REDIS_PORT=6379
-    REDIS_PASSWORD=s108spat!
-    REDIS_URL=redis://:s108spat%21@redis:6379/0
+    REDIS_PASSWORD=********
+    REDIS_URL=redis://:${REDIS_PASSWORD_ENCODED}@redis:6379/0
     ```
 
 ## 8.5 Jenkins 설정 추가
