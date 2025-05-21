@@ -221,6 +221,7 @@ async def stream_classification_progress(session_id: str, redis=Depends(get_redi
     """
     async def event_generator():
         pubsub = redis.pubsub()
+        # 진행 상황 구독
         await pubsub.subscribe(f"{session_id}:progress")
 
         try:

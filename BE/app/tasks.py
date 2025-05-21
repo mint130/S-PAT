@@ -195,7 +195,9 @@ def classify_patent(
             percentage=percentage
         )
 
+        # 진행 상황 업데이트
         redis.set(progress_key, progress.model_dump_json())
+        # 진행 상황 알림
         redis.publish(progress_key, progress.model_dump_json())
         redis.expire(progress_key, 86400)
 
@@ -350,8 +352,11 @@ def classification_completion(results, session_id):
             status="completed",
             message="분류 작업이 완료되었습니다."
         )
-        redis.publish(f"{session_id}:progress", message.model_dump_json())
+
+        # 진행 상황 업데이트
         redis.set(f"{session_id}:progress", message.model_dump_json())
+        # 진행 상황 알림
+        redis.publish(f"{session_id}:progress", message.model_dump_json())
         redis.expire(f"{session_id}:progress", 86400)
 
     except Exception as e:
@@ -466,7 +471,9 @@ def evaluate_classification_by_vector(classification_result, LLM, session_id, pa
             percentage=percentage
         )
 
+    # 진행 상황 업데이트
     redis.set(progress_key, progress.model_dump_json())
+    # 진행 상황 알림
     redis.publish(progress_key, progress.model_dump_json())
 
 
@@ -599,7 +606,9 @@ def evaluate_classification_by_reasoning(
                 percentage=percentage
             )
 
+        # 진행 상황 업데이트
         redis.set(progress_key, progress.model_dump_json())
+        # 진행 상황 알림
         redis.publish(progress_key, progress.model_dump_json())
         
         return {
@@ -613,7 +622,7 @@ def evaluate_classification_by_reasoning(
 
 # 결과 합침
 @celery_app.task
-def collect_evaluation_results(evaluation_results, LLM, session_id, application_number):
+def collect_evaluation_results(evaluation_results, LLM, session_id, application_number):#ㅋㅋ
     # 진행도 계산, 두 결과 합침
     
     logger.info(f"진행도 계산, 두결과 합침, 평가 결과: {evaluation_results}")
@@ -639,7 +648,9 @@ def collect_evaluation_results(evaluation_results, LLM, session_id, application_
             percentage=percentage
         )
 
+    # 진행 상황 업데이트
     redis.set(progress_key, progress.model_dump_json())
+    # 진행 상황 알림
     redis.publish(progress_key, progress.model_dump_json())
     
     return {
@@ -754,8 +765,10 @@ def evaluation_completion(results, LLM, session_id):
             status="completed",
             message="분류 및 평가 작업이 완료되었습니다."
         )
-
+        
+        # 진행 상황 업데이트
         redis.set(f"{key}:progress", message.model_dump_json())
+        # 진행 상황 알림
         redis.publish(f"{key}:progress", message.model_dump_json())
 
     except Exception as e:
