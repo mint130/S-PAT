@@ -7,11 +7,13 @@ import useLLMStore from "../../stores/useLLMStore";
 interface PatentTableProps {
   // file: File;
   fileBuffer: ArrayBuffer;
+  fileName: String;
   setfileLength: (length: number) => void;
 }
 
 const PatentTable: React.FC<PatentTableProps> = ({
   fileBuffer,
+  fileName,
   setfileLength,
 }) => {
   const [patentData, setPatentData] = useState<any[]>([]);
@@ -63,7 +65,7 @@ const PatentTable: React.FC<PatentTableProps> = ({
 
   return (
     <>
-      <DataTable rowData={patentData} colDefs={colDefs} />
+      <DataTable rowData={patentData} colDefs={colDefs} fileName={fileName} />
     </>
   );
 };

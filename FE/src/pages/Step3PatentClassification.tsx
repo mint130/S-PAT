@@ -141,6 +141,7 @@ function Step3PatentClassification() {
           ) : (
             <PatentTable
               fileBuffer={fileBuffer}
+              fileName={uploadedFile.name}
               setfileLength={setFileLength}
             />
           )}
