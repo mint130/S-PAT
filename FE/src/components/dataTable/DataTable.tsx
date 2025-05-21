@@ -10,7 +10,6 @@ import type {
   ColDef,
   RowSelectionOptions,
   SelectionColumnDef,
-  ColumnEvent,
 } from "ag-grid-community";
 import {
   AllCommunityModule,
