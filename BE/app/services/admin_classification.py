@@ -288,18 +288,20 @@ async def process_patent_classification(
             
             # RAG를 통한 분류
             classifications = await classify_with_llm(llm, retriever, patent_info)
-            
+            def replace_na(value):
+                return value if value and value != "N/A" else "미분류"
+        
             # 특허 정보 구성
             patent_data = Patent(
                 applicationNumber=application_number,
                 title=title,
                 abstract=abstract,
-                majorCode=classifications["majorCode"],
-                middleCode=classifications["middleCode"],
-                smallCode=classifications["smallCode"],
-                majorTitle=classifications["majorTitle"],
-                middleTitle=classifications["middleTitle"],
-                smallTitle=classifications["smallTitle"]
+                majorCode=replace_na(classifications["majorCode"]),
+                middleCode=replace_na(classifications["middleCode"]),
+                smallCode=replace_na(classifications["smallCode"]),
+                majorTitle=replace_na(classifications["majorTitle"]),
+                middleTitle=replace_na(classifications["middleTitle"]),
+                smallTitle=replace_na(classifications["smallTitle"])
             )
             logger.info(f"[{session_id}_{llm_type}] 분류된 특허: {patent_data.model_dump()}")
 
