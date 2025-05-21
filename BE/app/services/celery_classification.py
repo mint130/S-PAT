@@ -74,6 +74,7 @@ def process_patent_classification(
 
     chord(group(tasks))(classification_completion.s(session_id))    
         
+# 특허 분류 및 평가를 celery에서 실행하는 함수
 def process_patent_classification_evaluation(
     session_id: str,
     LLM: str,
