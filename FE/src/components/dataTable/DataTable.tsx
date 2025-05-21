@@ -18,7 +18,7 @@ import {
   ModuleRegistry,
   themeQuartz,
   colorSchemeDarkWarm,
-  SizeColumnsToContentStrategy,
+  // SizeColumnsToContentStrategy,
 } from "ag-grid-community";
 import * as XLSX from "xlsx";
 import DataTableToolbar from "./DataTableToolbar";
