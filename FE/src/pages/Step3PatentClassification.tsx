@@ -82,7 +82,7 @@ function Step3PatentClassification() {
       if (Role === "User") {
         // 분류 작업 시작 API 호출
         const response = await axios.post(
-          `https://s-pat.site/api/user/${session_id}/upload?LLM=${llm}`,
+          `https://s-pat.site/api/user/${session_id}/upload_and_start_classification?LLM=${llm}`,
           formData,
           {
             headers: {
@@ -96,7 +96,7 @@ function Step3PatentClassification() {
       } else {
         // 분류 작업 시작 API 호출
         const response = await axios.post(
-          `https://s-pat.site/api/admin/${session_id}/upload`,
+          `https://s-pat.site/api/admin/${session_id}/upload_and_start_classification_and_evaluation`,
           formData,
           {
             headers: {
@@ -132,7 +132,7 @@ function Step3PatentClassification() {
       ) : (
         <>
           <Title
-            text="분류 데이터 분류"
+            text="데이터 업로드 및 분류"
             subText="분류할 특허 데이터 파일을 업로드해주세요. 이전 단계에서 설정한 분류체계에 따라 AI가 자동으로 특허를 분류합니다."
           />
 

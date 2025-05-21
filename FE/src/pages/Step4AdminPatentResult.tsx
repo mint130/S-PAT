@@ -247,7 +247,7 @@ function Step4AdminPatentResult() {
     return (
       <div className="flex flex-col h-full w-full p-8 pb-6">
         <Title
-          text="특허데이터 분류 결과 확인"
+          text="특허데이터 분류 결과 확인 및 전문가 평가"
           subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다. (전문가평가: 0 틀림 / 0.5 보완 / 1 정확)"
         />
         <div className="flex-1 flex items-center justify-center">
@@ -262,6 +262,8 @@ function Step4AdminPatentResult() {
     return (
       <div className="flex flex-col h-full w-full p-8 pb-6">
         <Title
+          text="특허데이터 분류 결과 확인 및 전문가 평가"
+          subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다."
           text="특허데이터 분류 결과 확인"
           subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다. (전문가평가: 0 틀림 / 0.5 보완 / 1 정확)"
         />
@@ -283,6 +285,8 @@ function Step4AdminPatentResult() {
   return (
     <div className="flex flex-col h-full w-full p-8 pb-6">
       <Title
+        text="특허데이터 분류 결과 확인 및 전문가 평가"
+        subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다."
         text="특허데이터 분류 결과 확인"
         subText="4개 LLM 모델의 분류 결과 샘플을 확인하고, 각 행에 전문가 평가를 진행할 수 있습니다. 건너뛰기 시 전문가평가는 생략됩니다. (전문가평가: 0 틀림 / 0.5 보완 / 1 정확)"
       />
@@ -295,11 +299,16 @@ function Step4AdminPatentResult() {
       />
 
       {/* 평가 카운트 표시 */}
-      {selectedLLM && (
-        <div className="text-right text-sm text-gray-500 mt-1">
-          총 {currentPatents.length}건 중 {evaluatedCount}건 평가 완료
+      <div className="flex items-between justify-between w-full ">
+        <div className="text-gray-400 text-sm mt-1">
+          신뢰도 95%, 오차범위 ±5% 전체 데이터 중 일부를 추출하였습니다.
         </div>
-      )}
+        {selectedLLM && (
+          <div className="text-sm text-gray-500 mt-1">
+            총 {currentPatents.length}건 중 {evaluatedCount}건 평가 완료
+          </div>
+        )}
+      </div>
 
       <div className="flex justify-end w-full mt-4">
         <div className="flex items-center space-x-6">
