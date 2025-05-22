@@ -345,6 +345,23 @@
     docker push [사용자명]/s-pat-fastapi:green
     ```
 
+- 로컬에서 실행
+    ```bash
+    # 패키지 설치
+    pip install -r requirements.txt
+
+    # 마이그레이션 적용
+    alembic upgrade head
+
+    # 실행
+    uvicorn app.main:app --reload
+    ```
+- 로컬에서 Celery 실행 (새로운 Powershell)
+    
+    ```bash
+    # --pool solo는 Window 환경용 명령어
+    celery -A app.core.celery.celery_app worker --loglevel=info --pool=solo 
+    ```
 
 ## 4.3 React 프로젝트 Docker File 생성, 이미지 Build & Push
 ```angular2html
@@ -415,6 +432,15 @@
     ```bash
     docker build -t [사용자명]/s-pat-react .
     docker push [사용자명]/s-pat-react
+    ```
+- 로컬에서 실행
+    
+    ```bash
+    # 종속성 설치
+    npm install
+    
+    # 실행행
+    npm run dev
     ```
 ---
 
@@ -869,7 +895,7 @@ docker volume create vectorstores-data
 
 - Jenkins 관리 → Credentials → System → Global credentials
     - Kind: GitLab API token
-    - API token: GitLab Personal Access Token
+    - API token: `GitLab Personal Access Token`
     - ID: gitlab_access_token
 
 ### 8.4.2 GitLab Connection 설정
@@ -884,7 +910,7 @@ docker volume create vectorstores-data
 - Jenkins 관리 → Credentials → System → Global credentials
   - Kind: Username with password
   - Username: GitLab 프로필의 @이하
-  - Password: GitLab private access token
+  - Password: `GitLab private access token`
   - ID: root
 
 ### 8.4.4 Docker Hub Credentials 등록
