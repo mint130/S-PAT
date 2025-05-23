@@ -29,7 +29,8 @@ session_progress_queues: Dict[str, asyncio.Queue] = {}
 
 admin_router = APIRouter(prefix="/admin")
 
-@admin_router.post("/{session_id}/upload", status_code=status.HTTP_202_ACCEPTED, response_model = Message, summary="특허 데이터 파일 업로드", description="분류 하고 싶은 특허 데이터 파일을 업로드합니다.")
+# 1. 파일 업로드 엔드포인트 (작업 시작만 담당), 202 반환 -> 분류 및 평가 작업을 background task로 수행
+@admin_router.post("/{session_id}/upload_and_start_classification_and_evaluation", status_code=status.HTTP_202_ACCEPTED, response_model = Message, summary="특허 데이터 파일 업로드", description="분류 하고 싶은 특허 데이터 파일을 업로드합니다.")
 async def upload_and_start_classification_and_evaluation(
     session_id: str,
     file: UploadFile = File(...)
@@ -85,6 +86,7 @@ async def upload_and_start_classification_and_evaluation(
         logger.error(f"분류 작업 시작 중 오류 발생: {str(e)}")
         raise HTTPException(status_code=500, detail=f"분류 작업 시작 중 오류가 발생했습니다: {str(e)}")
 
+# 2. 진행 상황 스트리밍 엔드포인트 (SSE)
 @admin_router.get("/{session_id}/progress", summary="특허 분류 진행도 반환", description="특허 분류 진행도를 퍼센테이지로 반환합니다.")
 async def stream_classification_progress(session_id: str, LLM: str):
     # 세션과 LLM에 대한 진행 큐가 존재하는지 확인
@@ -106,6 +108,7 @@ async def stream_classification_progress(session_id: str, LLM: str):
         headers={"Content-Type": "text/event-stream; charset=utf-8"}
     )
 
+# 샘플링 결과 json으로 반환
 @admin_router.get(
     "/{session_id}/classification/sampling",
     response_model=SampledClassificationResponse,
