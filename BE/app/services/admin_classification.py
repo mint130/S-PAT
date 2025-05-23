@@ -14,7 +14,7 @@ from langchain.output_parsers import PydanticOutputParser
 from app.core.redis import get_redis_client
 from app.schemas.classification import ClassificationSchema, Patent
 from app.core.config import settings
-from app.core.llm import gpt, claude, gemini, grok
+from app.core.llm import classification_llms, reasoning_llms
 from app.schemas.message import Message, Progress
 
 logger = logging.getLogger(__name__)
@@ -258,14 +258,8 @@ async def process_patent_classification(
     """
     try:    
         redis = get_redis_client()
-        # LLM 선택
-        llm_map: Dict[str, Any] = {
-            "gpt": gpt,
-            "claude": claude,
-            "gemini": gemini,
-            "grok": grok
-        }
-        llm = llm_map.get(llm_type.lower())
+        # 분류용 LLM 선택
+        llm = classification_llms.get(llm_type.lower())
         if not llm:
             raise HTTPException(status_code=400, detail=f"지원하지 않는 LLM 타입입니다: {llm_type}")
 
@@ -294,18 +288,20 @@ async def process_patent_classification(
             
             # RAG를 통한 분류
             classifications = await classify_with_llm(llm, retriever, patent_info)
-            
+            def replace_na(value):
+                return value if value and value != "N/A" else "미분류"
+        
             # 특허 정보 구성
             patent_data = Patent(
                 applicationNumber=application_number,
                 title=title,
                 abstract=abstract,
-                majorCode=classifications["majorCode"],
-                middleCode=classifications["middleCode"],
-                smallCode=classifications["smallCode"],
-                majorTitle=classifications["majorTitle"],
-                middleTitle=classifications["middleTitle"],
-                smallTitle=classifications["smallTitle"]
+                majorCode=replace_na(classifications["majorCode"]),
+                middleCode=replace_na(classifications["middleCode"]),
+                smallCode=replace_na(classifications["smallCode"]),
+                majorTitle=replace_na(classifications["majorTitle"]),
+                middleTitle=replace_na(classifications["middleTitle"]),
+                smallTitle=replace_na(classifications["smallTitle"])
             )
             logger.info(f"[{session_id}_{llm_type}] 분류된 특허: {patent_data.model_dump()}")
 
@@ -322,17 +318,18 @@ async def process_patent_classification(
                 retriever
             )
             
-            # Reasoning LLM 평가 수행 (Claude 사용)
+            # 각 LLM의 Reasoning 모델로 평가 수행
             reasoning_evaluation = await evaluate_classification_by_reasoning(
                 patent_info,
                 classifications,
-                retriever
+                retriever,
+                llm_type
             )
 
             # reason 값만 추출해서 redis에 저장
             reasoning_key=f"{session_id}:{llm_type}:reasoning"
             redis.rpush(reasoning_key, json.dumps(reasoning_evaluation, ensure_ascii=False))
-
+            
             # 통합 평가 결과
             evaluation = {
                 "vector_based": vector_evaluation,
@@ -354,6 +351,7 @@ async def process_patent_classification(
         
         # 분류 결과 만료 시간 설정
         redis.expire(patents_key, 86400)
+        redis.expire(reasoning_key, 86400)
         
         # 종료 시간 기록
         end_time = datetime.now()
@@ -389,12 +387,8 @@ async def process_patent_classification(
 
         await progress_queue.put(completion_data.model_dump())  
 
-        # API 응답에는 전체 evaluation_score 반환 (일관성 유지)
-        # return patents, evaluation_score
-    
     except  Exception as e:
         # 오류가 발생한 경우 메시지 전송
-        
         error_message = Message(
             status="error",
             message=f"오류가 발생했습니다: {str(e)}"
@@ -405,12 +399,18 @@ async def process_patent_classification(
 async def evaluate_classification_by_reasoning(
     patent_info: str,
     classification_result: Dict[str, str],
-    retriever: Any
+    retriever: Any,
+    llm_type: str
 ) -> Dict[str, Any]:
     """
-    Claude를 사용하여 분류 결과를 평가합니다.
+    각 LLM의 Reasoning 모델을 사용하여 분류 결과를 평가합니다.
     0.0~1.0 사이의 점수로 평가합니다.
     """
+    # Reasoning LLM 선택
+    llm = reasoning_llms.get(llm_type.lower())
+    if not llm:
+        raise HTTPException(status_code=400, detail=f"지원하지 않는 LLM 타입입니다: {llm_type}")
+
     # 유사도 기반 분류 체계 검색
     similar_docs = await retriever.ainvoke(patent_info)
     
@@ -436,7 +436,7 @@ async def evaluate_classification_by_reasoning(
     현재 분류 결과는 저장된 분류 체계를 기반으로 분류한 결과입니다.
     유사도 기반 추천 분류 체계는 분류 체계 중 특허 정보와 가장 유사한 3개의 분류입니다.
     당신의 목표는 이것들을 기준으로 이 특허 분류가 정확한지 평가하는 것입니다.
-    평가 요구사항과 주의사항에 맞게 잘 평가해 주세요.
+    평가 필수 요구 사항과 주의사항에 맞게 잘 평가해 주세요.
     
     [특허 정보]
     {patent_info}
@@ -449,19 +449,26 @@ async def evaluate_classification_by_reasoning(
     [유사도 기반 추천 분류 체계]
     {similar_classifications}
 
-    [평가 요구사항]
-    1. 분석: 유사도 기반 추천 분류 체계와 현재 분류 결과를 비교하여 평가해주세요.
-    2. 점수: 0.0부터 1.0 사이의 점수로 평가해주세요.
-       - 0.0: 완전히 부적절한 분류
+    [평가 필수 요구 사항] (중요)
+    1. 분석: 유사도 기반 추천 분류 체계와 현재 분류 결과를 비교하여 평가해야 합니다.
+    2. 점수: 0.0, 0.5, 1.0 중 하나의 점수로 평가해야 합니다.
+       - 0.0: 부적절한 분류
        - 0.5: 부분적으로 적절한 분류
        - 1.0: 완벽하게 적절한 분류
     3. 이유: 분석을 1줄 요약하여 작성해주세요.
+    
+    [응답 예시]
+    분석: 분석 내용
+    점수: 0.5
+    이유: 유사도 기반 추천 분류 체계와 현재 분류 결과가 부분적으로 일치합니다.
 
     [주의사항]
     1. 반드시 분류 체계를 기반으로 평가해야 합니다.
-    2. 분류 체계에 없는 분류는 '미분류'로 간주합니다.
-    - 미분류의 예시: 특허 정보가 제시된 분류 체계만으로 분류할 수 없다고 판단될 경우, 미분류로 판단합니다.
-    3. 평가 요구 사항의 포맷 [1. 분석 2. 점수 3. 이유]를 반드시 지킵니다.
+    2. 분류 결과가 '미분류'인 경우, (중요)
+        - 분류 체계에 없는 분류는 '미분류'로 간주합니다.
+        - 주어진 분류 체계만으로 분류가 힘들 경우, '미분류'가 정답이 됩니다. 따라서 이런 경우 '미분류'는 높은 점수를 받습니다.
+        - 반대로 주어진 분류 체계 내에서 분류가 가능한 경우, '미분류'는 낮은 점수를 받습니다.
+    3. 응답은 평가 필수 요구 사항의 포맷 [1. 분석 2. 점수 3. 이유]를 반드시 지켜야 합니다.
     """
 
     prompt = ChatPromptTemplate.from_template(template)
@@ -478,17 +485,22 @@ async def evaluate_classification_by_reasoning(
         similar_classifications=similar_classifications_text
     )
     
-    # Claude 호출
-    response = await claude.ainvoke(filled_prompt)
+    # 선택된 LLM 호출
+    response = await llm.ainvoke(filled_prompt)
     
     # 응답에서 점수 추출 (0.0~1.0 사이의 숫자)
     try:
-        score_match = re.search(r'0\.\d+|1\.0', response.content)
+        score_match = re.search(r'(?:점수|score)[:：\s]*(\d*\.?\d+)', response.content, re.IGNORECASE)
         if score_match:
-            score = float(score_match.group())
+            score = float(score_match.group(1))
+            # 0.0~1.0 범위로 정규화
+            score = max(0.0, min(1.0, score))
         else:
-            score = 0.0
-            logger.warning("점수를 찾을 수 없어 기본값 0.0을 사용합니다.")
+            # 이유(reason) 추출
+            reason_match = re.search(r"이유.*?[:：\s]\s*(.+?)(?:\n##|$)", response.content, re.DOTALL)
+            reason = reason_match.group(1).strip() if reason_match else response.content
+            logger.warning(f"점수를 찾을 수 없어 LLM에 이유를 재질문합니다. reason: {reason}")
+            score = await get_score_from_reason_with_llm(reason, llm)
     except Exception as e:
         logger.error(f"점수를 추출 중 오류 발생: {str(e)}")
         score = 0.0
@@ -501,7 +513,7 @@ async def evaluate_classification_by_reasoning(
     return {
         "score": score,
         "reason": reason
-    } 
+    }
 
 def calculate_sample_size(total_population: int, confidence_level: float, margin_error: float) -> int:
     """
@@ -536,7 +548,22 @@ def calculate_sample_size(total_population: int, confidence_level: float, margin
     if total_population > 0:
         sample_size = sample_size / (1 + (sample_size - 1) / total_population)
     
-    # 표본 크기가 모집단 크기보다 크지 않도록 보정
-    sample_size = min(math.floor(sample_size), total_population)
+    # 표본 크기가 모집단 크기보다 크지 않도록 보정 (반올림 적용)
+    sample_size = min(round(sample_size), total_population)
     
     return sample_size
+
+async def get_score_from_reason_with_llm(reason_text, llm):
+    prompt = (
+        f"다음 설명은 분류에 대한 평가의 이유야. 이 설명을 보고 0.0, 0.5, 1.0 중 어떤 점수를 줬을지 추측해줘."
+        f"설명: {reason_text}"
+        f"점수만 숫자로 답변해줘."
+    )
+    response = await llm.ainvoke(prompt)
+    import re
+    match = re.search(r"\d*\.?\d+", response.content)
+    if match:
+        score = float(match.group())
+        return max(0.0, min(1.0, score))
+    else:
+        return 0.5  # 기본값
