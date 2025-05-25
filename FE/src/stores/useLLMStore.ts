@@ -84,7 +84,7 @@ const useLLMStore = create<LLMStoreState>()(
       expertEvaluationSkipped: false,
 
       // 파일 길이 초기값
-      filelength: 500,
+      filelength: 100,
 
       // 선택된 LLM을 설정하는 액션
       setSelectedLLM: (llm) => set({ selectedLLM: llm }),
