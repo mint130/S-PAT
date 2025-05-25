@@ -127,7 +127,7 @@ const ChatContent: React.FC = () => {
     const session_id = localStorage.getItem("sessionId"); // 로컬스토리지에서 세션 ID 가져오기
     const result = await axios.post(
       `https://s-pat.site/api/standard/${session_id}`,
-      { query: prompt }
+      { prompt: prompt }
     );
     console.log("API Response:", result.data);
     return result.data;
