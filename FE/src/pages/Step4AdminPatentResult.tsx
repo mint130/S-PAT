@@ -100,6 +100,7 @@ const calculateLLMExpertScore = (
 };
 
 function Step4AdminPatentResult() {
+  const apiUrl = import.meta.env.VITE_API_URL as string;
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { llmData, updateLLM, selectedLLM } = useLLMStore();
@@ -128,7 +129,7 @@ function Step4AdminPatentResult() {
       setError(null);
 
       const response = await axios.get<ApiResponse>(
-        `https://s-pat.site/api/admin/${sessionId}/classification/sampling`,
+        `${apiUrl}/api/admin/${sessionId}/classification/sampling`,
         {
           headers: {
             "Content-Type": "application/json",
