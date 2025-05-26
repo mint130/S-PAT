@@ -56,7 +56,7 @@ git clone https://lab.ssafy.com/s12-final/S12P31S108.git
   <summary>BE env 표</summary>
 
   | Variable Name          | Default Value                                                                                                                            | Description              |
-      |------------------------|------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+  |------------------------|------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
   | LANGSMITH_TRACING      | true                                                                                                                                     | Enable LangSmith tracing |
   | LANGSMITH_ENDPOINT     | "https://api.smith.langchain.com"                                                                                                        | URL to LangSmith API     |
   | LANGSMITH_API_KEY      |                                                                                                                                          | LangSmith API key        |
@@ -285,5 +285,3 @@ docker compose up -d
 ```
 ---
 # 개선 사항
-
-
