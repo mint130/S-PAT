@@ -127,7 +127,7 @@ const ChatContent: React.FC = () => {
     const session_id = localStorage.getItem("sessionId"); // 로컬스토리지에서 세션 ID 가져오기
     const result = await axios.post(
       `https://s-pat.site/api/standard/${session_id}`,
-      { prompt: prompt }
+      { query: prompt }
     );
     console.log("API Response:", result.data);
     return result.data;
@@ -138,7 +138,7 @@ const ChatContent: React.FC = () => {
     const session_id = localStorage.getItem("sessionId"); // 로컬스토리지에서 세션 ID 가져오기
     const formData = new FormData();
     formData.append("file", file); // 파일 추가
-    formData.append("query", prompt); // 쿼리도 FormData에 추가
+    formData.append("prompt", prompt); // 쿼리도 FormData에 추가
 
     const result = await axios.post(
       `https://s-pat.site/api/standard/${session_id}/upload/prompt`,
