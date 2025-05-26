@@ -22,8 +22,9 @@ const roleAdmin = () => {
 };
 
 const saveBestLLM = async () => {
+  const apiUrl = import.meta.env.VITE_API_URL as string;
   try {
-    const response = await axios.get("https://s-pat.site/api/user/LLM");
+    const response = await axios.get(`${apiUrl}/api/user/LLM`);
     localStorage.setItem("LLM", response.data.LLM);
     console.log("Best LLM saved successfully:", response.data.LLM);
   } catch (error) {

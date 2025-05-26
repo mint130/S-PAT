@@ -39,6 +39,7 @@ const CLASSIFICATION_COLUMNS: ColDef[] = [
 ];
 
 function Step2ClassificationEdit() {
+  const apiUrl = import.meta.env.VITE_API_URL as string;
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(false);
@@ -103,7 +104,7 @@ function Step2ClassificationEdit() {
       console.log(updatedStandards);
 
       const response = await axios.post(
-        `https://s-pat.site/api/user/${sessionId}/standard/save`,
+        `${apiUrl}/api/user/${sessionId}/standard/save`,
         {
           standards: updatedStandards,
         }

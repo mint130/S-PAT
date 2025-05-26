@@ -13,6 +13,7 @@ import axios from "axios";
 import useLLMStore from "../stores/useLLMStore";
 
 function Step5AdminModelComparison() {
+  const apiUrl = import.meta.env.VITE_API_URL as string;
   const selectedLLM = useLLMStore((state) => state.selectedLLM);
   const expertEvaluationSkipped = useLLMStore(
     (state) => state.expertEvaluationSkipped
@@ -34,7 +35,7 @@ function Step5AdminModelComparison() {
   const fetchBestLLM = async (llm: string | null) => {
     try {
       setIsLoading(true);
-      const response = await axios.post("https://s-pat.site/api/admin/LLM", {
+      const response = await axios.post(`${apiUrl}/api/admin/LLM`, {
         LLM: llm,
       });
 

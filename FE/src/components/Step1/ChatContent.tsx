@@ -37,6 +37,7 @@ interface UploadedFile {
 }
 
 const ChatContent: React.FC = () => {
+  const apiUrl = import.meta.env.VITE_API_URL as string;
   // 상태 관리
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -78,7 +79,7 @@ const ChatContent: React.FC = () => {
           navigate("/"); // 세션 ID가 없으면 홈으로 리다이렉트
         }
         const result = await axios.get(
-          `https://s-pat.site/api/standard/${session_id}/conversation`
+          `${apiUrl}/api/standard/${session_id}/conversation`
         );
 
         console.log("Conversation History:", result.data);
@@ -126,7 +127,7 @@ const ChatContent: React.FC = () => {
   const fetchAssistantResponse = async (prompt: string) => {
     const session_id = localStorage.getItem("sessionId"); // 로컬스토리지에서 세션 ID 가져오기
     const result = await axios.post(
-      `https://s-pat.site/api/standard/${session_id}`,
+      `${apiUrl}/api/standard/${session_id}`,
       { query: prompt }
     );
     console.log("API Response:", result.data);
@@ -141,7 +142,7 @@ const ChatContent: React.FC = () => {
     formData.append("prompt", prompt); // 쿼리도 FormData에 추가
 
     const result = await axios.post(
-      `https://s-pat.site/api/standard/${session_id}/upload/prompt`,
+      `${apiUrl}/api/standard/${session_id}/upload/prompt`,
       formData, // FormData 자체를 body로 전송
       {
         headers: {
@@ -159,7 +160,7 @@ const ChatContent: React.FC = () => {
     formData.append("file", file); // 파일 추가
     const session_id = localStorage.getItem("sessionId"); // 로컬스토리지에서 세션 ID 가져오기
     const result = await axios.post(
-      `https://s-pat.site/api/standard/${session_id}/upload`,
+      `${apiUrl}/api/standard/${session_id}/upload`,
       formData,
       {
         headers: {

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://s-pat.site/api"; // 실제 API 엔드포인트
+const BASE_URL = import.meta.env.VITE_API_URL as string; // 실제 API 엔드포인트
 
 // 특허 데이터 인터페이스 정의
 export interface Patent {

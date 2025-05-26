@@ -33,6 +33,7 @@ function UserLoading({
     estimatedTimeLeft: "계산 중...",
   });
   const [isComplete, setIsComplete] = useState(false);
+  const apiUrl = import.meta.env.VITE_API_URL as string;
 
   // 역할 확인
   const role = localStorage.getItem("role");
@@ -52,9 +53,9 @@ function UserLoading({
         }
 
         // URL 설정 - admin인 경우 LLM 파라미터 추가
-        let url = `https://s-pat.site/api/user/${sessionId}/progress`;
+        let url = `${apiUrl}/api/user/${sessionId}/progress`;
         if (isAdmin && llmName) {
-          url = `https://s-pat.site/api/admin/${sessionId}/progress?LLM=${llmName}`;
+          url = `${apiUrl}/api/admin/${sessionId}/progress?LLM=${llmName}`;
         }
 
         // 새 이벤트 소스 생성
