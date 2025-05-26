@@ -9,6 +9,7 @@ import UserLoading from "../components/Loading/UserLoading";
 import MultiAILoadingScreen from "../components/Loading/MultiAILoadingScreen";
 
 function Step3PatentClassification() {
+  const apiUrl = import.meta.env.VITE_API_URL as string;
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -43,7 +44,7 @@ function Step3PatentClassification() {
 
   const saveBestLLM = async () => {
     try {
-      const response = await axios.get("https://s-pat.site/api/user/LLM");
+      const response = await axios.get(`${apiUrl}/api/user/LLM`);
       localStorage.setItem("LLM", response.data.LLM);
       console.log("Best LLM saved successfully:", response.data.LLM);
     } catch (error) {
@@ -82,7 +83,7 @@ function Step3PatentClassification() {
       if (Role === "User") {
         // 분류 작업 시작 API 호출
         const response = await axios.post(
-          `https://s-pat.site/api/user/${session_id}/upload_and_start_classification?LLM=${llm}`,
+          `${apiUrl}/api/user/${session_id}/upload_and_start_classification?LLM=${llm}`,
           formData,
           {
             headers: {
@@ -96,7 +97,7 @@ function Step3PatentClassification() {
       } else {
         // 분류 작업 시작 API 호출
         const response = await axios.post(
-          `https://s-pat.site/api/admin/${session_id}/upload_and_start_classification_and_evaluation`,
+          `${apiUrl}/api/admin/${session_id}/upload_and_start_classification_and_evaluation`,
           formData,
           {
             headers: {

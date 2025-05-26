@@ -61,6 +61,7 @@ function MultiAILoadingScreen({
   ]);
 
   const [allComplete, setAllComplete] = useState(false);
+  const apiUrl = import.meta.env.VITE_API_URL as string;
 
   useEffect(() => {
     const sources: EventSource[] = [];
@@ -70,7 +71,7 @@ function MultiAILoadingScreen({
 
     // 각 AI 모델에 대한 SSE 연결 설정
     aiModels.forEach((model) => {
-      const url = `https://s-pat.site/api/admin/${sessionId}/progress?LLM=${model.name}`;
+      const url = `${apiUrl}/api/admin/${sessionId}/progress?LLM=${model.name}`;
       const eventSource = new EventSource(url);
 
       startTimes[model.name] = Date.now();
