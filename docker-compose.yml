@@ -9,8 +9,12 @@ services:
     volumes:
       - ./BE:/code
     depends_on:
-      - redis
-      - postgres
+      alembic:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     env_file:
       - ./BE/.env
     networks:
@@ -41,9 +45,12 @@ services:
     volumes:
       - ./BE:/code    
     depends_on:
-      - backend
-      - redis
-      - postgres
+      backend:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     networks:
     - app-network
 
@@ -56,8 +63,10 @@ services:
     volumes:
       - ./BE:/code
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - ./BE/.env
     networks:
@@ -74,6 +83,12 @@ services:
       - redis_data:/data
     networks: 
       - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
   
   postgres:
     image: postgres:latest
@@ -88,6 +103,12 @@ services:
     - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 networks:
  app-network:

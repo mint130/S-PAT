@@ -22,7 +22,7 @@ git clone https://lab.ssafy.com/s12-final/S12P31S108.git
 
     ```bash
     docker pull postgres
-    docker run --name postgres -e POSTGRES_USER=${POSTGRES_USER} -e POSTGRES_PASSWORD=${POSTGRES_PASSWORD}-e POSTGRES_DB=${POSTGRES_DB} -p 5432:5432 -d postgres
+    docker run --name postgres -e POSTGRES_USER=${POSTGRES_USER} -e POSTGRES_PASSWORD=${POSTGRES_PASSWORD} -e POSTGRES_DB=${POSTGRES_DB} -p 5432:5432 -d postgres
     ```
     - port: 5432
     - 기본값
@@ -102,7 +102,7 @@ git clone https://lab.ssafy.com/s12-final/S12P31S108.git
     uvicorn app.main:app --reload
     ```
 
-- Celery 실행 (새로운 bash)
+- Celery 실행 (새로운 bash: BE 폴더 내에서)
 
     ```bash
     # --pool solo: Window 환경용 명령어
