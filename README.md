@@ -51,23 +51,29 @@ git clone https://lab.ssafy.com/s12-final/S12P31S108.git
      ┣ Dockerfile
      ┗ requirements.txt
     ```
-  | Variable Name          | Default Value                                                                                                                                                                      | Description              |
-  |------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
-  | LANGSMITH_TRACING      | true                                                                                                                                                                               | Enable LangSmith tracing |
-  | LANGSMITH_ENDPOINT     | "https://api.smith.langchain.com"                                                                                                                                                  | URL to LangSmith API     |
-  | LANGSMITH_API_KEY      |                                                                                                                                                                                    | LangSmith API key        |
-  | LANGSMITH_PROJECT      | "S-PAT"                                                                                                                                                                            | LangSmith 프로젝트 명      |
-  | OPENAI_API_KEY         |                                                                                                                                                                                    | OpenAI API key           |
-  | CLAUDE_API_KEY         |                                                                                                                                                                                    | Claude API key           |
-  | GEMINI_API_KEY         |                                                                                                                                                                                    | Gemini API key           |
-  | GROK3_API_KEY          |                                                                                                                                    <br/>                                                | Grok3 API key            |
-  | DATABASE_URL           | postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@localhost:5432/{POSTGRES_DB}<br/>default: postgresql://postgres:1234@localhost:5432/mydb | Database connection URL  |
-  | DEBUG                  | True                                                                                                                                                                               | Enable debug mode        |
-  | REDIS_HOST             | localhost                                                                                                                                                                          | Redis host               |
-  | REDIS_PORT             | 6379                                                                                                                                                                               | Redis port               |
-  | REDIS_PASSWORD         | None                                                                                                                                                                               | Redis password           |
-  | REDIS_URL              | redis://localhost:6379/0                                                                                                                                                           | Redis connection URL     |
-    ```bash
+
+  <details>
+  <summary>BE env 표</summary>
+
+  | Variable Name          | Default Value                                                                                                                            | Description              |
+      |------------------------|------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+  | LANGSMITH_TRACING      | true                                                                                                                                     | Enable LangSmith tracing |
+  | LANGSMITH_ENDPOINT     | "https://api.smith.langchain.com"                                                                                                        | URL to LangSmith API     |
+  | LANGSMITH_API_KEY      |                                                                                                                                          | LangSmith API key        |
+  | LANGSMITH_PROJECT      | "S-PAT"                                                                                                                                  | LangSmith 프로젝트 명      |
+  | OPENAI_API_KEY         |                                                                                                                                          | OpenAI API key           |
+  | CLAUDE_API_KEY         |                                                                                                                                          | Claude API key           |
+  | GEMINI_API_KEY         |                                                                                                                                          | Gemini API key           |
+  | GROK3_API_KEY          |                                                                                                                               | Grok3 API key            |
+  | DATABASE_URL           | postgresql://{docker에서 실행할 때 지정한 POSTGRES_USER}:{docker에서 실행할 때 지정한 POSTGRES_PASSWORD}@localhost:5432/{docker에서 실행할 때 지정한 POSTGRES_DB}<br/>default: postgresql://postgres:1234@localhost:5432/mydb  | Database connection URL  |
+  | DEBUG                  | True                                                                                                                                     | Enable debug mode        |
+  | REDIS_HOST             | localhost                                                                                                                                    | Redis host               |
+  | REDIS_PORT             | 6379                                                                                                                                     | Redis port               |
+  | REDIS_URL              | redis://localhost:6379/0                                                             | Redis connection URL     |
+
+   </details>
+
+  ```bash
     LANGSMITH_TRACING=true
     LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
     LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
@@ -80,7 +86,7 @@ git clone https://lab.ssafy.com/s12-final/S12P31S108.git
     GROK3_API_KEY=${GROK3_API_KEY}
     
     # DB
-    DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}
+    DATABASE_URL=postgresql://${docker에서 실행할 때 지정한 POSTGRES_USER}:${docker에서 실행할 때 지정한 POSTGRES_PASSWORD}@localhost:5432/${docker에서 실행할 때 지정한 POSTGRES_DB}
     DEBUG=True
     
     # Redis
@@ -102,7 +108,7 @@ git clone https://lab.ssafy.com/s12-final/S12P31S108.git
     uvicorn app.main:app --reload
     ```
 
-- Celery 실행 (새로운 bash: BE 폴더 내에서)
+- Celery 실행 (새로운 bash 열어서 BE 폴더 내에서 실행)
 
     ```bash
     # --pool solo: Window 환경용 명령어
@@ -197,7 +203,7 @@ git clone https://lab.ssafy.com/s12-final/S12P31S108.git
     REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
     ```
 
-- BE 폴더 아래 .env 작성
+- BE 폴더 아래 `.env` 작성
     ```bash
     BE
      ┣ alembic
@@ -221,7 +227,7 @@ git clone https://lab.ssafy.com/s12-final/S12P31S108.git
   | OPENAI_API_KEY         |                                                                                                                                          | OpenAI API key           |
   | CLAUDE_API_KEY         |                                                                                                                                          | Claude API key           |
   | GEMINI_API_KEY         |                                                                                                                                          | Gemini API key           |
-  | GROK3_API_KEY          | <br/>                                                                                                                                    | Grok3 API key            |
+  | GROK3_API_KEY          |                                                                                                                               | Grok3 API key            |
   | DATABASE_URL           | postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@localhost:5432/{POSTGRES_DB}<br/>default: postgresql://postgres:1234@postgres:5432/mydb | Database connection URL  |
   | DEBUG                  | True                                                                                                                                     | Enable debug mode        |
   | REDIS_HOST             | redis                                                                                                                                    | Redis host               |
@@ -249,12 +255,28 @@ git clone https://lab.ssafy.com/s12-final/S12P31S108.git
     DEBUG=True
     
     # Redis
+    # root env Redis 정보와 동일
     REDIS_HOST=redis
     REDIS_PORT=6379
     REDIS_PASSWORD=${REDIS_PASSWORD}
     REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
     ```
+- FE 폴더 아래 `.env.development` 생성
 
+    ```bash
+     FE
+     ┣ public
+     ┣ src
+     ┣ .env.development
+     ┣ Dockerfile
+     ┣ ...
+     ┗ vite.config.ts
+    ```
+
+    ```bash
+    VITE_API_URL=http://localhost:8000
+    VITE_HOST=localhost
+    ```
 
 ## 2.3 Docker compose 실행
 
@@ -263,3 +285,5 @@ docker compose up -d
 ```
 ---
 # 개선 사항
+
+
