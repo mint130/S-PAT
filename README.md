@@ -314,7 +314,7 @@ QA  기간: 2025.05.17 ~ 2025.05.22 <br />
         <img src="img/ReadMe/동균.png" alt="제동균 프로필" />
       </a>
     </td>
-    <td align="center" width="150px">
+    <td align="center" width="116px">
       <a href="https://github.com/key9425" target="_blank">
         <img src="img/ReadMe/은영.png" alt="김은영 프로필" />
       </a>
