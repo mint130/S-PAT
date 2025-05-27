@@ -270,7 +270,6 @@
 <br />
 
 ### Git
-Git
 <img src="/img/ReadMe/git.gif" width="700" />
 <br />
 
@@ -444,23 +443,28 @@ git clone https://lab.ssafy.com/s12-final/S12P31S108.git
      ┣ Dockerfile
      ┗ requirements.txt
     ```
-  | Variable Name          | Default Value                                                                                                                                                                      | Description              |
-  |------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
-  | LANGSMITH_TRACING      | true                                                                                                                                                                               | Enable LangSmith tracing |
-  | LANGSMITH_ENDPOINT     | "https://api.smith.langchain.com"                                                                                                                                                  | URL to LangSmith API     |
-  | LANGSMITH_API_KEY      |                                                                                                                                                                                    | LangSmith API key        |
-  | LANGSMITH_PROJECT      | "S-PAT"                                                                                                                                                                            | LangSmith 프로젝트 명      |
-  | OPENAI_API_KEY         |                                                                                                                                                                                    | OpenAI API key           |
-  | CLAUDE_API_KEY         |                                                                                                                                                                                    | Claude API key           |
-  | GEMINI_API_KEY         |                                                                                                                                                                                    | Gemini API key           |
-  | GROK3_API_KEY          |                                                                                                                                    <br/>                                                | Grok3 API key            |
-  | DATABASE_URL           | postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@localhost:5432/{POSTGRES_DB}<br/>default: postgresql://postgres:1234@localhost:5432/mydb | Database connection URL  |
-  | DEBUG                  | True                                                                                                                                                                               | Enable debug mode        |
-  | REDIS_HOST             | localhost                                                                                                                                                                          | Redis host               |
-  | REDIS_PORT             | 6379                                                                                                                                                                               | Redis port               |
-  | REDIS_PASSWORD         | None                                                                                                                                                                               | Redis password           |
-  | REDIS_URL              | redis://localhost:6379/0                                                                                                                                                           | Redis connection URL     |
-    ```bash
+  
+  <details>
+  <summary>BE env 표</summary>
+
+  | Variable Name          | Default Value                                                                                                                                                                                | Description              |
+  |------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+  | LANGSMITH_TRACING      | true                                                                                                                                                                                         | Enable LangSmith tracing |
+  | LANGSMITH_ENDPOINT     | "https://api.smith.langchain.com"                                                                                                                                                            | URL to LangSmith API     |
+  | LANGSMITH_API_KEY      |                                                                                                                                                                                              | LangSmith API key        |
+  | LANGSMITH_PROJECT      | "S-PAT"                                                                                                                                                                                      | LangSmith 프로젝트 명      |
+  | OPENAI_API_KEY         |                                                                                                                                                                                              | OpenAI API key           |
+  | CLAUDE_API_KEY         |                                                                                                                                                                                              | Claude API key           |
+  | GEMINI_API_KEY         |                                                                                                                                                                                              | Gemini API key           |
+  | GROK3_API_KEY          |                                                                                                                                                                                              | Grok3 API key            |
+  | DATABASE_URL           | postgresql://{docker에서 실행시 지정한 POSTGRES_USER}:{docker에서 실행시 지정한 POSTGRES_PASSWORD}@localhost:5432/{docker에서 실행시 지정한 POSTGRES_DB}<br/>default: postgresql://postgres:1234@localhost:5432/mydb | Database connection URL  |
+  | DEBUG                  | True                                                                                                                                                                                         | Enable debug mode        |
+  | REDIS_HOST             | localhost                                                                                                                                                                                    | Redis host               |
+  | REDIS_PORT             | 6379                                                                                                                                                                                         | Redis port               |
+  | REDIS_URL              | redis://localhost:6379/0                                                                                                                                                                     | Redis connection URL     |
+  </details>
+
+  ```bash
     LANGSMITH_TRACING=true
     LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
     LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
@@ -473,6 +477,7 @@ git clone https://lab.ssafy.com/s12-final/S12P31S108.git
     GROK3_API_KEY=${GROK3_API_KEY}
     
     # DB
+    # docker Postgres 실행시 지정한 POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
     DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}
     DEBUG=True
     
