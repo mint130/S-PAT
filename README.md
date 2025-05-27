@@ -311,32 +311,32 @@ QA  기간: 2025.05.17 ~ 2025.05.22 <br />
   <tr>
     <td align="center" width="150px">
       <a href="https://github.com/jegyun" target="_blank">
-        <img src="" alt="제동균 프로필" />
+        <img src="img/ReadMe/동균.png" alt="제동균 프로필" />
       </a>
     </td>
     <td align="center" width="150px">
       <a href="https://github.com/key9425" target="_blank">
-        <img src="" alt="김은영 프로필" />
+        <img src="img/ReadMe/은영.png" alt="김은영 프로필" />
       </a>
     </td>
     <td align="center" width="150px">
       <a href="https://github.com/shlee1103" target="_blank">
-        <img src="" alt="이송희 프로필" />
+        <img src="img/ReadMe/송희.jpg" alt="이송희 프로필" />
       </a>
     </td>
     <td align="center" width="150px">
       <a href="https://github.com/mint130" target="_blank">
-        <img src="" alt="김민주 프로필" />
+        <img src="img/ReadMe/민주.jpg" alt="김민주 프로필" />
       </a>
     </td>
     <td align="center" width="150px">
       <a href="https://github.com/euna-jeong20" target="_blank">
-        <img src="" alt="정은아 프로필" />
+        <img src="img/ReadMe/은아.png" alt="정은아 프로필" />
       </a>
     </td>
     <td align="center" width="150px">
-      <a href="https://github.com/" target="_blank">
-        <img src="" alt="김정모 프로필" />
+      <a href="https://github.com/mo-jeong" target="_blank">
+        <img src="img/ReadMe/정모.png" alt="김정모 프로필" />
       </a>
     </td>
   </tr>
@@ -367,7 +367,7 @@ QA  기간: 2025.05.17 ~ 2025.05.22 <br />
       </a>
     </td>
     <td align="center">
-      <a href="https://github.com/" target="_blank">
+      <a href="https://github.com/mo-jeong" target="_blank">
         김정모<br />(AI,Backend)
       </a>
     </td>
