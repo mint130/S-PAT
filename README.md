@@ -310,27 +310,27 @@ QA  기간: 2025.05.17 ~ 2025.05.22 <br />
 <table>
   <tr>
     <td align="center" width="150px">
-      <a href="https://github.com/" target="_blank">
+      <a href="https://github.com/jegyun" target="_blank">
         <img src="" alt="제동균 프로필" />
       </a>
     </td>
     <td align="center" width="150px">
-      <a href="https://github.com/" target="_blank">
+      <a href="https://github.com/key9425" target="_blank">
         <img src="" alt="김은영 프로필" />
       </a>
     </td>
     <td align="center" width="150px">
-      <a href="https://github.com/" target="_blank">
+      <a href="https://github.com/shlee1103" target="_blank">
         <img src="" alt="이송희 프로필" />
       </a>
     </td>
     <td align="center" width="150px">
-      <a href="https://github.com/" target="_blank">
+      <a href="https://github.com/mint130" target="_blank">
         <img src="" alt="김민주 프로필" />
       </a>
     </td>
     <td align="center" width="150px">
-      <a href="https://github.com/" target="_blank">
+      <a href="https://github.com/euna-jeong20" target="_blank">
         <img src="" alt="정은아 프로필" />
       </a>
     </td>
@@ -342,27 +342,27 @@ QA  기간: 2025.05.17 ~ 2025.05.22 <br />
   </tr>
   <tr>
     <td align="center">
-      <a href="https://github.com/" target="_blank">
+      <a href="https://github.com/jegyun" target="_blank">
         제동균<br />(Frontend & 팀장)
       </a>
     </td>
     <td align="center">
-      <a href="https://github.com/" target="_blank">
+      <a href="https://github.com/key9425" target="_blank">
         김은영<br />(Frontend)
       </a>
     </td>
     <td align="center">
-      <a href="https://github.com/">
+      <a href="https://github.com/shlee1103">
         이송희<br />(Frontend)
       </a>
     </td>
     <td align="center">
-      <a href="https://github.com/" target="_blank">
+      <a href="https://github.com/mint130" target="_blank">
         김민주<br />(Infra,Backend)
       </a>
     </td>
     <td align="center">
-      <a href="https://github.com/" target="_blank">
+      <a href="https://github.com/euna-jeong20" target="_blank">
         정은아<br />(AI,Backend)
       </a>
     </td>
