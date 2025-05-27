@@ -190,9 +190,10 @@
 
 
 ### 백엔드
-![Spring Boot Badge](https://img.shields.io/badge/Spring%20Boot-6DB33F?logo=springboot&logoColor=fff&style=flat-square)
-![MySQL Badge](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=fff&style=flat-square)
-![Redis Badge](https://img.shields.io/badge/redis-FF4438?style=flat-square&logo=redis&logoColor=fff)
+![FastAPI Badge](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=fff&style=flat-square)
+![PostgreSQL Badge](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=fff&style=flat-square)
+![Redis Badge](https://img.shields.io/badge/Redis-FF4438?style=flat-square&logo=redis&logoColor=fff)
+![Celery Badge](https://img.shields.io/badge/Celery-37814A?style=flat-square&logo=Celery&logoColor=fff)
 
 ### 프론트엔드
 ![React Badge](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=000&style=flat-square)
@@ -205,7 +206,6 @@
 ![Docker Badge](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=fff&style=flat-square)
 ![Nginx Badge](https://img.shields.io/badge/nginx-009639?style=flat-square&logo=nginx&logoColor=fff)
 ![Jenkins Badge](https://img.shields.io/badge/jenkins-D24939?style=flat-square&logo=jenkins&logoColor=fff)
-![AmazonS3 Badge](https://img.shields.io/badge/AmazonS3-569A31?style=flat-square&logo=amazons3&logoColor=fff)
 
 
 ### 디자인
@@ -268,6 +268,12 @@
 <br />
 <br />
 <br />
+
+### Git
+Git
+<img src="/img/ReadMe/git.gif" width="700" />
+<br />
+
 
 <div id="7-개발-일정"></div>
 
@@ -353,7 +359,7 @@ QA  기간: 2025.05.17 ~ 2025.05.22 <br />
     </td>
     <td align="center">
       <a href="https://github.com/" target="_blank">
-        김민주<br />(Infra)
+        김민주<br />(Infra,Backend)
       </a>
     </td>
     <td align="center">
@@ -650,3 +656,26 @@ docker compose up -d
 ```
 ---
 # 개선 사항
+## 사용자 모드
+### 특허 데이터 100건, 6명 동시 실행 (AWS EC2 기준)
+- GPT: 평균 1,182초 소요, 1명 중단
+- Claude: 평균 1,132초 소요, 1명 중단
+- Gemini: 평균 256초 소요
+- Grok: 평균 1,342초 소요
+
+## 관리자 모드
+### 특허 데이터 100건, 4명 동시 실행 (AWS EC2 기준)
+- GPT: 304초 / 1,154초 소요, 2명 중단
+- Claude: 584초 / 600초 소요, 2명 중단
+- Gemini: 평균 1,664초 소요
+- Grok: 평균 529초 소요
+
+## 문제점
+- Celery 환경 차이: 사용자 모드에서 Celery를 사용하는 경우, AWS EC2(리눅스 기반)에서는 worker를 4개로 실행해 병렬 처리가 가능하지만, Windows 환경에서는 기본적으로 worker가 1개로 제한되어 기존 background task 방식과 속도 차이가 거의 없음
+- Rate limit: GPT, Claude와 같이 TPM(Token Per Minute)이 낮은 모델은 동시에 여러 사용자가 접근할 경우 rate limit에 걸려 속도 저하 발생
+- 실패 복구 미흡: background task 방식에는 재시도(retry) 로직이 없어, 모델 응답 실패 시 특허 분류가 비정상적으로 종료됨
+
+## 해결 방안
+- API Key 분산 사용: TPM이 낮은 GPT, Claude의 경우 여러 개의 API key를 라운드 로빈 또는 큐 방식으로 분산 사용해 rate limit 회피
+- Retry 및 예외처리 로직 강화: Celery task 및 background task 모두에 retry 로직과 예외 처리 로직 강화하여 중단 없이 복구 가능하도록 개선
+- 실행 상태 모니터링 도입: 작업 실패나 중단 상황에 대응할 수 있도록 Celery Dashboard (Flower 등) 구축
