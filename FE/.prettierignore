@@ -1,0 +1,47 @@
+# 빌드 출력 디렉토리
+dist/
+build/
+
+# 노드 모듈
+node_modules/
+
+# 환경 변수 파일
+.env
+.env.*
+!.env.example
+
+# 패키지 매니저 락 파일
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# 캐시 디렉토리
+.cache/
+.vite/
+
+# 로그 파일
+*.log
+
+# 테스트 커버리지 리포트
+coverage/
+
+# IDE 관련 파일
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 타입스크립트 빌드 정보
+tsconfig.tsbuildinfo
+
+# 자동 생성된 타입
+*.d.ts
+!global.d.ts
+
+# 공개 자산 (이미지, 폰트 등)
+public/
+assets/
+
+# 잠재적으로 큰 JSON 파일
+*.json.br
+*.json.gz
