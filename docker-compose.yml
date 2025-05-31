@@ -1,0 +1,118 @@
+services:
+  backend:
+    build:
+      context: ./BE
+      dockerfile: backend.Dockerfile
+    container_name: backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./BE:/code
+    depends_on:
+      alembic:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./BE/.env
+    networks:
+      - app-network
+  
+  frontend:
+    build: 
+      context: ./FE
+      dockerfile: frontend.Dockerfile
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    env_file:
+      - ./FE/.env.development
+    networks:
+      - app-network
+
+  celery-worker:
+    build:
+      context: ./BE
+      dockerfile: backend.Dockerfile
+    container_name: celery-worker
+    command: celery -A app.core.celery.celery_app worker --loglevel=info
+    env_file:
+      - ./BE/.env
+    volumes:
+      - ./BE:/code    
+    depends_on:
+      backend:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+    - app-network
+
+  alembic:
+    build:
+      context: ./BE
+      dockerfile: backend.Dockerfile
+    container_name: alembic-migration
+    command: alembic upgrade head
+    volumes:
+      - ./BE:/code
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./BE/.env
+    networks:
+      - app-network
+    restart: "no"
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks: 
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+  
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+    - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+ app-network:
+
+volumes:
+  postgres_data:
+  redis_data:
